@@ -1,0 +1,83 @@
+name: Deploy
+
+env:
+  
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  APP_NAME: configuration
+  GIT_PASSWORD: ${{ secrets.GIT_PASSWORD }}
+  GIT_USERNAME: ${{ secrets.GIT_USERNAME }}
+  BP_MODE_LOWERCASE: production
+  BP_MODE : PRODUCTION
+  CONFIGURATION_SERVER_USERNAME: ${{ secrets.CONFIGURATION_SERVER_USERNAME }}
+  CONFIGURATION_SERVER_PASSWORD: ${{ secrets.CONFIGURATION_SERVER_PASSWORD }}
+  GH_PERSONAL_ACCESS_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+  CONFIGURATION_SERVER_URI: https://configuration.bootifulpodcast.fm
+  GKE_CLUSTER:   ${{ secrets.GKE_CLUSTER }}
+  GCLOUD_ZONE:  ${{ secrets.GCLOUD_ZONE }}
+  NS_NAME:  ${{ secrets.NS_NAME }}
+  GCLOUD_SA_KEY:  ${{ secrets.GCLOUD_SA_KEY }}
+
+
+on:
+  repository_dispatch:
+    types: [ deploy-production-event, deploy-development-event ]
+  create:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v3
+
+      - name: "Setup PATH"
+        run: |
+          P="${GITHUB_WORKSPACE}/bin"
+          mkdir -p $P
+          echo "${P}" >> $GITHUB_PATH
+      
+
+      - uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCLOUD_SA_KEY }}'
+
+
+      - id: 'get-credentials'
+        uses: 'google-github-actions/get-gke-credentials@v1'
+        with:
+          cluster_name: '${{ env.GKE_CLUSTER  }}'
+          location: '${{ env.GCLOUD_ZONE }}'
+
+      - run: |
+          gcloud config set project $GCLOUD_PROJECT 
+          gcloud --quiet auth configure-docker
+          kubectl get pods
+
+      - name: Discover Spring Cloud Config Server
+        run: |
+          CONFIG_IP=$( kubectl get svc configuration -n $NS_NAME --output="jsonpath={.status.loadBalancer.ingress[0].ip}" )
+          echo "The configuration service lives at ${CONFIG_IP}. "
+          echo "CONFIGURATION_SERVER_HOST=${CONFIG_IP}" >> $GITHUB_ENV
+
+      - uses: joshlong/config-client-github-action@v29
+        with:
+          config-server-uri: http://${CONFIGURATION_SERVER_HOST}
+          config-server-username: ${{ secrets.CONFIGURATION_SERVER_USERNAME  }}
+          config-server-password: ${{ secrets.CONFIGURATION_SERVER_PASSWORD  }}
+          config-server-application-id: deployment
+          config-server-profile: default
+
+      - name: Deploy Processor
+        run: |
+          kubectl get ns/$NS_NAME || kubectl create ns $NS_NAME 
+          kubectl config set-context --current --namespace=$NS_NAME
+          kubectl config view --minify | grep "namespace:" && echo "found the namespace.."
+          export ROOT_DIR=$GITHUB_WORKSPACE
+          echo "------"
+          echo $MESSAGE
+          cd $GITHUB_WORKSPACE
+          ./deploy/deploy.sh

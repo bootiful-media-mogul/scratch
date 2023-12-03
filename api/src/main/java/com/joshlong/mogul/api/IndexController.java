@@ -11,9 +11,14 @@ import java.util.Map;
 @ResponseBody
 class IndexController {
 
+	@GetMapping("/me")
+	Map<String, String> me(Principal principal) {
+		return Map.of("name", principal.getName());
+	}
+
 	@GetMapping("/")
 	Map<String, String> hello(Principal principal) {
-		return Map.of("message", "Hello " + principal.getName());
+		return me(principal);
 	}
 
 }

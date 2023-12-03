@@ -42,10 +42,7 @@ public class GatewayApplication {
 	@Bean
 	RouterFunction<ServerResponse> routes(GatewayProperties properties) {
 		var apiHost = properties.api();
-		// todo outsource this to a property. maybe this is why we _should_ have the
-		// config server?
-		// so we can define the whole system in one git repo?
-		var apiPrefix = "/api/";
+		var apiPrefix = properties.apiPrefix();
 		return route().route(path(apiPrefix + "**"), http(apiHost))
 			.filter(TokenRelayFilterFunctions.tokenRelay())
 			.before(BeforeFilterFunctions.rewritePath(apiPrefix + "(?<segment>.*)", "/$\\{segment}"))

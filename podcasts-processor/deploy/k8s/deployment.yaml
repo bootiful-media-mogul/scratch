@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: processor
+  name: processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: processor
+  template:
+    metadata:
+      labels:
+        app: processor
+    spec:
+      containers:
+        - envFrom:
+            - secretRef:
+                name: processor-secrets
+          image: gcr.io/pgtm-jlong/processor:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "10Gi"
+              ephemeral-storage: "2Gi"
+            requests:
+              ephemeral-storage: "2Gi"
+              memory: "10Gi"
+          name: processor
+          env:
+            - name: PORT
+              value: "8080"

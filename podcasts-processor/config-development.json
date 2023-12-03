@@ -1,0 +1,8 @@
+{
+  "podcast-requests-queue": "podcast-processor-requests",
+  "podcast-responses-exchange": "podcast-processor-replies",
+  "podcast-output-s3-bucket": "podcast-output-bucket-dev",
+  "podcast-assets-s3-bucket": "podcast-assets-bucket-dev",
+  "podcast-input-s3-bucket": "podcast-input-bucket-dev",
+  "podcast-assets-s3-bucket-folder": "062019"
+}
