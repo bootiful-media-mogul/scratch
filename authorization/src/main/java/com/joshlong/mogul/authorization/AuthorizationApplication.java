@@ -6,7 +6,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2UserAuthority;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @SpringBootApplication
 public class AuthorizationApplication {
@@ -17,18 +24,13 @@ public class AuthorizationApplication {
 
 	@Bean
 	PasswordEncoder passwordEncoderFactories() {
-		return PasswordEncoderFactories
-				.createDelegatingPasswordEncoder();
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
 
 	@Bean
 	InMemoryUserDetailsManager inMemoryUserDetailsManager(PasswordEncoder pe) {
 		return new InMemoryUserDetailsManager(
-				User.builder()
-						.username("jlong")
-						.password(pe.encode("pw"))
-						.roles("USER")
-						.build()
-		);
+				User.builder().username("jlong").password(pe.encode("pw")).roles("USER").build());
 	}
+
 }
