@@ -1,7 +1,10 @@
+<!--
+ renders a list of all the existing podcasts
+-->
 <script lang="ts">
 
 
-import MogulClient from "@/mogul";
+import MogulClient from "@/mogulClient";
 
 const api = new MogulClient();
 

@@ -1,6 +1,6 @@
 import {graphqlJson} from "@/graphql";
 
-export default class Mogul {
+export default class MogulClient {
 
     constructor() {
     }
