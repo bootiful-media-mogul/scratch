@@ -1,15 +1,35 @@
-<script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+<script lang="ts">
+
+export default {
+  data() {
+    return {mogul: ''}
+  },
+  async created() {
+    this.mogul = (await (await window.fetch('/api/me')).json()) ['name']
+  },
+}
 </script>
 
 <template>
   <div>
-    hello,  | 
-    <a href="">podcasts</a> |
-    <a href="">blogs</a> |
-    <a href="">videos</a>
+    <div>
+      hello {{ mogul }}
+    </div>
+    <div>
+      <router-link to="/"> home</router-link>
+      |
+      <router-link to="/podcasts"> podcasts</router-link>
+      <!--      |
+            <router-link to="/youtube"> youtube videos</router-link>
+            |
+            <router-link to="/youtube"> blogs</router-link>-->
+    </div>
+
+    <div>
+      <router-view></router-view>
+    </div>
   </div>
-  <HelloWorld msg="You did it!" />
+
 </template>
 
 <style scoped>
