@@ -21,6 +21,7 @@ import java.util.UUID;
 class ArchiveConverterConfiguration {
 
 	private static Logger log = LoggerFactory.getLogger(ArchiveConverterConfiguration.class);
+/*
 
 	// use this to write a new archive with the sample assets. this is a slow thing
 	// to do so only do it if you're sure
@@ -47,6 +48,7 @@ class ArchiveConverterConfiguration {
 			}
 		};
 	}
+*/
 
 	@Bean
 	ArchiveConverter archiveConverter(ApiProperties properties) {

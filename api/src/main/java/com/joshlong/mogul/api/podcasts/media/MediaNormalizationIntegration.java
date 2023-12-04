@@ -2,6 +2,7 @@ package com.joshlong.mogul.api.podcasts.media;
 
 import com.joshlong.mogul.api.podcasts.Integrations;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
+import com.joshlong.mogul.api.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -20,7 +21,6 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.Locale;
 import java.util.Set;
-import java.util.UUID;
 
 import static com.joshlong.mogul.api.podcasts.Integrations.*;
 
@@ -65,17 +65,6 @@ class MediaNormalizationIntegration {
 interface MediaEncoder {
 
 	File encode(File input);
-
-}
-
-abstract class EncoderUtils {
-
-	static File tmp(File in) {
-		Assert.notNull(in, "the file must not be null");
-		var path = in.getAbsolutePath();
-		var ext = path.substring(path.lastIndexOf("."));
-		return new File(in.getParentFile(), UUID.randomUUID() + ext);
-	}
 
 }
 
@@ -140,7 +129,7 @@ class ImageEncoder implements MediaEncoder {
 	private File convertFileToJpeg(File in) throws Exception {
 		if (isValidType(in))
 			return in;
-		var converted = EncoderUtils.tmp(in);
+		var converted = FileUtils.createRelativeTempFile(in);
 		var convert = new ProcessBuilder().command("convert", in.getAbsolutePath(), converted.getAbsolutePath())
 			.start();
 		Assert.state(convert.waitFor() == 0, "the process should exit normally");
@@ -152,7 +141,7 @@ class ImageEncoder implements MediaEncoder {
 	}
 
 	private File scale(File file, double width) throws Exception {
-		var tmp = EncoderUtils.tmp(file);
+		var tmp = FileUtils.createRelativeTempFile(file);
 		var cmd = new String[] { "convert", file.getAbsolutePath(), "-resize", "100x" + ((int) width) + "^", "-gravity",
 				"center", tmp.getAbsolutePath() };
 		var process = new ProcessBuilder().command(cmd).start();

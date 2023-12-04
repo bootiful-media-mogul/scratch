@@ -26,7 +26,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Any client will upload a {@literal .zip} file. This program knows how to read and write
+ * A client will upload a {@literal .zip} file. This program knows how to read and write
  * them, and the manifest inside them. This archive is the input into the podcast
  * publication pipeline.
  */
