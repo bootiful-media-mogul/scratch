@@ -16,7 +16,8 @@ public abstract class JdbcUtils {
 			if (string == null)
 				return null;
 			return new URI(string);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 

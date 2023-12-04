@@ -17,7 +17,7 @@ class RabbitConfiguration {
 	@Bean
 	InitializingBean amqpInitializer(AmqpAdmin amqp, ApiProperties p) {
 		return () -> Set.of(p.podcasts().processor().amqp().replies(), p.podcasts().processor().amqp().requests())
-				.forEach(q -> defineDestination(amqp, q, q, q));
+			.forEach(q -> defineDestination(amqp, q, q, q));
 	}
 
 	private void defineDestination(AmqpAdmin amqpAdmin, String exchange, String queue, String routingKey) {

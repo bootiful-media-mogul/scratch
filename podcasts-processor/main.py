@@ -25,15 +25,42 @@ def s3_download(s3, bucket_name: str, key: str, local_fn: str):
 
 
 def background_thread():
-    requests_q = 'podcast-processor-requests'
-    aws_region_env = os.environ["AWS_REGION"]
-    aws_key_id = os.environ['AWS_ACCESS_KEY_ID']
-    aws_key_secret = os.environ['AWS_ACCESS_KEY_SECRET']
-    rmq_uri = utils.parse_uri(os.environ['RMQ_ADDRESS'])
+    requests_q = None
+    aws_region = None
+    aws_key_id = None
+    aws_key_secret = None
+    rmq_uri = None
+    assets_s3_bucket = None
+    assets_s3_bucket_folder = None
+    output_s3_bucket = None
+    try:
+        requests_q = 'podcast-processor-requests'
+        aws_region = os.environ["AWS_REGION"]
+        aws_key_id = os.environ['AWS_ACCESS_KEY_ID']
+        aws_key_secret = os.environ['AWS_ACCESS_KEY_SECRET']
+
+        assets_s3_bucket = os.environ["PODCAST_ASSETS_S3_BUCKET"]
+        assets_s3_bucket_folder = os.environ["PODCAST_ASSETS_S3_BUCKET_FOLDER"]
+        output_s3_bucket = os.environ["PODCAST_OUTPUT_S3_BUCKET"]
+
+        rmq_uri = utils.parse_uri(os.environ['RMQ_ADDRESS'])
+
+    finally:
+        def good_string(s: str) -> bool:
+            if s is not None and isinstance(s, str):
+                if s.strip() != '':
+                    return True
+            return False
+
+        for k, v in {'access-key-secret': aws_key_secret,
+                     'access-key-id': aws_key_id,
+                     'access-region': aws_region}.items():
+            assert good_string(v), f'the value for {k} is invalid'
+
     boto3.setup_default_session(
         aws_secret_access_key=aws_key_secret,
         aws_access_key_id=aws_key_id,
-        region_name=aws_region_env)
+        region_name=aws_region)
 
     s3 = boto3.resource("s3")
 
@@ -42,21 +69,15 @@ def background_thread():
         utils.log(b)
     utils.log('-' * 50)
 
-    def handle_job(properties, request) :
+    def handle_job(properties, request):
         utils.log('-' * 50)
         utils.log(properties)
         utils.log(request)
 
-        def resolve_config_file_name() -> str:
-            bp_mode: str = os.environ.get("BP_MODE", "development")
-            utils.log("BP_MODE: %s" % bp_mode)
-            return "config-%s.json" % bp_mode
-
-        config = utils.load_config(resolve_config_file_name())
-
-        assets_s3_bucket = config["podcast-assets-s3-bucket"]
-        assets_s3_bucket_folder = config["podcast-assets-s3-bucket-folder"]
-        output_s3_bucket = config["podcast-output-s3-bucket"]
+        # def resolve_config_file_name() -> str:
+        #     bp_mode: str = os.environ.get("BP_MODE", "development")
+        #     utils.log("BP_MODE: %s" % bp_mode)
+        #     return "config-%s.json" % bp_mode
 
         json_request = json.loads(request['request'])
         title = json_request['title']
@@ -135,7 +156,7 @@ def background_thread():
         upload_local_fn = results['export']
         fqn = f'{uid}/{os.path.basename(upload_local_fn)}'
         s3.meta.client.upload_file(upload_local_fn, output_s3_bucket, fqn)
-        x=  {
+        x = {
             'title': title,
             'description': description,
             'introduction': intro_media,

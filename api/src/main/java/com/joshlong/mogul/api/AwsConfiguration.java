@@ -17,10 +17,10 @@ class AwsConfiguration {
 		var secret = api.aws().accessKeySecret();
 		var creds = AwsBasicCredentials.create(key, secret);
 		return S3Client.builder()
-				.region(Region.of(api.aws().region()))
-				.credentialsProvider(StaticCredentialsProvider.create(creds))
-				.forcePathStyle(true)
-				.build();
+			.region(Region.of(api.aws().region()))
+			.credentialsProvider(StaticCredentialsProvider.create(creds))
+			.forcePathStyle(true)
+			.build();
 	}
 
 	@Bean

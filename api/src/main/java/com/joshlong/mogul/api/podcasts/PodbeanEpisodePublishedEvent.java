@@ -1,6 +1,6 @@
 package com.joshlong.mogul.api.podcasts;
 
-import fm.bootifulpodcast.podbean.Episode;
+import com.joshlong.podbean.Episode;
 
 public record PodbeanEpisodePublishedEvent(Episode episode) {
 }

@@ -16,11 +16,11 @@ def process(fn: types.FunctionType, id_str: str):
     return proc
 
 
-def load_config(file) -> typing.Dict[str, str]:
-    import json
-
-    with open(file) as fp:
-        return json.loads(fp.read())
+# def load_config(file) -> typing.Dict[str, str]:
+#     import json
+#
+#     with open(file) as fp:
+#         return json.loads(fp.read())
 
 
 def parse_uri(uri) -> typing.Dict[str, str]:

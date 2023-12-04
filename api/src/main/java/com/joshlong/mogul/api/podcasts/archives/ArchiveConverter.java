@@ -48,7 +48,7 @@ class ArchiveConverter implements Serializer<PodcastArchive>, Deserializer<Podca
 	}
 
 	private String encodeXmlDocument(String uuid, String title, String description, String intro, String interview,
-									 String image) throws ParserConfigurationException, TransformerException, IOException {
+			String image) throws ParserConfigurationException, TransformerException, IOException {
 
 		var dbFactory = DocumentBuilderFactory.newInstance();
 
@@ -104,7 +104,7 @@ class ArchiveConverter implements Serializer<PodcastArchive>, Deserializer<Podca
 	public void serialize(@NonNull PodcastArchive archive, @NonNull OutputStream outputStream) throws IOException {
 		try (var zos = new ZipOutputStream(outputStream)) {
 
-			for (var resource : new Resource[]{archive.introduction(), archive.interview(), archive.image()}) {
+			for (var resource : new Resource[] { archive.introduction(), archive.interview(), archive.image() }) {
 				try (var input = resource.getInputStream()) {
 					addFileToZip(input, resource.getFilename(), zos);
 				}
@@ -143,8 +143,8 @@ class ArchiveConverter implements Serializer<PodcastArchive>, Deserializer<Podca
 					new FileSystemResource(new File(extractionRoot, interview)),
 					new FileSystemResource(new File(extractionRoot, image)));
 			Map.of("image", podcastArchive.image(), "intro", podcastArchive.introduction(), "interview",
-							podcastArchive.introduction())
-					.forEach((fn, r) -> Assert.state(r.exists(), "file for " + fn + " does not exist"));
+					podcastArchive.introduction())
+				.forEach((fn, r) -> Assert.state(r.exists(), "file for " + fn + " does not exist"));
 			return podcastArchive;
 		}
 	}

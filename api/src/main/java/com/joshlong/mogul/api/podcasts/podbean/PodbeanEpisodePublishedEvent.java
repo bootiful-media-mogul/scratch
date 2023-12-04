@@ -1,6 +1,6 @@
 package com.joshlong.mogul.api.podcasts.podbean;
 
-import fm.bootifulpodcast.podbean.Episode;
+import com.joshlong.podbean.Episode;
 
 /**
  * a freshly published Podbean episode and its associated podcast

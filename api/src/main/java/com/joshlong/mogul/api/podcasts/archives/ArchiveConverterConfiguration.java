@@ -24,10 +24,10 @@ class ArchiveConverterConfiguration {
 
 	// use this to write a new archive with the sample assets. this is a slow thing
 	// to do so only do it if you're sure
-	ApplicationRunner sampleArchiveDebugRunner(ArchiveConverter archiveConverter, ApiProperties properties ) {
+	ApplicationRunner sampleArchiveDebugRunner(ArchiveConverter archiveConverter, ApiProperties properties) {
 		return args -> {
-			if ( properties.debug()) {
-				var archives = properties .podcasts().pipeline().archives();
+			if (properties.debug()) {
+				var archives = properties.podcasts().pipeline().archives();
 				var sampleArchive = new File(SystemPropertyUtils
 					.resolvePlaceholders("${HOME}/Desktop/misc/bootiful-podcast-v3/sample-archive/archive"));
 				Assert.state(sampleArchive.exists(), "the archive must exist");

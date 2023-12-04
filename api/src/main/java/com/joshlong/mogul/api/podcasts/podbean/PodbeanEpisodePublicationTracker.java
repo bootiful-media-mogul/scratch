@@ -1,7 +1,7 @@
 package com.joshlong.mogul.api.podcasts.podbean;
 
-import fm.bootifulpodcast.podbean.Episode;
-import fm.bootifulpodcast.podbean.EpisodeStatus;
+import com.joshlong.podbean.Episode;
+import com.joshlong.podbean.EpisodeStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;

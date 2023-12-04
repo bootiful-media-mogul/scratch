@@ -1,7 +1,5 @@
 package com.joshlong.mogul.api.podcasts.processor;
 
-
-
 import com.joshlong.mogul.api.ApiProperties;
 import com.joshlong.mogul.api.podcasts.Integrations;
 import com.joshlong.mogul.api.podcasts.PodcastArchive;
@@ -59,7 +57,7 @@ class ProcessorIntegrationFlowConfiguration {
 	}
 
 	private S3UploadRequest s3UploadRequestForResource(PodcastArchive archive, String bucket, ArchiveResourceType type,
-													   Resource resource) {
+			Resource resource) {
 
 		var fileName = switch (type) {
 			case IMAGE -> "image.jpg";

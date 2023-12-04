@@ -2,6 +2,7 @@ package com.joshlong.mogul.api.podcasts;
 
 import com.joshlong.lucene.DocumentWriteMapper;
 import com.joshlong.lucene.LuceneTemplate;
+import com.joshlong.mogul.api.MogulService;
 import com.joshlong.templates.MarkdownService;
 import lombok.SneakyThrows;
 import org.apache.lucene.document.*;
@@ -36,7 +37,7 @@ class SearchController {
 
 	private final MarkdownService markdownService;
 
-	private final PodcastRepository podcastRepository;
+	private final MogulService podcastRepository;
 
 	private final LuceneTemplate luceneTemplate;
 
@@ -47,7 +48,7 @@ class SearchController {
 	private final ApplicationEventPublisher publisher;
 
 	SearchController(ApplicationEventPublisher publisher, MarkdownService markdownService,
-			PodcastRepository podcastRepository, LuceneTemplate luceneTemplate) {
+			MogulService podcastRepository, LuceneTemplate luceneTemplate) {
 		this.podcastRepository = podcastRepository;
 		this.publisher = publisher;
 		this.markdownService = markdownService;
@@ -87,9 +88,10 @@ class SearchController {
 
 	private void refresh() {
 
-		var computedPodcastViews = this.podcastRepository.podcasts()
-			.stream()
-			.map(p -> new PodcastView(p, this.markdownService.convertMarkdownTemplateToHtml(p.description())))
+		var computedPodcastViews = this.podcastRepository //
+			.getAllPodcasts()//
+			.stream()//
+			.map(p -> new PodcastView(p, this.markdownService.convertMarkdownTemplateToHtml(p.description())))//
 			.toList();
 
 		this.luceneTemplate.write(computedPodcastViews, podcastView -> {
@@ -112,6 +114,7 @@ class SearchController {
 	@SneakyThrows
 	private Document buildPodcastDocument(PodcastView podcast) {
 		var document = new Document();
+		document.add(new StringField("mogulId", Long.toString(podcast.podcast().mogulId()), Field.Store.YES));
 		document.add(new StringField("id", Long.toString(podcast.podcast().id()), Field.Store.YES));
 		document.add(new StringField("uid", podcast.podcast().uid(), Field.Store.YES));
 		document.add(new TextField("title", podcast.podcast().title(), Field.Store.YES));

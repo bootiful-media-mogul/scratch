@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.repository.ListCrudRepository;
+import org.springframework.stereotype.Service;
 
 @EnableConfigurationProperties(ApiProperties.class)
 @SpringBootApplication
@@ -14,12 +15,4 @@ public class ApiApplication {
 		SpringApplication.run(ApiApplication.class, args);
 	}
 
-
-}
-
-
-interface MogulRepository extends ListCrudRepository<Mogul, Long> {
-}
-
-record Mogul(@Id Long id, String username, String email, String clientId) {
 }

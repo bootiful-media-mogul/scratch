@@ -1,6 +1,8 @@
 package com.joshlong.mogul.api.podcasts;
 
 import com.joshlong.mogul.api.ApiProperties;
+import com.joshlong.mogul.api.MogulService;
+import com.joshlong.mogul.api.Podcast;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -19,6 +21,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -128,7 +131,7 @@ class PipelineConfiguration {
 	}
 
 	@Bean
-	IntegrationFlow pipeline(PodcastRepository repository, Deserializer<PodcastArchive> podcastArchiveDeserializer,
+	IntegrationFlow pipeline(MogulService mogulService, Deserializer<PodcastArchive> podcastArchiveDeserializer,
 			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
 			@Qualifier(Integrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
 			@Qualifier(Integrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
@@ -147,7 +150,7 @@ class PipelineConfiguration {
 					"file_relativePath"))
 			.transform(Integrations.debugHandler("processing reply from processor"))
 			.transform(new JsonToObjectTransformer())
-			.transform(new ProcessorReplyToDatabasePodcastGenericTransformer(repository))
+			.transform(new ProcessorReplyToDatabasePodcastGenericTransformer(mogulService))
 			.handle(Integrations.debugHandler(
 					"got the reply from the processor, writing to the DB, going to send a request to Podbean"))
 			.handle(Integrations.terminatingDebugHandler(
@@ -173,27 +176,33 @@ class PipelineConfiguration {
 	static class ProcessorReplyToDatabasePodcastGenericTransformer
 			implements GenericTransformer<Map<String, Object>, Podcast> {
 
-		private final PodcastRepository repository;
+		private final MogulService mogulService;
 
-		ProcessorReplyToDatabasePodcastGenericTransformer(PodcastRepository repository) {
-			this.repository = repository;
+		ProcessorReplyToDatabasePodcastGenericTransformer(MogulService mogulService) {
+			this.mogulService = mogulService;
 		}
 
 		@Override
 		public Podcast transform(Map<String, Object> source) {
 			try {
+
+				var mogulName = SecurityContextHolder.getContext().getAuthentication().getName();
+				var mogul = mogulService.getMogulByName(mogulName);
+
 				var exportedAudioS3Name = (String) source.get("exported-audio");
 				var exportedAudioS3FileName = exportedAudioS3Name.substring(exportedAudioS3Name.lastIndexOf('/'));
 
 				var exportedPhotoS3Name = (String) source.get("exported-photo");
 				var exportedPhotoS3FileName = exportedPhotoS3Name.substring(exportedPhotoS3Name.lastIndexOf('/'));
 
-				var podcast = new Podcast(null, (String) source.get("uid"), new Date(),
+				var podcast = new Podcast(mogul.id(), null, (String) source.get("uid"), new Date(),
 						(String) source.get("description"), null, (String) source.get("title"),
 						new Podcast.Podbean(null, null, null, null, null), null,
 						new Podcast.S3(new Podcast.S3.Audio(new URI(exportedAudioS3Name), exportedAudioS3FileName),
 								new Podcast.S3.Photo(new URI(exportedPhotoS3Name), exportedPhotoS3FileName)));
-				this.repository.persist(podcast);
+
+				this.mogulService.addPodcastEpisode(mogul.id(), podcast);
+
 				return podcast;
 
 			} //
@@ -207,8 +216,9 @@ class PipelineConfiguration {
 
 	@Bean
 	IntegrationFlow archiveFilesIntegrationFlow(ApiProperties properties,
-												@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests) {
-		var inboundFileAdapter = Files.inboundAdapter(properties.podcasts().pipeline().archives()).autoCreateDirectory(true);
+			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests) {
+		var inboundFileAdapter = Files.inboundAdapter(properties.podcasts().pipeline().archives())
+			.autoCreateDirectory(true);
 		return IntegrationFlow.from(inboundFileAdapter).handle(Integrations.debugHandler()).channel(requests).get();
 	}
 

@@ -1,6 +1,8 @@
 package com.joshlong.mogul.api.podcasts;
 
-import fm.bootifulpodcast.podbean.Episode;
+import com.joshlong.mogul.api.MogulService;
+import com.joshlong.mogul.api.Podcast;
+import com.joshlong.podbean.Episode;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.core.GenericHandler;
@@ -19,16 +21,14 @@ class PodcastPromotionIntegrationFlowConfiguration {
 	}
 
 	@Bean
-	IntegrationFlow publishedEpisodePromotionIntegrationFlow(PodcastRepository repository,
+	IntegrationFlow publishedEpisodePromotionIntegrationFlow(MogulService repository,
 			ApplicationEventListeningMessageProducer applicationEventListeningMessageProducer) {
 		return IntegrationFlow.from(applicationEventListeningMessageProducer)
 			.transform((GenericTransformer<PodbeanEpisodePublishedEvent, Object>) PodbeanEpisodePublishedEvent::episode)
 			.transform((GenericTransformer<Episode, Podcast>) source -> repository
-				.podcastByPodbeanEpisodeId(source.getId())
-				.iterator()
-				.next())
+				.getPodcastByPodbeanEpisode(source.getId()))
 			.handle((GenericHandler<Podcast>) (payload, headers) -> {
-				repository.markAsNeedingPromotion(payload);
+				repository.markPodcastForPromotion(payload);
 				return null;
 			})
 			.get();

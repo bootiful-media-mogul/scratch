@@ -1,6 +1,5 @@
 package com.joshlong.mogul.api.podcasts.media;
 
-
 import com.joshlong.mogul.api.podcasts.Integrations;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
 import org.slf4j.Logger;
@@ -24,7 +23,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import static com.joshlong.mogul.api.podcasts.Integrations.*;
-
 
 /**
  * the idea here is that we want a way to take any asset - be it a {@literal .wav} or a
