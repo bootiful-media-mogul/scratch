@@ -10,7 +10,7 @@ spring:
               client-id: mogul
               client-secret: "{bcrypt}$2a$10$bYtpfc5jQ9e/7I9OCBFKH.5LoFZBqxuswEO488WnHKYnPtuUNx5UK"
               authorization-grant-types: client_credentials, authorization_code, refresh_token
-              redirect-uris: http://127.0.0.1:8082/login/oauth2/code/spring
+              redirect-uris: http://127.0.0.1:1010/login/oauth2/code/spring
               scopes: user.read,user.write,openid
               client-authentication-methods: client_secret_basic
 server:

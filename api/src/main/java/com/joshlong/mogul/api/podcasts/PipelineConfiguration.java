@@ -89,9 +89,13 @@ class PipelineConfiguration {
 
 	}
 
-	static record FileToPodcastArchiveGenericTransformer(Deserializer<PodcastArchive> podcastArchiveDeserializer)
-			implements
-				GenericTransformer<File, PodcastArchive> {
+	static class FileToPodcastArchiveGenericTransformer implements GenericTransformer<File, PodcastArchive> {
+
+		private final Deserializer<PodcastArchive> podcastArchiveDeserializer;
+
+		FileToPodcastArchiveGenericTransformer(Deserializer<PodcastArchive> podcastArchiveDeserializer) {
+			this.podcastArchiveDeserializer = podcastArchiveDeserializer;
+		}
 
 		@Override
 		public PodcastArchive transform(File source) {

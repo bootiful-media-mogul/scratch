@@ -5,67 +5,54 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.gateway.server.mvc.filter.BeforeFilterFunctions;
-import org.springframework.cloud.gateway.server.mvc.filter.TokenRelayFilterFunctions;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.function.RouterFunction;
-import org.springframework.web.servlet.function.ServerResponse;
-
-import javax.sql.DataSource;
-
-import static org.springframework.cloud.gateway.server.mvc.handler.HandlerFunctions.http;
-import static org.springframework.cloud.gateway.server.mvc.predicate.GatewayRequestPredicates.path;
-import static org.springframework.security.config.Customizer.withDefaults;
-import static org.springframework.web.servlet.function.RouterFunctions.route;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @SpringBootApplication
 @EnableConfigurationProperties(GatewayProperties.class)
 public class GatewayApplication {
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	public static void main(String[] args) {
 		SpringApplication.run(GatewayApplication.class, args);
 	}
 
 	@Bean
-	JdbcClient jdbcClient(DataSource dataSource) {
-		return JdbcClient.create(dataSource);
+	RouteLocator gateway(RouteLocatorBuilder rlb) {
+		var apiPrefix = "/api/";
+		return rlb
+				.routes()
+				.route(rs -> rs
+						.path(apiPrefix + "**")
+						.filters(f -> f
+								.tokenRelay()
+								.rewritePath(apiPrefix + "(?<segment>.*)", "/$\\{segment}")
+						)
+						.uri("http://localhost:8080")
+				)
+				.route(rs -> rs
+						.path("/**")
+						.uri("http://localhost:5173")
+				)
+				.build();
 	}
 
 	@Bean
-	RouterFunction<ServerResponse> routes(GatewayProperties properties) {
-		var apiHost = properties.api();
-		var apiPrefix = properties.apiPrefix();
-		return route().route(path(apiPrefix + "**"), http(apiHost))
-			.filter(TokenRelayFilterFunctions.tokenRelay())
-			.before(BeforeFilterFunctions.rewritePath(apiPrefix + "(?<segment>.*)", "/$\\{segment}"))
-			.build();
+	SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+		return http
+				.authorizeExchange((authorize) -> authorize.anyExchange().authenticated())
+				.csrf(ServerHttpSecurity.CsrfSpec::disable)
+				.oauth2Login(Customizer.withDefaults())
+				.oauth2Client(Customizer.withDefaults())
+				.build();
 	}
-
-	@Bean
-	SecurityFilterChain oauth2SecurityFilterChain(JdbcOAuth2UserService jdbcOAuth2UserService, HttpSecurity http)
-			throws Exception {
-		http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
-		http.oauth2Login(config -> {
-			config.userInfoEndpoint(i -> i.oidcUserService(jdbcOAuth2UserService));
-		});
-		http.oauth2Client(withDefaults());
-		return http.build();
-	}
-
-	@Bean
-	JdbcOAuth2UserService jdbcOAuth2UserService(JdbcClient jdbcClient) {
-		return new JdbcOAuth2UserService(jdbcClient);
-	}
-
 }
+/*
 
 class JdbcOAuth2UserService extends OidcUserService {
 
@@ -93,4 +80,4 @@ class JdbcOAuth2UserService extends OidcUserService {
 		return user;
 	}
 
-}
+}*/
