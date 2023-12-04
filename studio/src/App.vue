@@ -1,11 +1,17 @@
 <script lang="ts">
 
+
+import MogulClient from "@/mogul";
+
+const api = new MogulClient();
+
 export default {
   data() {
     return {mogul: ''}
   },
   async created() {
-    this.mogul = (await (await window.fetch('/api/me')).json()) ['name']
+    this.mogul = await (await api.me())['data']['me'][ 'name']
+    console.log(this.mogul)
   },
 }
 </script>
@@ -13,7 +19,7 @@ export default {
 <template>
   <div>
     <div>
-      hello {{ mogul }}
+      hello, <b>{{ mogul }}</b>!
     </div>
     <div>
       <router-link to="/"> home</router-link>

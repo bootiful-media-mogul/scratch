@@ -1,0 +1,8 @@
+
+type Mogul {
+ name :String
+}
+
+type Query {
+    me:  Mogul
+}
