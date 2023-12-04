@@ -1,8 +1,16 @@
 <script setup lang="ts">
-  const user =await window.fetch('/api/me')
-  console.log( 'the user is ' +user)
+import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
- <h1> Hello </h1>
+  <div>
+    hello,  | 
+    <a href="">podcasts</a> |
+    <a href="">blogs</a> |
+    <a href="">videos</a>
+  </div>
+  <HelloWorld msg="You did it!" />
 </template>
+
+<style scoped>
+</style>
