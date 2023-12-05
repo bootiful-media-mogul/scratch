@@ -42,9 +42,10 @@ class EpisodePublicationIntegrationFlowConfiguration {
 	 * PODBEAN_DRAFT_CREATED = NULL, REVISION = NULL ; UPDATE PODBEAN_EPISODE SET
 	 * PREVIOUSLY_PUBLISHED = FALSE , PUBLISHED = FALSE ;
 	 */
-	//todo we need to figure out how to give this logic a tenant / mogul context
-	// it's using the `PodbeanClient` which in turn uses the `TokenProvider` which in turn expects an authenticated user context somewhere.
-//	@Bean
+	// todo we need to figure out how to give this logic a tenant / mogul context
+	// it's using the `PodbeanClient` which in turn uses the `TokenProvider` which in turn
+	// expects an authenticated user context somewhere.
+	// @Bean
 	IntegrationFlow episodePublicationIntegrationFlow(PodbeanEpisodePublicationTracker podbeanEpisodePublicationTracker,
 			ApplicationEventPublishingMessageHandler episodeSyncApplicationEventPublishingMessageHandler,
 			PodbeanClient podbeanClient) {
@@ -52,7 +53,8 @@ class EpisodePublicationIntegrationFlowConfiguration {
 			.withPayload(podbeanClient.getAllEpisodes())
 			.build();
 		return IntegrationFlow
-			.from(messageSource, pm -> pm.poller(p -> PollerFactory.fixedRate(Duration.ofMinutes(1), Duration.ofSeconds(0))))
+			.from(messageSource,
+					pm -> pm.poller(p -> PollerFactory.fixedRate(Duration.ofMinutes(1), Duration.ofSeconds(0))))
 			.transform(
 					(GenericTransformer<Collection<Episode>, Collection<PodbeanEpisodePublicationTracker.NewlyPublishedEpisode>>) podbeanEpisodePublicationTracker::identifyNewlyPublishedEpisodes)
 			.filter((GenericSelector<Collection<Episode>>) source -> !source.isEmpty())

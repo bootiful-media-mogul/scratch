@@ -10,7 +10,18 @@ export default class MogulClient {
             query { 
              me { name } 
             }
-        `, new Map<String, Object>())
+        `, new Map<String, Object>());
+    }
+
+    async podcasts() {
+        const results =   graphqlJson(`
+         query { 
+          podcasts { id, title, description  }
+         }
+        `, new Map<String, Object>());
+
+        console.log(results)
+        return results
     }
 }
 

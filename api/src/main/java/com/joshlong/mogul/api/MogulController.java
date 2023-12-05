@@ -9,8 +9,9 @@ import java.util.Map;
 @Controller
 class MogulController {
 
-    @QueryMapping
-    Map<String, String> me(Principal principal) {
-        return Map.of("name", principal.getName());
-    }
+	@QueryMapping
+	Map<String, String> me(Principal principal) {
+		return Map.of("name", principal.getName());
+	}
+
 }

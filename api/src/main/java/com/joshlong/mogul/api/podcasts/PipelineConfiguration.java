@@ -107,6 +107,7 @@ class PipelineConfiguration {
 			}
 
 		}
+
 	}
 
 	static class PodcastArchiveMediaAggregatorSpec implements Consumer<AggregatorSpec> {

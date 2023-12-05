@@ -3,6 +3,15 @@ type Mogul {
  name :String
 }
 
+type Podcast {
+
+ date : String
+ description : String
+ title : String
+
+}
+
 type Query {
     me:  Mogul
+    podcasts: [Podcast]
 }

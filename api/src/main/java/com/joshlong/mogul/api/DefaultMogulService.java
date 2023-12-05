@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
@@ -27,9 +29,25 @@ class DefaultMogulService implements MogulService {
 
 	private final TransactionTemplate transactionTemplate;
 
-	public DefaultMogulService(JdbcClient db, TransactionTemplate transactionTemplate) {
+	DefaultMogulService(JdbcClient db, TransactionTemplate transactionTemplate) {
 		this.db = db;
 		this.transactionTemplate = transactionTemplate;
+	}
+
+	@Override
+	public Mogul login(Authentication principal) {
+		var sql = """
+				insert into mogul(username,  client_id) values (?, ?)
+				on conflict on constraint mogul_client_id_username_key do nothing
+				""";
+		if (principal.getPrincipal() instanceof Jwt jwt && jwt.getClaims().get("aud") instanceof List list
+				&& list.get(0) instanceof String aud) {
+			var name = principal.getName();
+			this.db.sql(sql).params(name, aud).update();
+			return this.getMogulByName(name);
+		}
+		throw new IllegalStateException(
+				"failed to register a new user with authentication [" + principal.toString() + "]");
 	}
 
 	@Override
@@ -42,7 +60,7 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul getMogulByName(String name) {
-		return this.db.sql("select * from mogul where id =? ")
+		return this.db.sql("select * from mogul where  username  = ? ")
 			.param(name)
 			.query(new MogulRowMapper(this::getPodbeanAccountByMogul))
 			.single();
@@ -50,10 +68,13 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public PodbeanAccount getPodbeanAccountByMogul(Long mogul) {
-		return this.db.sql("select * from podbean_account where mogul_id = ?")
+		var list = this.db.sql("select * from podbean_account where mogul_id = ?")
 			.param(mogul)
 			.query(new PodbeanAccountRowMapper())
-			.single();
+			.list();
+		if (list.isEmpty())
+			return null;
+		return list.get(0);
 	}
 
 	@Override
