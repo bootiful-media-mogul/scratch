@@ -3,7 +3,7 @@
   <form ref="createPodcastForm">
     <div>
       <h2>title</h2>
-      <input type="text" v-model="title"/>
+      <input type="text" v-model="title" />
     </div>
     <div>
       <h2>description</h2>
@@ -11,17 +11,17 @@
     </div>
     <div>
       <h2>picture</h2>
-      <input type="file" @change="uploadPicture"/>
+      <input type="file" @change="uploadPicture" />
     </div>
 
     <div>
       <h2>intro</h2>
-      <input type="file" @change="uploadIntro"/>
+      <input type="file" @change="uploadIntro" />
     </div>
 
     <div>
       <h2>interview</h2>
-      <input type="file" @change="uploadInterview"/>
+      <input type="file" @change="uploadInterview" />
     </div>
 
     <div>
@@ -54,8 +54,7 @@ export default {
       interview: null
     }
   },
-  async created() {
-  },
+  async created() {},
 
   methods: {
     uploadPicture(event: any) {
@@ -69,7 +68,6 @@ export default {
     },
 
     async submit(event: Event) {
-
       event.preventDefault()
 
       console.log('title:' + this.title)
@@ -87,14 +85,11 @@ export default {
       data.set('title', this.title)
       data.set('description', this.description)
 
-      const response = await axios.post(
-          uploadPath,
-          data, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            }
-          }
-      );
+      const response = await axios.post(uploadPath, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
       console.log('upload response: ' + response)
     }
 
@@ -150,5 +145,4 @@ export default {
         };
       } */
 }
-
 </script>

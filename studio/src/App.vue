@@ -8,10 +8,10 @@ const api = new MogulClient()
 
 export default {
   data() {
-    return {mogul: ''}
+    return { mogul: '' }
   },
   async created() {
-    this.mogul = (await api.me())
+    this.mogul = await api.me()
   }
 }
 </script>
@@ -19,7 +19,8 @@ export default {
 <template>
   <div>
     <div>
-      hello, <b>{{ mogul }}</b>!
+      hello, <b>{{ mogul }}</b
+      >!
     </div>
     <div>
       <router-link to="/"> home</router-link>
@@ -27,9 +28,8 @@ export default {
       <router-link to="/list-podcasts"> list podcasts</router-link>
       |
       <router-link to="/create-podcast"> create podcast</router-link>
-
     </div>
-    <hr/>
+    <hr />
     <div>
       <router-view></router-view>
     </div>
