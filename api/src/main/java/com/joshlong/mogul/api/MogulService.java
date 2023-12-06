@@ -1,5 +1,6 @@
 package com.joshlong.mogul.api;
 
+import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public interface MogulService {
 
 	PodcastDraft getPodcastDraftByUid(String uuid);
 
-	PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description, File pictureFN, File introFN,
-			File interviewFN);
+	PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description, Resource pictureFN,
+			Resource introFN, Resource interviewFN);
 
 }

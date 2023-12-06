@@ -1,7 +1,5 @@
 package com.joshlong.mogul.gateway;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -15,8 +13,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @SpringBootApplication
 @EnableConfigurationProperties(GatewayProperties.class)
 public class GatewayApplication {
-
-	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	public static void main(String[] args) {
 		SpringApplication.run(GatewayApplication.class, args);
@@ -43,27 +39,3 @@ public class GatewayApplication {
 	}
 
 }
-/*
- *
- * class JdbcOAuth2UserService extends OidcUserService {
- *
- * private final Logger log = LoggerFactory.getLogger(getClass());
- *
- * private final JdbcClient db;
- *
- * JdbcOAuth2UserService(JdbcClient db) { this.db = db; }
- *
- * @Override public OidcUser loadUser(OidcUserRequest userRequest) throws
- * OAuth2AuthenticationException { var user = super.loadUser(userRequest); var
- * preferredUsername = user.getUserInfo() != null ?
- * user.getUserInfo().getPreferredUsername() : null; var username =
- * StringUtils.hasText(preferredUsername) ? preferredUsername :
- * user.getClaims().get("sub"); var email = user.getEmail(); var client =
- * user.getClaims().get("azp"); var sql = """ insert into mogul(username, email,
- * client_id) values (?,?,?) on conflict on constraint mogul_client_id_username_key do
- * update set email = excluded.email """; this.db.sql(sql).params(username, email,
- * client).update(); log.debug("created an account for username [" + username + "]");
- * return user; }
- *
- * }
- */

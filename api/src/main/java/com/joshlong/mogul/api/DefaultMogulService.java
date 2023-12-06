@@ -3,6 +3,7 @@ package com.joshlong.mogul.api;
 import com.joshlong.mogul.api.utils.JdbcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -63,8 +64,7 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul getMogulById(Long id) {
-		return this.db
-				.sql("select * from mogul where id =? ")
+		return this.db.sql("select * from mogul where id =? ")
 			.param(id)
 			.query(new MogulRowMapper(this::getPodbeanAccountByMogul))
 			.single();
@@ -72,8 +72,7 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul getMogulByName(String name) {
-		return this.db
-				.sql("select * from mogul where  username  = ? ")
+		return this.db.sql("select * from mogul where  username  = ? ")
 			.param(name)
 			.query(new MogulRowMapper(this::getPodbeanAccountByMogul))
 			.single();
@@ -117,8 +116,8 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
-	public PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description, File pictureFN,
-			File introFN, File interviewFN) {
+	public PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description,
+			Resource pictureFN, Resource introFN, Resource interviewFN) {
 
 		Assert.hasText(uid, "the uid must be non-null");
 		Assert.notNull(mogulId, "the mogulId must be non-null");
@@ -141,9 +140,9 @@ class DefaultMogulService implements MogulService {
 				interview_file_name = excluded.interview_file_name
 				""";
 		this.db.sql(sql)
-			.params(uid, title, description, true, mogulId, pictureFN.getName(), introFN.getName(),
-					interviewFN.getName())
-				.update();
+			.params(uid, title, description, true, mogulId, pictureFN.getFilename(), introFN.getFilename(),
+					interviewFN.getFilename())
+			.update();
 		return getPodcastDraftByUid(uid);
 	}
 

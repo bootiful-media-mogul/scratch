@@ -140,7 +140,6 @@ class PipelineConfiguration {
 			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
 			@Qualifier(Integrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
 			@Qualifier(Integrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
-
 		return IntegrationFlow.from(requests)
 			.transform(new FileToPodcastArchiveGenericTransformer(podcastArchiveDeserializer))
 			.split(new ArchiveMediaSplitter())
@@ -160,11 +159,6 @@ class PipelineConfiguration {
 					"got the reply from the processor, writing to the DB, going to send a request to Podbean"))
 			.handle(Integrations.terminatingDebugHandler(
 					"....at this point there's a separate integrationFlow that'll kick in once the podbean episode has been published"))
-			// // this should only happen _after_ the publication event has been fired
-			// .handle(Integrations.debugHandler("going to send social media promotion via
-			// the social service"))
-			// .handle(Integrations.debugHandler("going to publish a blog via some blog
-			// service i have yet to build"))
 			.get();
 	}
 
@@ -219,10 +213,16 @@ class PipelineConfiguration {
 
 	}
 
+	private static boolean isValidPodcastArchiveFile(File zip) {
+		return zip != null && zip.isFile() && zip.getName().toLowerCase().endsWith(".zip");
+	}
+
 	@Bean
 	IntegrationFlow archiveFilesIntegrationFlow(ApiProperties properties,
 			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests) {
-		var inboundFileAdapter = Files.inboundAdapter(properties.podcasts().pipeline().archives())
+		var inboundFileAdapter = Files.inboundAdapter(properties.podcasts().pipeline().archives())//
+			.filterFunction(PipelineConfiguration::isValidPodcastArchiveFile)
+			.preventDuplicates(true)//
 			.autoCreateDirectory(true);
 		return IntegrationFlow.from(inboundFileAdapter).handle(Integrations.debugHandler()).channel(requests).get();
 	}

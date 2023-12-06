@@ -70,14 +70,10 @@ export default {
     async submit(event: Event) {
       event.preventDefault()
 
-      console.log('title:' + this.title)
-      console.log('description:' + this.description)
-
-      const uid = '123'
+      const uid = crypto.randomUUID()
       const result = await api.createPodcastDraft(uid)
       const uploadPath: string = '/api' + result.uploadPath
 
-      console.log('going to upload to ' + uploadPath)
       const data = new FormData(this.$refs.createPodcastForm as HTMLFormElement)
       data.set('picture', this.picture)
       data.set('interview', this.interview)
@@ -90,7 +86,12 @@ export default {
           'Content-Type': 'multipart/form-data'
         }
       })
-      console.log('upload response: ' + response)
+
+      console.assert(
+        response.status >= 200 && response.status <= 300,
+        'the http post to upload the archive did not succeed.'
+      )
+      console.log('uploaded to ' + uploadPath + ' vis ' + uploadPath)
     }
   }
 }
