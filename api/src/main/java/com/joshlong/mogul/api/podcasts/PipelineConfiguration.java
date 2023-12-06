@@ -227,7 +227,6 @@ class PipelineConfiguration {
 		return IntegrationFlow.from(inboundFileAdapter).handle(Integrations.debugHandler()).channel(requests).get();
 	}
 
-	//
 	// https://developers.podbean.com/podbean-api-docs/#api-appendix-Podbean-API-Limit
 	// i can do two requests per second nonstop
 

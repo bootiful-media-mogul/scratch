@@ -18,7 +18,7 @@ export class PodcastDraft {
   uploadPath: string
 
   constructor(
-    up: string,
+    uploadPath: string,
     id: number,
     completed: boolean,
     uid: string,
@@ -26,7 +26,7 @@ export class PodcastDraft {
     title: string,
     description: string
   ) {
-    this.uploadPath = up
+    this.uploadPath = uploadPath
     this.description = description
     this.title = title
     this.uid = uid

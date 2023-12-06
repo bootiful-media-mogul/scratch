@@ -63,7 +63,8 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul getMogulById(Long id) {
-		return this.db.sql("select * from mogul where id =? ")
+		return this.db
+				.sql("select * from mogul where id =? ")
 			.param(id)
 			.query(new MogulRowMapper(this::getPodbeanAccountByMogul))
 			.single();
@@ -71,7 +72,8 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul getMogulByName(String name) {
-		return this.db.sql("select * from mogul where  username  = ? ")
+		return this.db
+				.sql("select * from mogul where  username  = ? ")
 			.param(name)
 			.query(new MogulRowMapper(this::getPodbeanAccountByMogul))
 			.single();
@@ -115,7 +117,7 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
-	public void completePodcastDraft(Long mogulId, String uid, String title, String description, File pictureFN,
+	public PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description, File pictureFN,
 			File introFN, File interviewFN) {
 
 		Assert.hasText(uid, "the uid must be non-null");
@@ -141,8 +143,8 @@ class DefaultMogulService implements MogulService {
 		this.db.sql(sql)
 			.params(uid, title, description, true, mogulId, pictureFN.getName(), introFN.getName(),
 					interviewFN.getName())
-			.update();
-
+				.update();
+		return getPodcastDraftByUid(uid);
 	}
 
 	@Override

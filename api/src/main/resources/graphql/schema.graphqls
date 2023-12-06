@@ -19,7 +19,6 @@ type PodcastDraft  {
     interviewFileName: String
     title: String
     description: String
-
 }
 
 type Query {

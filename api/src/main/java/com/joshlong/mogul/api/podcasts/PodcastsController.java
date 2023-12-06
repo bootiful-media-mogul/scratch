@@ -75,7 +75,7 @@ class PodcastsController {
 
 	@ResponseBody
 	@PostMapping("/podcasts/drafts/{uid}")
-	void uploadDataToPodcastDraft(@PathVariable("uid") String uid, @RequestParam("title") String title,
+	PodcastDraft uploadDataToPodcastDraft(@PathVariable("uid") String uid, @RequestParam("title") String title,
 			@RequestParam("description") String description, @RequestParam("intro") MultipartFile intro,
 			@RequestParam("interview") MultipartFile interview, @RequestParam("picture") MultipartFile picture)
 			throws Exception {
@@ -89,7 +89,7 @@ class PodcastsController {
 		var pictureFN = handle(mount, "picture", picture);
 		var interviewFN = handle(mount, "interview", interview);
 		var introFN = handle(mount, "intro", intro);
-		this.mogulService.completePodcastDraft(this.mogulService.getCurrentMogul().id(), uid, title, description,
+		return this.mogulService.completePodcastDraft(this.mogulService.getCurrentMogul().id(), uid, title, description,
 				pictureFN, introFN, interviewFN);
 	}
 

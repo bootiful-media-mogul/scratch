@@ -92,57 +92,6 @@ export default {
       })
       console.log('upload response: ' + response)
     }
-
-    /*
-          const reader = new FileReader()
-          if (this.picture != null) {
-            reader.readAsDataURL(this.picture['value'])
-            reader.onload = async () => {
-              const encodedFile = (reader?.result as string)?.split(",")[1];
-              const data = {
-                file: encodedFile,
-              };
-              try {
-                const endpoint = "/api/podcasts";
-                const response = await axios.post(endpoint, data);
-                console.log(response.data);
-              } catch (error) {
-                console.error(error);
-              }
-            };
-
-          }//
-          else throw new Error('you must specify a valid picture, interview, and introduction')
-          */
   }
-
-  /*
-
-      uploadFile(event) {
-        this.file.value = event.target.files[0];
-      },
-
-      async submitFile() {
-        const reader = new FileReader();
-
-        reader.readAsDataURL( this.file?.value);
-
-        reader.onload = async () => {
-          const encodedFile = reader?.result?.split(",")[1];
-          const data = {
-            file: encodedFile,
-            fileName:  this.fileName.value,
-            fileExtension: this.fileExtension.value,
-            fileMimeType: this.fileMimeType.value,
-          };
-          try {
-            const endpoint = "/api/podcasts";
-            const response = await axios.post(endpoint, data);
-            console.log(response.data);
-          } catch (error) {
-            console.error(error);
-          }
-        };
-      } */
 }
 </script>

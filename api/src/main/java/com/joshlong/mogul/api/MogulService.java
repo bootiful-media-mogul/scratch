@@ -34,7 +34,7 @@ public interface MogulService {
 
 	PodcastDraft getPodcastDraftByUid(String uuid);
 
-	void completePodcastDraft(Long mogulId, String uid, String title, String description, File pictureFN, File introFN,
+	PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description, File pictureFN, File introFN,
 			File interviewFN);
 
 }
