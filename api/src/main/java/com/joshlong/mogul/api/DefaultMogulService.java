@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
+import java.io.File;
 import java.net.URI;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -111,6 +112,37 @@ class DefaultMogulService implements MogulService {
 	@Override
 	public List<Podcast> getAllPodcasts() {
 		return this.db.sql("select * from podcast  ").query(new PodcastRowMapper()).list();
+	}
+
+	@Override
+	public void completePodcastDraft(Long mogulId, String uid, String title, String description, File pictureFN,
+			File introFN, File interviewFN) {
+
+		Assert.hasText(uid, "the uid must be non-null");
+		Assert.notNull(mogulId, "the mogulId must be non-null");
+		Assert.hasText(title, "the title must be non-null");
+		Assert.hasText(description, "the description must be non-null");
+		Assert.notNull(pictureFN, "the picture file name must be non-null");
+		Assert.notNull(introFN, "the introduction file name must be non-null");
+		Assert.notNull(interviewFN, "the interview file name must be non-null");
+
+		var sql = """
+
+				insert into podcast_draft (uid,  title, description, completed , mogul_id , picture_file_name, intro_file_name, interview_file_name )
+				values (?,?,?,?,?,?,?,?)
+				on conflict on constraint podcast_draft_uid_key do update set
+				title = excluded.title,
+				description = excluded.description,
+				completed = excluded.completed ,
+				picture_file_name = excluded.picture_file_name,
+				intro_file_name = excluded.intro_file_name,
+				interview_file_name = excluded.interview_file_name
+				""";
+		this.db.sql(sql)
+			.params(uid, title, description, true, mogulId, pictureFN.getName(), introFN.getName(),
+					interviewFN.getName())
+			.update();
+
 	}
 
 	@Override
@@ -249,17 +281,19 @@ class DefaultMogulService implements MogulService {
 				 title = excluded.title,
 				 description = excluded.description,
 				 date = excluded.date,
-				 completed = excluded.completed 
+				 completed = excluded.completed
 				""";
-		this.db.sql(sql).params(uuid, new Date(), null, null, false , mogulId).update();
+		this.db.sql(sql).params(uuid, new Date(), null, null, false, mogulId).update();
 
 		return getPodcastDraftByUid(uuid);
 	}
 
-
 	@Override
 	public PodcastDraft getPodcastDraftByUid(String uuid) {
-		return  this.db.sql("select * from podcast_draft where uid =? ").param(uuid).query( new PodcastDraftRowMapper()).single();
+		return this.db.sql("select * from podcast_draft where uid =? ")
+			.param(uuid)
+			.query(new PodcastDraftRowMapper())
+			.single();
 	}
 
 	private Podcast getPodcastById(Long id) {
@@ -323,18 +357,13 @@ class MogulRowMapper implements RowMapper<Mogul> {
 
 }
 
-
 class PodcastDraftRowMapper implements RowMapper<PodcastDraft> {
 
 	@Override
 	public PodcastDraft mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new PodcastDraft(
-				rs.getLong("id"),
-				rs.getBoolean("completed"),
-				rs.getString("uid"),
-				rs.getDate("date"),
-				rs.getString("title"),
-				rs.getString("description")
-		);
+		return new PodcastDraft(rs.getLong("id"), rs.getBoolean("completed"), rs.getString("uid"), rs.getDate("date"),
+				rs.getString("title"), rs.getString("description"), rs.getString("intro_file_name"),
+				rs.getString("interview_file_name"), rs.getString("picture_file_name"));
 	}
+
 }

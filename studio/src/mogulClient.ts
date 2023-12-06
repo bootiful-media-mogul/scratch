@@ -24,17 +24,17 @@ export default class MogulClient {
     }
 
     async createPodcastDraft(uid: String): Promise<PodcastDraft> {
-        const  mutation = `
+        const mutation = `
          mutation CreatePodcastDraft ( $uid: String) { 
           createPodcastDraft( uid : $uid ){ 
-           id, uid
+           id, uid, complete, uploadPath
           }
          }
         `
-        const result = await this.client .mutation ( mutation , {
-            'uid' : uid
+        const result = await this.client.mutation(mutation, {
+            'uid': uid
         })
-        return result.data ['createPodcastDraft']
+        return result.data ['createPodcastDraft'] as PodcastDraft
     }
 
     /*    async getPodcasts(): Array<Podcast> {

@@ -15,6 +15,10 @@ public record ApiProperties(Aws aws, Podcasts podcasts, boolean debug) {
 
 		public record Pipeline(File root) {
 
+			public File drafts() {
+				return new File(this.root(), "drafts");
+			}
+
 			public File archives() {
 				return new File(this.root(), "archives");
 			}

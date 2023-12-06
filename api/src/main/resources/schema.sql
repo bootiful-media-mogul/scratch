@@ -38,6 +38,11 @@ create table if not exists podcast_draft
     description text,
     completed   bool ,
     mogul_id                bigint not null,
+
+    picture_file_name text ,
+    interview_file_name text ,
+    intro_file_name text ,
+
     foreign key (mogul_id) references mogul (id)
 );
 
