@@ -5,12 +5,11 @@ defineProps<{
 </script>
 
 <template>
-   <div>
-     <h3>
-       {{ msg }}
-     </h3>
-   </div>
+  <div>
+    <h3>
+      {{ msg }}
+    </h3>
+  </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

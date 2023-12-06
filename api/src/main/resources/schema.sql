@@ -27,6 +27,21 @@ create table if not exists podbean_episode
 
 -- todo change the ddl so that the podbean_episode_id is a foreign key pointing to the podbean_episode table, somehow
 --  also the two things should have similar names: either podbean_podcast* or podbean_episode*
+
+
+create table if not exists podcast_draft
+(
+    id          serial primary key,
+    uid         varchar(255) unique,
+    date        timestamp,
+    title       text,
+    description text,
+    completed   bool ,
+    mogul_id                bigint not null,
+    foreign key (mogul_id) references mogul (id)
+);
+
+
 create table if not exists podcast
 (
     podbean_episode_id      varchar(255),

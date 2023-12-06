@@ -4,14 +4,25 @@ type Mogul {
 }
 
 type Podcast {
+    date : String
+    description : String
+    title : String
+}
 
- date : String
- description : String
- title : String
-
+type PodcastDraft  {
+    id : String
+    complete: Boolean
+    uid : String
+    uploadPath: String
 }
 
 type Query {
-    me:  Mogul
+    me: Mogul
     podcasts: [Podcast]
+}
+
+type Mutation {
+
+    createPodcastDraft(uid:String) : PodcastDraft
+
 }

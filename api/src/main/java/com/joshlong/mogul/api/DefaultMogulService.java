@@ -7,8 +7,10 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
@@ -16,11 +18,13 @@ import java.net.URI;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@Transactional
 class DefaultMogulService implements MogulService {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -32,6 +36,12 @@ class DefaultMogulService implements MogulService {
 	DefaultMogulService(JdbcClient db, TransactionTemplate transactionTemplate) {
 		this.db = db;
 		this.transactionTemplate = transactionTemplate;
+	}
+
+	@Override
+	public Mogul getCurrentMogul() {
+		var name = SecurityContextHolder.getContextHolderStrategy().getContext().getAuthentication().getName();
+		return this.getMogulByName(name);
 	}
 
 	@Override
@@ -231,6 +241,27 @@ class DefaultMogulService implements MogulService {
 		});
 	}
 
+	@Override
+	public PodcastDraft createPodcastDraft(Long mogulId, String uuid) {
+		var sql = """
+				insert into podcast_draft (uid, date, title, description, completed , mogul_id ) values (?, ? , ? , ?, ? ,? )
+				on conflict on constraint podcast_draft_uid_key do update set
+				 title = excluded.title,
+				 description = excluded.description,
+				 date = excluded.date,
+				 completed = excluded.completed 
+				""";
+		this.db.sql(sql).params(uuid, new Date(), null, null, false , mogulId).update();
+
+		return getPodcastDraftByUid(uuid);
+	}
+
+
+	@Override
+	public PodcastDraft getPodcastDraftByUid(String uuid) {
+		return  this.db.sql("select * from podcast_draft where uid =? ").param(uuid).query( new PodcastDraftRowMapper()).single();
+	}
+
 	private Podcast getPodcastById(Long id) {
 		return this.db.sql("select * from podcast where id =? ").param(id).query(new PodcastRowMapper()).single();
 	}
@@ -290,4 +321,20 @@ class MogulRowMapper implements RowMapper<Mogul> {
 				podbeanAccountFunction.apply(rs.getLong("id")));
 	}
 
+}
+
+
+class PodcastDraftRowMapper implements RowMapper<PodcastDraft> {
+
+	@Override
+	public PodcastDraft mapRow(ResultSet rs, int rowNum) throws SQLException {
+		return new PodcastDraft(
+				rs.getLong("id"),
+				rs.getBoolean("completed"),
+				rs.getString("uid"),
+				rs.getDate("date"),
+				rs.getString("title"),
+				rs.getString("description")
+		);
+	}
 }

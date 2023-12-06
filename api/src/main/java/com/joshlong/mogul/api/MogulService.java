@@ -6,6 +6,8 @@ import java.util.List;
 
 public interface MogulService {
 
+	Mogul getCurrentMogul();
+
 	Mogul login(Authentication principal);
 
 	Mogul getMogulById(Long id);
@@ -27,4 +29,6 @@ public interface MogulService {
 
 	Podcast markPodcastForPromotion(Podcast podcast);
 
+	PodcastDraft createPodcastDraft( Long mogulId,String uuid);
+	PodcastDraft getPodcastDraftByUid( String uuid);
 }
