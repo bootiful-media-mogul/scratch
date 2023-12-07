@@ -1,13 +1,10 @@
-import { cacheExchange, Client, fetchExchange } from '@urql/core'
+import { Client } from '@urql/core'
 
 export class AiClient {
   private readonly client: Client
 
-  constructor() {
-    this.client = new Client({
-      url: '/api/graphql',
-      exchanges: [cacheExchange, fetchExchange]
-    })
+  constructor(client: Client) {
+    this.client = client
   }
 
   /* generate text responses */

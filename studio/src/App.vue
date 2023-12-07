@@ -25,9 +25,7 @@ export default {
   <div class="page">
     <div class="welcome">
       hello,
-      <span style="font-weight: bold">
-        {{ mogul }} </span
-      >!
+      <span style="font-weight: bold"> {{ mogul }} </span>!
     </div>
     <div class="toolbar">
       <div>

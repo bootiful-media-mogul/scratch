@@ -1,15 +1,13 @@
 import type { PodcastDraft } from '@/model'
 
-import { cacheExchange, Client, fetchExchange } from '@urql/core'
+import { Client } from '@urql/core'
 
 export default class MogulClient {
   private readonly client: Client
 
-  constructor() {
-    this.client = new Client({
-      url: '/api/graphql',
-      exchanges: [cacheExchange, fetchExchange]
-    })
+  constructor(client: Client) {
+    this.client = client
+    console.debug('initializing MogulClient')
   }
 
   async me(): Promise<string> {
@@ -44,8 +42,4 @@ export default class MogulClient {
 
     return (await result.data['createPodcastDraft']) as PodcastDraft
   }
-}
-
-export function client() {
-  return new MogulClient()
 }

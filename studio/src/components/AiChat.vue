@@ -11,7 +11,8 @@
       <div v-for="reply in replies" :key="reply">
         {{ reply }}
       </div>
-      <button value="chat" @click="chat">chat</button>
+      <button :disabled="isPromptEmpty()" value="chat" @click="chat">workshop it!</button>
+      <button :disabled="isPromptEmpty()" value="ok" @click="finished">finish</button>
     </div>
   </div>
 </template>
@@ -26,12 +27,25 @@
 </style>
 
 <script lang="ts">
-import { events, ai, AiWorkshopEvent } from '@/services'
+import {
+  events,
+  ai,
+  AiWorkshopRequestEvent,
+  AiWorkshopReplyEvent,
+  AiWorkshopReplyEventType
+} from '@/services'
 
 export default {
   methods: {
+    isPromptEmpty() {
+      return (this.prompt == null ? '' : this.prompt).trim().length == 0
+    },
     hide() {
       this.visible = false
+    },
+    finished(e: Event) {
+      console.log('finishing...')
+      this.callback(new AiWorkshopReplyEvent(this.prompt, AiWorkshopReplyEventType.TEXT))
     },
     show() {
       this.visible = true
@@ -46,15 +60,18 @@ export default {
     return {
       visible: false,
       prompt: '' as string,
-      replies: [] as Array<string>
+      replies: [] as Array<string>,
+      callback: null
     }
   },
   created: async function () {
     events.on('ai-workshop-event', (event) => {
-      const aiEvent = event as AiWorkshopEvent
+      const aiEvent = event as AiWorkshopRequestEvent
       console.log('going to workshop the text [' + aiEvent.text + ']')
       this.prompt = aiEvent.text
       this.visible = true
+      this.callback = aiEvent.callback
+      this.replies = [] as Array<string>
     })
   }
 }

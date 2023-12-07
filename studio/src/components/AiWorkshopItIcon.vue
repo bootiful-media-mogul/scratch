@@ -3,18 +3,29 @@
 </template>
 
 <script lang="ts">
-import { workshopInAi } from '@/services'
+import { AiWorkshopReplyEvent, workshopInAi } from '@/services'
 
 export default {
+  emits: ['ai-workshop-completed'],
   props: ['text'],
   data() {
     return {
       description: ''
     }
   },
+
+  setup(props, ctx) {
+    return {
+      callbackFunction: (updated: AiWorkshopReplyEvent) =>
+        ctx.emit('ai-workshop-completed', updated)
+    }
+  },
+
   methods: {
-    workshop() {
-      workshopInAi(this, this.text)
+    workshop(e: Event) {
+      e.preventDefault()
+      const res = this.text
+      workshopInAi(this.callbackFunction, res)
     }
   }
 }

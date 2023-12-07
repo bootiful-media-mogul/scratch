@@ -4,11 +4,14 @@
     <div>
       <h2>title</h2>
       <input type="text" v-model="title" />
+      <br />
+      <AiWorkshopItIcon @ai-workshop-completed="afterTitleWorkshop" :text="title" />
     </div>
     <div>
       <h2>description</h2>
       <textarea rows="10" cols="30" v-model="description"></textarea>
-      <AiWorkshopItIcon :text="description" />
+      <br />
+      <AiWorkshopItIcon @ai-workshop-completed="afterDescriptionWorkshop" :text="description" />
     </div>
     <div>
       <h2>picture</h2>
@@ -32,7 +35,7 @@
 </template>
 
 <script lang="ts">
-import { workshopInAi, mogul } from '@/services'
+import { workshopInAi, mogul, AiWorkshopReplyEvent } from '@/services'
 import axios from 'axios'
 import AiWorkshopItIcon from '@/components/AiWorkshopItIcon.vue'
 
@@ -57,6 +60,14 @@ export default {
   async created() {},
 
   methods: {
+    afterDescriptionWorkshop(updated: AiWorkshopReplyEvent) {
+      this.description = updated.text
+    },
+
+    afterTitleWorkshop(updated: AiWorkshopReplyEvent) {
+      this.title = updated.text
+    },
+
     workshopInAi,
     uploadPicture(event: any) {
       this.picture = getFileFrom(event)
