@@ -1,3 +1,9 @@
+<!--
+todo support workshopping the image for the podcast as well: give it
+ a prompt and it renders an image which the code could store in a place
+ to then be plugged in instead of a user submitted image
+
+-->
 <template>
   <div id="ai-chat-side-panel" class="panel">
     <div>
@@ -27,13 +33,7 @@
 </style>
 
 <script lang="ts">
-import {
-  events,
-  ai,
-  AiWorkshopRequestEvent,
-  AiWorkshopReplyEvent,
-  AiWorkshopReplyEventType
-} from '@/services'
+import { ai, AiWorkshopReplyEvent, AiWorkshopReplyEventType, AiWorkshopRequestEvent, events } from '@/services'
 
 export default {
   methods: {
@@ -61,10 +61,12 @@ export default {
       visible: false,
       prompt: '' as string,
       replies: [] as Array<string>,
-      callback: null
+      callback: function(arg0: AiWorkshopReplyEvent) {
+        // noop
+      }
     }
   },
-  created: async function () {
+  async created() {
     events.on('ai-workshop-event', (event) => {
       const aiEvent = event as AiWorkshopRequestEvent
       console.log('going to workshop the text [' + aiEvent.text + ']')

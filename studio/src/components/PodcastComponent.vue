@@ -12,7 +12,9 @@ import { Podcast } from '@/model'
 
 export default {
   props: {
-    podcast: Podcast
+    podcast: {
+      type : Podcast , required : true
+    }
   },
   setup(props) {
     console.log('props: ' + props)

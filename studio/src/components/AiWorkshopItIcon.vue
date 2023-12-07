@@ -24,8 +24,7 @@ export default {
   methods: {
     workshop(e: Event) {
       e.preventDefault()
-      const res = this.text
-      workshopInAi(this.callbackFunction, res)
+      workshopInAi(this.callbackFunction, this.text)
     }
   }
 }

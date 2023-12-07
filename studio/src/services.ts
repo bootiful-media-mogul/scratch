@@ -28,14 +28,15 @@ export class AiWorkshopReplyEvent {
 
 export class AiWorkshopRequestEvent {
   readonly text: string
-  readonly callback: Function
 
-  constructor(text: string, callback: Function) {
+  readonly callback: (arg0: AiWorkshopReplyEvent) => void
+
+  constructor(text: string, callback: (arg0: AiWorkshopReplyEvent) => void) {
     this.text = text
     this.callback = callback
   }
 }
 
-export function workshopInAi(callback: Function, text: string) {
+export function workshopInAi(callback: (e: AiWorkshopReplyEvent) => void, text: string) {
   events.emit('ai-workshop-event', new AiWorkshopRequestEvent(text, callback))
 }
