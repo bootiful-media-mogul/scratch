@@ -18,10 +18,7 @@ import org.springframework.util.Assert;
 import java.net.URI;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -36,8 +33,8 @@ class DefaultMogulService implements MogulService {
 
 	private final Settings settings;
 
-	DefaultMogulService(JdbcClient db, TransactionTemplate transactionTemplate, Settings settings) {
-		this.db = db;
+	DefaultMogulService(JdbcClient jdbcClient, TransactionTemplate transactionTemplate, Settings settings) {
+		this.db = jdbcClient;
 		this.transactionTemplate = transactionTemplate;
 		this.settings = settings;
 		Assert.notNull(this.settings, "the settings are null");
@@ -159,24 +156,23 @@ class DefaultMogulService implements MogulService {
 	public Podcast addPodcastEpisode(Long mogulId, Podcast podcast) {
 
 		var sql = """
-				insert into podcast (
-
-				 date,
-				 description,
-				 notes,
-				 podbean_draft_created,
-				 podbean_draft_published,
-				 podbean_media_uri,
-				 podbean_photo_uri,
-				 s3_audio_file_name,
-				 s3_audio_uri,
-				 s3_photo_file_name,
-				 s3_photo_uri,
-				 title,
-				 uid ,
-				 mogul_id
-				)
-				values (
+				           insert into podcast (
+				date,
+				description,
+				notes,
+				podbean_draft_created,
+				podbean_draft_published,
+				podbean_media_uri,
+				podbean_photo_uri,
+				s3_audio_file_name,
+				s3_audio_uri,
+				s3_photo_file_name,
+				s3_photo_uri,
+				title,
+				uid ,
+				mogul_id
+				           )
+				           values (
 				 ?,
 				 ?,
 				 ?,
@@ -191,24 +187,24 @@ class DefaultMogulService implements MogulService {
 				 ?,
 				 ?,
 				 ?
-					 )
-					 on conflict (title)
-					 do update
-					 set
-				            date = excluded.date,
-				            description = excluded.description,
-				            notes = excluded.notes,
-				            podbean_draft_created = excluded.podbean_draft_created,
-				            podbean_draft_published = excluded.podbean_draft_published,
-				            podbean_media_uri = excluded.podbean_media_uri,
-				            podbean_photo_uri = excluded.podbean_photo_uri,
-				            s3_audio_file_name = excluded.s3_audio_file_name,
-				            s3_audio_uri = excluded.s3_audio_uri,
-				            s3_photo_file_name = excluded.s3_photo_file_name,
-				            s3_photo_uri = excluded.s3_photo_uri,
-				            title = excluded.title,
-				            uid = excluded.uid
-				""";
+				)
+				on conflict on constraint podcast_mogul_id_title_key
+				do update
+				set
+					date = excluded.date,
+					description = excluded.description,
+					notes = excluded.notes,
+					podbean_draft_created = excluded.podbean_draft_created,
+					podbean_draft_published = excluded.podbean_draft_published,
+					podbean_media_uri = excluded.podbean_media_uri,
+					podbean_photo_uri = excluded.podbean_photo_uri,
+					s3_audio_file_name = excluded.s3_audio_file_name,
+					s3_audio_uri = excluded.s3_audio_uri,
+					s3_photo_file_name = excluded.s3_photo_file_name,
+					s3_photo_uri = excluded.s3_photo_uri,
+					title = excluded.title,
+					uid = excluded.uid
+				           """;
 		return this.transactionTemplate.execute(status -> {
 
 			var ctr = 1;
@@ -237,7 +233,7 @@ class DefaultMogulService implements MogulService {
 				.update(kh, "id");
 
 			log.info("wrote " + updated + " records");
-			var podcastId = (Long) kh.getKey();
+			var podcastId = Objects.requireNonNull(kh.getKey()).longValue();
 			return getPodcastById(podcastId);
 		});
 	}
@@ -364,7 +360,7 @@ class PodcastDraftRowMapper implements RowMapper<PodcastDraft> {
 	public PodcastDraft mapRow(ResultSet rs, int rowNum) throws SQLException {
 		return new PodcastDraft(rs.getLong("id"), rs.getBoolean("completed"), rs.getString("uid"), rs.getDate("date"),
 				rs.getString("title"), rs.getString("description"), rs.getString("intro_file_name"),
-				rs.getString("interview_file_name"), rs.getString("picture_file_name"));
+				rs.getString("interview_file_name"), rs.getString("picture_file_name"), rs.getLong("mogul_id"));
 	}
 
 }

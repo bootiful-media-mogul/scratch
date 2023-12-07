@@ -7,5 +7,5 @@ import java.util.Date;
  * files
  */
 public record PodcastDraft(Long id, boolean completed, String uid, Date date, String title, String description,
-		String introFileName, String interviewFileName, String pictureFileName) {
+		String introFileName, String interviewFileName, String pictureFileName, Long mogulId) {
 }

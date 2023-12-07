@@ -37,6 +37,16 @@ class EpisodePublicationIntegrationFlowConfiguration {
 		log.info("watch out world! we've just " + "published a new episode! [" + event + "]");
 	}
 
+	// todo we got it working to the point it gets to here.
+	// the plan is to dynamically launch one of these flows for each mogul that has an
+	// unpublished podcast in their account.
+	// we have to mtch on the title of the podcast, so there fore the title of the podcast
+	// will need to remain frozen until it's published.
+	// theres got to be some durable state wherein we know which moguls have podcasts that
+	// are as yet un-published and we kick off these flows
+	// either at statup time or right after the publication process has sent this podcast
+	// to podbean
+
 	/*
 	 * Run the following queries to see this flow in action: UPDATE PODCAST SET
 	 * PODBEAN_DRAFT_CREATED = NULL, REVISION = NULL ; UPDATE PODBEAN_EPISODE SET

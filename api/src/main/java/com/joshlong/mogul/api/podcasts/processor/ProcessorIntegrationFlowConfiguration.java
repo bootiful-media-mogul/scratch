@@ -148,7 +148,7 @@ class ProcessorIntegrationFlowConfiguration {
 				s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
 			}
 			else {
-				log.info("the bucket named [" + bucketName + "] already exists");
+				log.debug("the bucket named [" + bucketName + "] already exists");
 			}
 		} //
 		catch (Throwable throwable) {

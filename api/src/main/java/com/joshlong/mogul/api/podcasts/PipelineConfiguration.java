@@ -1,15 +1,24 @@
 package com.joshlong.mogul.api.podcasts;
 
 import com.joshlong.mogul.api.ApiProperties;
+import com.joshlong.mogul.api.Mogul;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.Podcast;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
+import com.joshlong.podbean.Episode;
+import com.joshlong.podbean.EpisodeStatus;
+import com.joshlong.podbean.EpisodeType;
+import com.joshlong.podbean.PodbeanClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.serializer.Deserializer;
+import org.springframework.http.MediaType;
+import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.AggregatorSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
@@ -21,13 +30,18 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.Assert;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.Principal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -99,8 +113,8 @@ class PipelineConfiguration {
 
 		@Override
 		public PodcastArchive transform(File source) {
-			try (var i = new FileInputStream(source)) {
-				return this.podcastArchiveDeserializer.deserialize(i);
+			try (var bufferedInputStream = new BufferedInputStream(new FileInputStream(source))) {
+				return this.podcastArchiveDeserializer.deserialize(bufferedInputStream);
 			} //
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -135,13 +149,47 @@ class PipelineConfiguration {
 
 	}
 
+	private static final String MOGUL_ID_HEADER = "mogulId";
+
+	private static final String AUTHENTICATION_HEADER = "Authorization";
+
+	private record MogulPrincipal(Mogul mogul) implements Principal {
+
+		@Override
+		public String getName() {
+			return mogul().username();
+		}
+	}
+
 	@Bean
-	IntegrationFlow pipeline(MogulService mogulService, Deserializer<PodcastArchive> podcastArchiveDeserializer,
+	IntegrationFlow pipeline(PodbeanClient podbeanClient, MogulService mogulService,
+			Deserializer<PodcastArchive> podcastArchiveDeserializer,
 			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
 			@Qualifier(Integrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
 			@Qualifier(Integrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
-		return IntegrationFlow.from(requests)
+
+		final var log = LoggerFactory.getLogger(getClass());
+
+		return IntegrationFlow //
+			.from(requests)//
 			.transform(new FileToPodcastArchiveGenericTransformer(podcastArchiveDeserializer))
+			.transform((GenericHandler<Object>) (payload, headers) -> {
+
+				if (payload instanceof PodcastArchive podcastArchive) {
+
+					log.info("launching the PodcastArchive with UID [" + podcastArchive.uuid() + "] on thread ["
+							+ Thread.currentThread() + "]");
+
+					var podcastDraftByUid = mogulService.getPodcastDraftByUid(podcastArchive.uuid());
+
+					return MessageBuilder.withPayload(payload)
+						.copyHeadersIfAbsent(headers)
+						.setHeader(MOGUL_ID_HEADER, podcastDraftByUid.mogulId())
+						.build();
+				}
+
+				throw new IllegalStateException("the PodcastArchive is invalid");
+			})
 			.split(new ArchiveMediaSplitter())
 			.transform(new FileSystemResourceToFileTransformer())
 			.gateway(mediaNormalizationIntegrationFlow)
@@ -149,6 +197,21 @@ class PipelineConfiguration {
 			.transform(new HeaderFilter("sequenceNumber", "sequenceSize", "file_name", "correlationId",
 					"file_originalFile", "file_relativePath"))
 			.gateway(processorIntegrationFlow)
+			.transform((GenericHandler<Object>) (payload, headers) -> {
+				Assert.state(headers.containsKey(MOGUL_ID_HEADER), "there is not [" + MOGUL_ID_HEADER + "] header!");
+				var mogulId = (Long) headers.get(MOGUL_ID_HEADER);
+				var mogul = mogulService.getMogulById(mogulId);
+				var authentication = UsernamePasswordAuthenticationToken.authenticated(new MogulPrincipal(mogul), null,
+						AuthorityUtils.NO_AUTHORITIES);
+				var securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
+				var context = securityContextHolderStrategy.createEmptyContext();
+				context.setAuthentication(authentication);
+				securityContextHolderStrategy.setContext(context);
+				return MessageBuilder.withPayload(payload)
+					.copyHeadersIfAbsent(headers)
+					.setHeader(AUTHENTICATION_HEADER, authentication)
+					.build();
+			})
 			.transform(new HeaderFilter("sequenceNumber", "sequenceSize", "file_name", "correlationId",
 					"json_resolvableType", "json__TypeId__", "sequenceSize", "resource-type", "file_originalFile",
 					"file_relativePath"))
@@ -157,6 +220,13 @@ class PipelineConfiguration {
 			.transform(new ProcessorReplyToDatabasePodcastGenericTransformer(mogulService))
 			.handle(Integrations.debugHandler(
 					"got the reply from the processor, writing to the DB, going to send a request to Podbean"))
+			.transform((GenericTransformer<Podcast, Episode>) source -> {
+				var fileRefernceToThumbNail = (File) null;
+				var uploadAuth = podbeanClient.upload(MediaType.IMAGE_JPEG, fileRefernceToThumbNail);
+				return podbeanClient.publishEpisode(source.title(), source.description(), EpisodeStatus.DRAFT,
+						EpisodeType.PUBLIC, uploadAuth.getFileKey(), null);
+
+			})
 			.handle(Integrations.terminatingDebugHandler(
 					"....at this point there's a separate integrationFlow that'll kick in once the podbean episode has been published"))
 			.get();
@@ -175,6 +245,8 @@ class PipelineConfiguration {
 	static class ProcessorReplyToDatabasePodcastGenericTransformer
 			implements GenericTransformer<Map<String, Object>, Podcast> {
 
+		private final Logger log = LoggerFactory.getLogger(getClass());
+
 		private final MogulService mogulService;
 
 		ProcessorReplyToDatabasePodcastGenericTransformer(MogulService mogulService) {
@@ -184,9 +256,9 @@ class PipelineConfiguration {
 		@Override
 		public Podcast transform(Map<String, Object> source) {
 			try {
-
-				var mogulName = SecurityContextHolder.getContext().getAuthentication().getName();
-				var mogul = mogulService.getMogulByName(mogulName);
+				log.debug("getting the podcast with values [" + source + "]");
+				var mogul = mogulService.getCurrentMogul();
+				log.info("got the mogul in [" + getClass().getName() + "] : " + mogul.id());
 
 				var exportedAudioS3Name = (String) source.get("exported-audio");
 				var exportedAudioS3FileName = exportedAudioS3Name.substring(exportedAudioS3Name.lastIndexOf('/'));

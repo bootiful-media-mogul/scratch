@@ -13,6 +13,8 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -61,8 +64,12 @@ class PodcastsController {
 	@PostMapping("/podcasts/drafts/{uid}")
 	PodcastDraft startPodcastPipeline(@PathVariable("uid") String uid, @RequestParam("title") String title,
 			@RequestParam("description") String description, @RequestParam("intro") MultipartFile intro,
-			@RequestParam("interview") MultipartFile interview, @RequestParam("picture") MultipartFile picture)
-			throws Exception {
+			@RequestParam("interview") MultipartFile interview, @RequestParam("picture") MultipartFile picture,
+			@AuthenticationPrincipal Jwt jwt) throws Exception {
+
+		// todo write out the JWT
+		log.info("got the following JWT for the user [" + jwt.getTokenValue() + "]");
+
 		var draft = this.mogulService.getPodcastDraftByUid(uid);
 		Assert.notNull(draft, "the PodcastDraft object must be non-null");
 		var mount = new File(this.podcastDraftsDirectory, uid);
@@ -77,7 +84,7 @@ class PodcastsController {
 		var podcastArchive = new PodcastArchive(uid, title, description, introFN, interviewFN, pictureFN);
 		var zipTmp = new File(mount, uid + ".tmp");
 		var zip = new File(this.podcastArchiveDirectory, uid + ".zip");
-		try (var output = new FileOutputStream(zipTmp)) {
+		try (var output = new BufferedOutputStream(new FileOutputStream(zipTmp))) {
 			this.podcastArchiveSerializer.serialize(podcastArchive, output);
 		}
 		log.info("wrote the archive to [" + zipTmp.getAbsolutePath() + "]");

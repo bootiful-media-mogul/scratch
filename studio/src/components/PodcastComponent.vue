@@ -13,7 +13,8 @@ import { Podcast } from '@/model'
 export default {
   props: {
     podcast: {
-      type : Podcast , required : true
+      type: Podcast,
+      required: true
     }
   },
   setup(props) {

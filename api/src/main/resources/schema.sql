@@ -73,13 +73,12 @@ create table if not exists podcast
     s3_audio_uri            varchar(255),
     s3_photo_file_name      varchar(255),
     s3_photo_uri            varchar(255),
-    title                   text   not null,
+    title                   text   not null  ,
     transcript              text,
     uid                     varchar(255) unique,
     mogul_id                bigint not null,
+    podbean_revision varchar(255) null ,
+    unique  (mogul_id , title) ,
     foreign key (mogul_id) references mogul (id)
 );
-
-alter table podcast
-    add column if not exists podbean_revision varchar(255) null;
 

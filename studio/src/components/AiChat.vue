@@ -33,7 +33,13 @@ todo support workshopping the image for the podcast as well: give it
 </style>
 
 <script lang="ts">
-import { ai, AiWorkshopReplyEvent, AiWorkshopReplyEventType, AiWorkshopRequestEvent, events } from '@/services'
+import {
+  ai,
+  AiWorkshopReplyEvent,
+  AiWorkshopReplyEventType,
+  AiWorkshopRequestEvent,
+  events
+} from '@/services'
 
 export default {
   methods: {
@@ -61,7 +67,7 @@ export default {
       visible: false,
       prompt: '' as string,
       replies: [] as Array<string>,
-      callback: function(arg0: AiWorkshopReplyEvent) {
+      callback: function (arg0: AiWorkshopReplyEvent) {
         // noop
       }
     }
