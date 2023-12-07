@@ -5,7 +5,7 @@ import com.joshlong.mogul.api.Mogul;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.Podcast;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
-import com.joshlong.podbean.Episode;
+import com.joshlong.mogul.api.utils.FileUtils;
 import com.joshlong.podbean.EpisodeStatus;
 import com.joshlong.podbean.EpisodeType;
 import com.joshlong.podbean.PodbeanClient;
@@ -34,11 +34,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
@@ -60,6 +60,8 @@ import java.util.function.Consumer;
 
 @Configuration
 class PipelineConfiguration {
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	static class ArchiveMediaSplitter extends AbstractMessageSplitter {
 
@@ -159,31 +161,26 @@ class PipelineConfiguration {
 		public String getName() {
 			return mogul().username();
 		}
+
 	}
 
 	@Bean
-	IntegrationFlow pipeline(PodbeanClient podbeanClient, MogulService mogulService,
-			Deserializer<PodcastArchive> podcastArchiveDeserializer,
+	IntegrationFlow pipeline(PodbeanClient podbeanClient, MogulService mogulService, ApiProperties properties,
+			S3Client s3, Deserializer<PodcastArchive> podcastArchiveDeserializer,
 			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
 			@Qualifier(Integrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
 			@Qualifier(Integrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
-
-		final var log = LoggerFactory.getLogger(getClass());
-
 		return IntegrationFlow //
 			.from(requests)//
 			.transform(new FileToPodcastArchiveGenericTransformer(podcastArchiveDeserializer))
 			.transform((GenericHandler<Object>) (payload, headers) -> {
-
 				if (payload instanceof PodcastArchive podcastArchive) {
-
 					log.info("launching the PodcastArchive with UID [" + podcastArchive.uuid() + "] on thread ["
 							+ Thread.currentThread() + "]");
-
 					var podcastDraftByUid = mogulService.getPodcastDraftByUid(podcastArchive.uuid());
-
-					return MessageBuilder.withPayload(payload)
-						.copyHeadersIfAbsent(headers)
+					return MessageBuilder//
+						.withPayload(payload)//
+						.copyHeadersIfAbsent(headers)//
 						.setHeader(MOGUL_ID_HEADER, podcastDraftByUid.mogulId())
 						.build();
 				}
@@ -220,16 +217,44 @@ class PipelineConfiguration {
 			.transform(new ProcessorReplyToDatabasePodcastGenericTransformer(mogulService))
 			.handle(Integrations.debugHandler(
 					"got the reply from the processor, writing to the DB, going to send a request to Podbean"))
-			.transform((GenericTransformer<Podcast, Episode>) source -> {
-				var fileRefernceToThumbNail = (File) null;
-				var uploadAuth = podbeanClient.upload(MediaType.IMAGE_JPEG, fileRefernceToThumbNail);
-				return podbeanClient.publishEpisode(source.title(), source.description(), EpisodeStatus.DRAFT,
-						EpisodeType.PUBLIC, uploadAuth.getFileKey(), null);
-
+			.transform((GenericTransformer<Podcast, Podcast>) podcast -> {
+				var podbeanDirectory = FileUtils
+					.ensureDirectoryExists(properties.podcasts().pipeline().podbeanStaging());
+				var mp3FileName = fileNameFor(podcast, "mp3");
+				var mp3File = new File(podbeanDirectory, mp3FileName);
+				this.get(s3, properties.podcasts().processor().s3().outputBucket(), "podcast.mp3", mp3File);
+				var mp3Upload = podbeanClient.upload(MediaType.parseMediaType("audio/mpeg"), mp3File, mp3File.length());
+				var jpgFileName = fileNameFor(podcast, "jpg");
+				var jpgFile = new File(podbeanDirectory, jpgFileName);
+				this.get(s3, properties.podcasts().processor().s3().inputBucket(), "image.jpg", jpgFile);
+				var jpgUpload = podbeanClient.upload(MediaType.IMAGE_JPEG, jpgFile, jpgFile.length());
+				var episode = podbeanClient.publishEpisode(podcast.title(), podcast.description(), EpisodeStatus.DRAFT,
+						EpisodeType.PUBLIC, mp3Upload.getFileKey(), jpgUpload.getFileKey());
+				log.info("the episode has been published to " + episode.toString() + '.');
+				Assert.isTrue(mp3File.exists() && mp3File.delete(),
+						"the" + " file " + mp3File.getAbsolutePath() + " does not exist or could not be deleted");
+				return podcast;
 			})
 			.handle(Integrations.terminatingDebugHandler(
 					"....at this point there's a separate integrationFlow that'll kick in once the podbean episode has been published"))
 			.get();
+	}
+
+	private void get(S3Client s3, String bucketName, String objectKey, File outputFile) {
+		log.info("writing to bucket named [" + bucketName + "] with object key [" + objectKey + "]");
+		var getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(objectKey).build();
+		try (var inputStream = s3.getObject(getObjectRequest);
+				var outputStream = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+			FileCopyUtils.copy(inputStream, outputStream);
+			log.info("wrote to bucket named [" + bucketName + "] with object key [" + objectKey + "]");
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static String fileNameFor(Podcast podcast, String ext) {
+		return podcast.uid() + "." + (ext.toLowerCase());
 	}
 
 	@Bean

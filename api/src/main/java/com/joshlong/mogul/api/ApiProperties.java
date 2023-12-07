@@ -24,6 +24,10 @@ public record ApiProperties(Aws aws, Podcasts podcasts, Settings settings, boole
 			public File archives() {
 				return new File(this.root(), "archives");
 			}
+
+			public File podbeanStaging() {
+				return new File(this.root(), "podbean");
+			}
 		}
 
 		public record Processor(S3 s3, Amqp amqp) {
