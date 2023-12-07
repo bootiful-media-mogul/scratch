@@ -6,9 +6,7 @@ export const ai = new AiClient()
 export const mogul = new MogulClient()
 export const events = mitt()
 
-
 export class AiWorkshopEvent {
-
   readonly text: string
   readonly ref: any
 

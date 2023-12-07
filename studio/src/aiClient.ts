@@ -36,4 +36,3 @@ export class AiClient {
     return ''
   }
 }
-

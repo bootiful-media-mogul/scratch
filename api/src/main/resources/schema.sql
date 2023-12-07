@@ -7,14 +7,25 @@ create table if not exists mogul
     unique (client_id, username)
 ) ;
 
-create table if not exists podbean_account
+
+create table if not exists settings
 (
-    mogul_id      bigint,
+    mogul_id bigint not null ,
+    key      text   not null,
+    "value"  text   not null,
+    category text   not null,
+    foreign key (mogul_id) references mogul(id),
+    unique (mogul_id, category, key)
+) ;
+
+/*create table if not exists podbean_account
+(
+    mogul_id      bigint not null ,
     client_id     text not null,
     client_secret text not null,
     foreign key (mogul_id) references mogul (id)
 );
-
+*/
 
 create table if not exists podbean_episode
 (

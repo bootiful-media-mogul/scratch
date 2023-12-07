@@ -3,7 +3,6 @@
 </template>
 
 <script lang="ts">
-
 import { workshopInAi } from '@/services'
 
 export default {
@@ -18,6 +17,5 @@ export default {
       workshopInAi(this, this.text)
     }
   }
-
 }
 </script>

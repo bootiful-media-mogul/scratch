@@ -38,7 +38,7 @@ class PodbeanConfiguration {
 			var methodName = invocation.getMethod().getName();
 			if (methodName.equalsIgnoreCase("getToken")) {
 				var mogulName = SecurityContextHolder.getContext().getAuthentication().getName();
-				var podbeanAccount = mogulService.getPodbeanAccountByMogul(mogulService.getCurrentMogul().id());
+				var podbeanAccount = mogulService.getPodbeanAccountSettings(mogulService.getCurrentMogul().id());
 				var podbeanClientId = podbeanAccount.clientId();
 				var podbeanClientSecret = podbeanAccount.clientSecret();
 				var tp = new ClientCredentialsTokenProvider(podbeanClientId, podbeanClientSecret);

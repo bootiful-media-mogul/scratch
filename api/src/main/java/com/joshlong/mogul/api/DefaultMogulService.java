@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 
-import java.io.File;
 import java.net.URI;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,9 +34,15 @@ class DefaultMogulService implements MogulService {
 
 	private final TransactionTemplate transactionTemplate;
 
-	DefaultMogulService(JdbcClient db, TransactionTemplate transactionTemplate) {
+	private final Settings settings;
+
+	DefaultMogulService(JdbcClient db, TransactionTemplate transactionTemplate, Settings settings) {
 		this.db = db;
 		this.transactionTemplate = transactionTemplate;
+		this.settings = settings;
+		Assert.notNull(this.settings, "the settings are null");
+		Assert.notNull(this.db, "the db is null");
+		Assert.notNull(this.transactionTemplate, "the transactionTemplate is null");
 	}
 
 	@Override
@@ -66,7 +71,7 @@ class DefaultMogulService implements MogulService {
 	public Mogul getMogulById(Long id) {
 		return this.db.sql("select * from mogul where id =? ")
 			.param(id)
-			.query(new MogulRowMapper(this::getPodbeanAccountByMogul))
+			.query(new MogulRowMapper(this::getPodbeanAccountSettings))
 			.single();
 	}
 
@@ -74,33 +79,37 @@ class DefaultMogulService implements MogulService {
 	public Mogul getMogulByName(String name) {
 		return this.db.sql("select * from mogul where  username  = ? ")
 			.param(name)
-			.query(new MogulRowMapper(this::getPodbeanAccountByMogul))
+			.query(new MogulRowMapper(this::getPodbeanAccountSettings))
 			.single();
 	}
 
 	@Override
-	public PodbeanAccount getPodbeanAccountByMogul(Long mogul) {
-		var list = this.db.sql("select * from podbean_account where mogul_id = ?")
-			.param(mogul)
-			.query(new PodbeanAccountRowMapper())
-			.list();
-		if (list.isEmpty())
-			return null;
-		return list.get(0);
+	public PodbeanAccountSettings configurePodbeanAccountSettings(Long mogulId, String clientId, String clientSecret) {
+		this.settings.set(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET, clientSecret);
+		this.settings.set(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID, clientId);
+		return getPodbeanAccountSettings(mogulId);
 	}
 
+	private final static String PODBEAN_ACCOUNTS_SETTINGS = "podbean";
+
+	private final static String PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID = "client-id";
+
+	private final static String PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET = "client-secret";
+
 	@Override
-	public PodbeanAccount configurePodbeanAccount(Long mogul, String clientId, String clientSecret) {
-		var sql = """
-				        insert into podbean_account (mogul_id,client_id, client_secret) values (?,?,?)
-				        on conflict on constraint <BLAH> do update set
-				        client_id = excluded.client_id,
-				        client_secret = excluded.client_secret
-				""";
-		var updated = this.db.sql(sql).params(mogul, clientId, clientSecret).update();
-		Assert.state(updated == 1 || updated == 0, "the update should result in an upsert");
-		return getPodbeanAccountByMogul(mogul);
+	public PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId) {
+		var clientId = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID);
+		var clientSecret = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
+				PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET);
+		return new PodbeanAccountSettings(clientId, clientSecret);
 	}
+	/*
+	 *
+	 * @Override public PodbeanAccountSettings getPodbeanAccountByMogul(Long mogul) { var
+	 * list = this.db.sql("select * from podbean_account where mogul_id = ?")
+	 * .param(mogul) .query(new PodbeanAccountRowMapper()) .list(); if (list.isEmpty())
+	 * return null; return list.get(0); }
+	 */
 
 	@Override
 	public List<Podcast> getPodcastsByMogul(Long mogul) {
@@ -303,15 +312,6 @@ class DefaultMogulService implements MogulService {
 
 }
 
-class PodbeanAccountRowMapper implements RowMapper<PodbeanAccount> {
-
-	@Override
-	public PodbeanAccount mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new PodbeanAccount(rs.getLong("id"), rs.getString("client_id"), rs.getString("client_secret"));
-	}
-
-}
-
 class PodcastRowMapper implements RowMapper<Podcast> {
 
 	@Override
@@ -344,9 +344,9 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 
 class MogulRowMapper implements RowMapper<Mogul> {
 
-	private final Function<Long, PodbeanAccount> podbeanAccountFunction;
+	private final Function<Long, PodbeanAccountSettings> podbeanAccountFunction;
 
-	MogulRowMapper(Function<Long, PodbeanAccount> podbeanAccountFunction) {
+	MogulRowMapper(Function<Long, PodbeanAccountSettings> podbeanAccountFunction) {
 		this.podbeanAccountFunction = podbeanAccountFunction;
 	}
 

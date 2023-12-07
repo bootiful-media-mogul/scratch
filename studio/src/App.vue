@@ -26,8 +26,8 @@ export default {
     <div class="welcome">
       hello,
       <span style="font-weight: bold">
-        {{ mogul }}
-      </span>!
+        {{ mogul }} </span
+      >!
     </div>
     <div class="toolbar">
       <div>
@@ -36,9 +36,8 @@ export default {
       <div>
         <b>podcasts</b>&nbsp;
         <router-link to="/list-podcasts">search</router-link>&nbsp;<router-link to="/create-podcast"
-      >create
-      </router-link
-      >&nbsp;
+          >create </router-link
+        >&nbsp;
       </div>
       <div>
         <b>blogs</b>&nbsp;

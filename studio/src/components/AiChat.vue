@@ -28,7 +28,6 @@
 <script lang="ts">
 import { events, ai, AiWorkshopEvent } from '@/services'
 
-
 export default {
   methods: {
     hide() {
@@ -50,7 +49,7 @@ export default {
       replies: [] as Array<string>
     }
   },
-  created: async function() {
+  created: async function () {
     events.on('ai-workshop-event', (event) => {
       const aiEvent = event as AiWorkshopEvent
       console.log('going to workshop the text [' + aiEvent.text + ']')

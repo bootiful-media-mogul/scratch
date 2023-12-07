@@ -3,7 +3,6 @@ package com.joshlong.mogul.api;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 
-import java.io.File;
 import java.util.List;
 
 public interface MogulService {
@@ -15,10 +14,6 @@ public interface MogulService {
 	Mogul getMogulById(Long id);
 
 	Mogul getMogulByName(String name);
-
-	PodbeanAccount getPodbeanAccountByMogul(Long mogulId);
-
-	PodbeanAccount configurePodbeanAccount(Long mogulId, String clientId, String clientSecret);
 
 	List<Podcast> getPodcastsByMogul(Long mogul);
 
@@ -37,5 +32,9 @@ public interface MogulService {
 
 	PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description, Resource pictureFN,
 			Resource introFN, Resource interviewFN);
+
+	PodbeanAccountSettings configurePodbeanAccountSettings(Long mogulId, String clientId, String clientSecret);
+
+	PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId);
 
 }

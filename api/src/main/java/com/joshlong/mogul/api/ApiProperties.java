@@ -1,12 +1,14 @@
 package com.joshlong.mogul.api;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.util.StringUtils;
 
 import java.io.File;
 
 @ConfigurationProperties(prefix = "mogul")
-public record ApiProperties(Aws aws, Podcasts podcasts, boolean debug) {
+public record ApiProperties(Aws aws, Podcasts podcasts, Settings settings, boolean debug) {
+
+	public record Settings(String password, String salt) {
+	}
 
 	public record Aws(String accessKey, String accessKeySecret, String region) {
 	}

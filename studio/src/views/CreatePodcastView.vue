@@ -32,7 +32,6 @@
 </template>
 
 <script lang="ts">
-
 import { workshopInAi, mogul } from '@/services'
 import axios from 'axios'
 import AiWorkshopItIcon from '@/components/AiWorkshopItIcon.vue'
@@ -44,7 +43,6 @@ function getFileFrom(event: any) {
 }
 
 export default {
-
   components: { AiWorkshopItIcon },
 
   data() {
@@ -56,8 +54,7 @@ export default {
       interview: null
     }
   },
-  async created() {
-  },
+  async created() {},
 
   methods: {
     workshopInAi,
