@@ -8,6 +8,7 @@
     <div>
       <h2>description</h2>
       <textarea rows="10" cols="30" v-model="description"></textarea>
+      <AiWorkshopItIcon :text="description" />
     </div>
     <div>
       <h2>picture</h2>
@@ -31,10 +32,10 @@
 </template>
 
 <script lang="ts">
-import MogulClient from '@/mogulClient'
-import axios from 'axios'
 
-const api = new MogulClient()
+import { workshopInAi, mogul } from '@/services'
+import axios from 'axios'
+import AiWorkshopItIcon from '@/components/AiWorkshopItIcon.vue'
 
 function getFileFrom(event: any) {
   const fileList = event.target['files'] as FileList
@@ -43,7 +44,8 @@ function getFileFrom(event: any) {
 }
 
 export default {
-  components: {},
+
+  components: { AiWorkshopItIcon },
 
   data() {
     return {
@@ -54,9 +56,11 @@ export default {
       interview: null
     }
   },
-  async created() {},
+  async created() {
+  },
 
   methods: {
+    workshopInAi,
     uploadPicture(event: any) {
       this.picture = getFileFrom(event)
     },
@@ -71,7 +75,7 @@ export default {
       event.preventDefault()
 
       const uid = crypto.randomUUID()
-      const result = await api.createPodcastDraft(uid)
+      const result = await mogul.createPodcastDraft(uid)
       const uploadPath: string = '/api' + result.uploadPath
 
       const data = new FormData(this.$refs.createPodcastForm as HTMLFormElement)

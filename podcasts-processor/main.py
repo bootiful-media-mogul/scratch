@@ -195,7 +195,8 @@ if __name__ == "__main__":
             return json.dumps({"status": "HODOR"})
 
         utils.log("about to start the Flask service")
-        app.run(port=8080)
+        #  todo does k8s need to know about this port?
+        app.run(port=7070)
 
 
     def run_rmq():

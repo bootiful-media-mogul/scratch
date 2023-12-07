@@ -3,7 +3,7 @@ import type { PodcastDraft } from '@/model'
 import { cacheExchange, Client, fetchExchange } from '@urql/core'
 
 export default class MogulClient {
-  client: Client
+  private readonly client: Client
 
   constructor() {
     this.client = new Client({
@@ -41,7 +41,7 @@ export default class MogulClient {
     const result = await this.client.mutation(mutation, {
       uid: uid
     })
-    console.log(JSON.stringify(await result.data))
+
     return (await result.data['createPodcastDraft']) as PodcastDraft
   }
 }

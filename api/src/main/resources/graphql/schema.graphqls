@@ -24,6 +24,7 @@ type PodcastDraft  {
 type Query {
     me: Mogul
     podcasts: [Podcast]
+    aiChat  (prompt:String): String
 }
 
 type Mutation {

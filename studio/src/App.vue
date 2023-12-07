@@ -2,36 +2,60 @@
  renders a list of all the existing podcasts
 -->
 <script lang="ts">
-import MogulClient from '@/mogulClient'
+import AiChat from '@/components/AiChat.vue'
 
-const api = new MogulClient()
+import { mogul } from '@/services'
 
 export default {
+  components: { AiChat },
+
+  methods: {},
   data() {
-    return { mogul: '' }
+    return {
+      mogul: ''
+    }
   },
   async created() {
-    this.mogul = await api.me()
+    this.mogul = await mogul.me()
   }
 }
 </script>
 
 <template>
-  <div>
-    <div>
-      hello, <b>{{ mogul }}</b
-      >!
+  <div class="page">
+    <div class="welcome">
+      hello,
+      <span style="font-weight: bold">
+        {{ mogul }}
+      </span>!
     </div>
-    <div>
-      <router-link to="/"> home</router-link>
-      |
-      <router-link to="/list-podcasts"> list podcasts</router-link>
-      |
-      <router-link to="/create-podcast"> create podcast</router-link>
+    <div class="toolbar">
+      <div>
+        <router-link to="/"> home</router-link>
+      </div>
+      <div>
+        <b>podcasts</b>&nbsp;
+        <router-link to="/list-podcasts">search</router-link>&nbsp;<router-link to="/create-podcast"
+      >create
+      </router-link
+      >&nbsp;
+      </div>
+      <div>
+        <b>blogs</b>&nbsp;
+        <a href="">create</a>
+      </div>
+      <div>
+        <b>videos </b>&nbsp;
+        <a href="">create</a>
+      </div>
     </div>
-    <hr />
-    <div>
+
+    <div class="view">
       <router-view></router-view>
+    </div>
+
+    <div class="sidebar">
+      <AiChat />
     </div>
   </div>
 </template>
