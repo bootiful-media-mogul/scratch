@@ -37,25 +37,30 @@ class EpisodePublicationIntegrationFlowConfiguration {
 		log.info("watch out world! we've just " + "published a new episode! [" + event + "]");
 	}
 
-	// todo we got it working to the point it gets to here.
-	// the plan is to dynamically launch one of these flows for each mogul that has an
-	// unpublished podcast in their account.
-	// we have to mtch on the title of the podcast, so there fore the title of the podcast
-	// will need to remain frozen until it's published.
-	// theres got to be some durable state wherein we know which moguls have podcasts that
-	// are as yet un-published and we kick off these flows
-	// either at statup time or right after the publication process has sent this podcast
-	// to podbean
+	// todo
+	// todo now that the mogul has an outstanding unpublished podcast, add them to a table
+	// of podbean-watchers or something
+	// todo have some integration flow that runs every minute (or whatever) pull those
+	// values down and then launch IntegrationFlows to monitor for their episodes
+	// todo each launched IntegrationFlow should be in a
+	// ConcurrentHashMap<Long,IntegrationFlow>
+	// todo there should also be a boolean that each IntegrationFlow should consult when
+	// deciding whether to poison-pill or continue: ConcurrentHashMap<Long,AtomicBoolean>
+	// todo 3 things will set the boolean to false: a) the IntegrationFlow has been
+	// running too long b) the episode was eventually published and we reconciled c) the
+	// user pushed the 'i published it!' button
+	// todo maybe instead of maps, we do all the tracking in a SQL table? and while we're
+	// at it, we can note the node on which a watcher is executing?
+	//
+	// PODBEAN_TRACKERS
+	// node_id : string, mogul_id: number, continue_watching: boolean, podcast_id: number,
+	// started :timestamp , finished: timestamp?
 
 	/*
 	 * Run the following queries to see this flow in action: UPDATE PODCAST SET
 	 * PODBEAN_DRAFT_CREATED = NULL, REVISION = NULL ; UPDATE PODBEAN_EPISODE SET
 	 * PREVIOUSLY_PUBLISHED = FALSE , PUBLISHED = FALSE ;
 	 */
-	// todo we need to figure out how to give this logic a tenant / mogul context
-	// it's using the `PodbeanClient` which in turn uses the `TokenProvider` which in turn
-	// expects an authenticated user context somewhere.
-	// @Bean
 	IntegrationFlow episodePublicationIntegrationFlow(PodbeanEpisodePublicationTracker podbeanEpisodePublicationTracker,
 			ApplicationEventPublishingMessageHandler episodeSyncApplicationEventPublishingMessageHandler,
 			PodbeanClient podbeanClient) {

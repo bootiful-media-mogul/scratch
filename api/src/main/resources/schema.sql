@@ -58,6 +58,16 @@ create table if not exists podcast_draft
 );
 
 
+create table if not exists podbean_tracker (
+    id                serial primary key,
+    node_id           text not null,
+    mogul_id          int  not null,
+    continue_tracking bool not null,
+    podcast_id        int  not null,
+    started           timestamp,
+    stopped           timestamp
+);
+
 create table if not exists podcast
 (
     podbean_episode_id      varchar(255),
