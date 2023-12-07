@@ -17,8 +17,10 @@ import org.springframework.util.unit.DataSize;
 
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Set;
 
@@ -75,7 +77,7 @@ class ImageEncoder implements MediaEncoder {
 
 	private final static Logger log = LoggerFactory.getLogger(ImageEncoder.class);
 
-	public final static DataSize MAX_SIZE = DataSize.ofMegabytes(2);
+	public final static DataSize MAX_SIZE = DataSize.ofMegabytes(1);
 
 	ImageEncoder() throws Exception {
 		for (var tool : Set.of("convert", "identify"))
@@ -88,15 +90,15 @@ class ImageEncoder implements MediaEncoder {
 	}
 
 	@Override
-	public File encode(File in) {
+	public File encode(File path) {
 		try {
-			var output = isValidImage(in)
-					? Files.copy(in.toPath(), new File(in.getParentFile(), "copy.jpg").toPath()).toFile()
-					: scale(convertFileToJpeg(in));
-
-			log.debug("in: " + in.getAbsolutePath() + System.lineSeparator() + "out: " + output.getAbsolutePath()
+			var output = isValidImage(path)
+					? Files.copy(path.toPath(), new File(path.getParentFile(), "copy.jpg").toPath()).toFile()
+					: scale(convertFileToJpeg(path));
+			Assert.state(isValidSize(output),
+					"the output image [" + path.getAbsolutePath() + "] must be of the right file size");
+			log.debug("in: " + path.getAbsolutePath() + System.lineSeparator() + "out: " + output.getAbsolutePath()
 					+ System.lineSeparator());
-
 			return output;
 		} //
 		catch (Throwable throwable) {
@@ -104,26 +106,8 @@ class ImageEncoder implements MediaEncoder {
 		}
 	}
 
-	private Dimension readDimensionsFor(File file) throws Exception {
-		Assert.state(file.exists(), "the file [" + file.getAbsolutePath() + "] must exist");
-		var process = new ProcessBuilder().command("identify", "-ping", "-format", "%w %h", file.getAbsolutePath())
-			.start();
-		var finished = process.waitFor();
-		Assert.state(finished == 0, "the process should exit normally.");
-		try (var in = new InputStreamReader(process.getInputStream())) {
-			var output = FileCopyUtils.copyToString(in).strip();
-			log.debug(output);
-			var parts = output.split(" ");
-			Assert.isTrue(parts.length == 2,
-					"there should be two " + "parts to the output for the image " + file.getAbsolutePath());
-			var w = Integer.parseInt(parts[0].strip());
-			var h = Integer.parseInt(parts[1].strip());
-			return new Dimension(w, h);
-		}
-	}
-
 	private boolean isValidSize(File in) {
-		return (in.length() < MAX_SIZE.toBytes());
+		return (in.length() <= MAX_SIZE.toBytes());
 	}
 
 	private File convertFileToJpeg(File in) throws Exception {
@@ -140,33 +124,26 @@ class ImageEncoder implements MediaEncoder {
 		return in.getName().toLowerCase(Locale.ROOT).endsWith(".jpg");
 	}
 
-	private File scale(File file, double width) throws Exception {
-		var tmp = FileUtils.createRelativeTempFile(file);
-		var cmd = new String[] { "convert", file.getAbsolutePath(), "-resize", "100x" + ((int) width) + "^", "-gravity",
-				"center", tmp.getAbsolutePath() };
-		var process = new ProcessBuilder().command(cmd).start();
-
-		var result = process.waitFor();
-
-		if (log.isDebugEnabled()) {
-			try (var err = new InputStreamReader(process.getErrorStream());
-					var out = new InputStreamReader(process.getInputStream())) {
-				log.debug("error: " + FileCopyUtils.copyToString(err));
-				log.debug("out: " + FileCopyUtils.copyToString(out));
-			}
+	private File scale(File file) throws Exception {
+		var original = file.getAbsolutePath();
+		var dest = FileUtils.createRelativeTempFile(file);
+		var output = dest.getAbsolutePath();
+		var quality = 100;
+		var size = 0L;
+		do {
+			runCommand("convert", original, "-quality", String.valueOf(quality), output);
+			size = Files.size(Paths.get(output));
+			quality -= 5;
 		}
-		Assert.state(result == 0, "the conversion must exit successfully");
-		return tmp;
+		while (size > MAX_SIZE.toBytes() && quality > 0);
+
+		return dest;
 	}
 
-	private File scale(File file) throws Exception {
-		var decrement = 500;
-		while (!isValidSize(file)) {
-			file = scale(file, readDimensionsFor(file).getWidth() - decrement);
-			var width = readDimensionsFor(file).getWidth();
-			Assert.state(width >= 100, "the width must be 100px or more");
-		}
-		return file;
+	private static void runCommand(String... command) throws IOException, InterruptedException {
+		var processBuilder = new ProcessBuilder(command);
+		var process = processBuilder.start();
+		process.waitFor();
 	}
 
 	private boolean isValidImage(File f) {

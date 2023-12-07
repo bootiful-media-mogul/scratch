@@ -1,6 +1,7 @@
 package com.joshlong.mogul.api.podcasts.processor;
 
 import com.joshlong.mogul.api.ApiProperties;
+import com.joshlong.mogul.api.Storage;
 import com.joshlong.mogul.api.podcasts.Integrations;
 import com.joshlong.mogul.api.podcasts.PodcastArchive;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
@@ -27,10 +28,6 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -44,17 +41,11 @@ import java.util.Map;
 @IntegrationComponentScan
 class ProcessorIntegrationFlowConfiguration {
 
+	private static final Logger log = LoggerFactory.getLogger(ProcessorIntegrationFlowConfiguration.class);
+
 	private static final String PROCESSOR_OUTBOUND_MESSAGE_CHANNEL = "processorOutboundMessageChannel";
 
 	private static final String PROCESSOR_INBOUND_MESSAGE_CHANNEL = "processorInboundMessageChannel";
-
-	private final S3Client s3;
-
-	private static final Logger log = LoggerFactory.getLogger(ProcessorIntegrationFlowConfiguration.class);
-
-	ProcessorIntegrationFlowConfiguration(S3Client s3) {
-		this.s3 = s3;
-	}
 
 	private S3UploadRequest s3UploadRequestForResource(PodcastArchive archive, String bucket, ArchiveResourceType type,
 			Resource resource) {
@@ -75,7 +66,7 @@ class ProcessorIntegrationFlowConfiguration {
 	}
 
 	@Bean(Integrations.FLOW_PROCESSOR)
-	IntegrationFlow outboundProcessorFlow(ProcessorClient processorClient, ApiProperties properties) {
+	IntegrationFlow outboundProcessorFlow(Storage storage, ProcessorClient processorClient, ApiProperties properties) {
 
 		return flow -> flow//
 			.split(new AbstractMessageSplitter() {
@@ -102,8 +93,7 @@ class ProcessorIntegrationFlowConfiguration {
 				}
 			})//
 			.transform((GenericHandler<S3UploadRequest>) (payload, headers) -> {
-				log.info("executing an S3 PUT on thread [" + Thread.currentThread() + "]");
-				this.put(payload.bucket(), payload.folder() + '/' + payload.name(), payload.resource());
+				storage.write(payload.bucket(), payload.folder() + '/' + payload.name(), payload.resource());
 				return MessageBuilder
 					.withPayload(new S3UploadResponse(payload, payload.folder(),
 							URI.create("s3://" + payload.bucket() + '/' + payload.folder() + '/' + payload.name())))
@@ -130,44 +120,6 @@ class ProcessorIntegrationFlowConfiguration {
 			.transform(S3UploadedPodcastArchive.class, new S3UploadedPodcastArchiveToProcessorRequestGenericConverter())//
 			.transform(new ObjectToJsonTransformer())//
 			.handle((GenericHandler<String>) (payload, headers) -> processorClient.process(payload));//
-	}
-
-	private boolean bucketExists(String bucketName) {
-		var buckets = (this.s3.listBuckets());
-		if (buckets.hasBuckets()) {
-			return buckets.buckets().stream().anyMatch(bucket -> bucket.name().equalsIgnoreCase(bucketName));
-
-		}
-		return false;
-	}
-
-	private void ensureBucketExists(String bucketName) {
-		try {
-			if (!bucketExists(bucketName)) {
-				log.info("attempting to create the bucket called [" + bucketName + "]");
-				s3.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
-			}
-			else {
-				log.debug("the bucket named [" + bucketName + "] already exists");
-			}
-		} //
-		catch (Throwable throwable) {
-			throw new RuntimeException(throwable);
-		}
-	}
-
-	private void put(String bucketName, String objectKey, Resource resource) {
-		this.ensureBucketExists(bucketName);
-		log.info("writing to bucket named [" + bucketName + "] with object key [" + objectKey + "]");
-		try (var inputStream = resource.getInputStream()) {
-			var putOb = PutObjectRequest.builder().bucket(bucketName).key(objectKey).metadata(Map.of()).build();
-			s3.putObject(putOb, RequestBody.fromInputStream(inputStream, resource.contentLength()));
-			log.info("wrote to bucket named [" + bucketName + "] with object key [" + objectKey + "]");
-		}
-		catch (Throwable e) {
-			throw new RuntimeException(
-					"couldn't upload the resource [" + objectKey + "] to bucket name [" + bucketName + "]", e);
-		}
 	}
 
 	@Bean(name = PROCESSOR_INBOUND_MESSAGE_CHANNEL)
