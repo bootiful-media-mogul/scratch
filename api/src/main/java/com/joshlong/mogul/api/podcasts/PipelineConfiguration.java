@@ -27,16 +27,12 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.Principal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -150,14 +146,7 @@ class PipelineConfiguration {
 
 	private static final String AUTHENTICATION_HEADER = "Authorization";
 
-	private record MogulPrincipal(Mogul mogul) implements Principal {
 
-		@Override
-		public String getName() {
-			return mogul().username();
-		}
-
-	}
 
 	private static void doMove(Resource resource, File file) {
 		try {
@@ -172,7 +161,7 @@ class PipelineConfiguration {
 
 	@Bean
 	IntegrationFlow pipeline(PodbeanClient podbeanClient, MogulService mogulService, ApiProperties properties,
-			Storage storage, Deserializer<PodcastArchive> podcastArchiveDeserializer,
+							 Storage storage, Deserializer<PodcastArchive> podcastArchiveDeserializer, MogulSecurityContexts mogulSecurityContexts,
 			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
 			@Qualifier(Integrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
 			@Qualifier(Integrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
@@ -202,18 +191,12 @@ class PipelineConfiguration {
 			.gateway(processorIntegrationFlow)
 			.transform((GenericHandler<Object>) (payload, headers) -> {
 				Assert.state(headers.containsKey(MOGUL_ID_HEADER), "there is not [" + MOGUL_ID_HEADER + "] header!");
-				var mogulId = (Long) headers.get(MOGUL_ID_HEADER);
-				var mogul = mogulService.getMogulById(mogulId);
-				var authentication = UsernamePasswordAuthenticationToken.authenticated(new MogulPrincipal(mogul), null,
-						AuthorityUtils.NO_AUTHORITIES);
-				var securityContextHolderStrategy = SecurityContextHolder.getContextHolderStrategy();
-				var context = securityContextHolderStrategy.createEmptyContext();
-				context.setAuthentication(authentication);
-				securityContextHolderStrategy.setContext(context);
-				return MessageBuilder.withPayload(payload)
-					.copyHeadersIfAbsent(headers)
-					.setHeader(AUTHENTICATION_HEADER, authentication)
-					.build();
+				var authentication = mogulSecurityContexts.install((Long) headers.get(MOGUL_ID_HEADER));
+				return MessageBuilder
+						.withPayload(payload) //
+						.copyHeadersIfAbsent(headers) //
+						.setHeader(AUTHENTICATION_HEADER, authentication) //
+						.build();
 			})
 			.transform(new HeaderFilter("sequenceNumber", "sequenceSize", "file_name", "correlationId",
 					"json_resolvableType", "json__TypeId__", "sequenceSize", "resource-type", "file_originalFile",
@@ -251,6 +234,7 @@ class PipelineConfiguration {
 					"....at this point there's a separate integrationFlow that'll kick in once the podbean episode has been published"))
 			.get();
 	}
+
 
 	private static String fileNameFor(Podcast podcast, String ext) {
 		return podcast.uid() + "." + (ext.toLowerCase());
