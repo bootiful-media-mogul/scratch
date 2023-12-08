@@ -18,7 +18,6 @@ public class MogulSecurityContexts {
 
     public record MogulPrincipal(Mogul mogul) implements Principal {
 
-
         @Override
         public String getName() {
             return mogul().username();

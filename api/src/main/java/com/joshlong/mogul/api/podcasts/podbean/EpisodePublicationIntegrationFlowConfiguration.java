@@ -5,6 +5,7 @@ import com.joshlong.podbean.Episode;
 import com.joshlong.podbean.PodbeanClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
@@ -115,12 +116,11 @@ class Runner {
 		this.podbeanPublicationWatcher = podbeanPublicationWatcher;
 	}
 
-	@EventListener(AppReopenedEvent.class)
+	@EventListener(ApplicationReadyEvent.class)
 	void run() throws Exception {
 		var podcastId = 1;
 		var mogulId = 1;
 		this.podbeanPublicationWatcher.watch(mogulId, podcastId);
-
 	}
 }
 
@@ -128,8 +128,12 @@ class Runner {
 class PodbeanPublicationWatcherConfiguration {
 
 	@Bean
-	PodbeanPublicationWatcher watcher(JdbcClient db, IntegrationFlowContext integrationFlowContext) throws UnknownHostException {
-		return new PodbeanPublicationWatcher(db, integrationFlowContext);
+	PodbeanPublicationWatcher podbeanPublicationWatcher(
+			JdbcClient db, ApplicationEventPublishingMessageHandler handler,
+			PodbeanClient podbeanClient, PodbeanEpisodePublicationTracker podbeanEpisodePublicationTracker,
+			MogulSecurityContexts securityContexts, IntegrationFlowContext integrationFlowContext) throws UnknownHostException {
+		return new PodbeanPublicationWatcher(db, handler, podbeanEpisodePublicationTracker, integrationFlowContext, securityContexts,
+				podbeanClient);
 	}
 }
 
@@ -155,7 +159,10 @@ class PodbeanPublicationWatcher {
 
 	private final MogulSecurityContexts mogulSecurityContexts;
 
-	PodbeanPublicationWatcher(JdbcClient db, ApplicationEventPublishingMessageHandler handler, PodbeanEpisodePublicationTracker t, IntegrationFlowContext integrationFlowContex, MogulSecurityContexts mogulSecurityContexts, PodbeanClient c) throws UnknownHostException {
+	PodbeanPublicationWatcher(JdbcClient db, ApplicationEventPublishingMessageHandler handler,
+							  PodbeanEpisodePublicationTracker t,
+							  IntegrationFlowContext integrationFlowContex,
+							  MogulSecurityContexts mogulSecurityContexts, PodbeanClient c) throws UnknownHostException {
 		this.episodeSyncApplicationEventPublishingMessageHandler = handler;
 		this.db = db;
 		this.mogulSecurityContexts = mogulSecurityContexts;
@@ -164,7 +171,7 @@ class PodbeanPublicationWatcher {
 		this.context = integrationFlowContex;
 	}
 
-	private void refresh() throws Exception {
+	private void refresh() {
 		synchronized (this.monitor) {
 			var sql = """
 					select * from podbean_publication_tracker where node_id = ? and stopped  is not null 
