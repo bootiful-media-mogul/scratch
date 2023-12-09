@@ -25,7 +25,6 @@ public interface MogulService {
 
 	Podcast addPodcastEpisode(Long mogulId, Podcast podcast);
 
-	Podcast getPodcastByPodbeanEpisode(String podbeanEpisodeId);
 
 	Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl, URI logoUrl,
 			URI podbeanPermalinkUrl, URI podbeanPlayerUrl, int duration);

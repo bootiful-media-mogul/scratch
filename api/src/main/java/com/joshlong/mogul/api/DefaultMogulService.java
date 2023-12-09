@@ -262,14 +262,6 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
-	public Podcast getPodcastByPodbeanEpisode(String id) {
-		return this.transactionTemplate
-			.execute(tx -> this.db.sql("select * from podcast where podbean_episode_id  =  ? ")
-				.query(new PodcastRowMapper())
-				.single());
-	}
-
-	@Override
 	public Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl, URI logoUrl,
 			URI podbeanPermalinkUrl, URI podbeanPlayerUrl, int duration) {
 
