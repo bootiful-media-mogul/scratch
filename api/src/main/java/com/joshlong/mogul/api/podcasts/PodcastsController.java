@@ -68,12 +68,12 @@ class PodcastsController {
 			@AuthenticationPrincipal Jwt jwt) throws Exception {
 
 		// todo write out the JWT
-		log.info("got the following JWT for the user [" + jwt.getTokenValue() + "]");
+		log.debug("got the following JWT for the user [" + jwt.getTokenValue() + "]");
 
 		var draft = this.mogulService.getPodcastDraftByUid(uid);
 		Assert.notNull(draft, "the PodcastDraft object must be non-null");
 		var mount = new File(this.podcastDraftsDirectory, uid);
-		log.info("uploading [" + uid + "] to [" + mount.getAbsolutePath() + "]");
+		log.info("moving [" + uid + "] to [" + mount.getAbsolutePath() + "]");
 		Assert.state(mount.exists() || mount.mkdirs(),
 				"the directory [" + mount.getAbsolutePath() + "] does not exist");
 		var pictureFN = this.handle(mount, "picture", picture);

@@ -9,7 +9,6 @@ import com.joshlong.podbean.EpisodeStatus;
 import com.joshlong.podbean.PodbeanClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.PollerFactory;
@@ -17,7 +16,7 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -29,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * registers watches in the DB and ensures there's an integration flow running somewhere
  * to actually watch for that instance
  **/
-@Service
+@Component
 class PodbeanPublicationWatcher {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -79,7 +78,7 @@ class PodbeanPublicationWatcher {
 		var integrationFlow = IntegrationFlow //
 			.from(messageSource,
 					pm -> pm.poller(p -> PollerFactory.fixedRate(Duration.ofMinutes(1), Duration.ofSeconds(0))))//
-			.transform((GenericTransformer<Boolean, PodbeanEpisodePublishedEvent>) source -> {
+			.transformWith(spec -> spec.requiresReply(false).transformer(source -> {
 				var authentication = mogulSecurityContexts.install(mogulId);
 				Assert.notNull(authentication, "the authentication for the current mogul is null!");
 				var episodes = podbeanClient.getAllEpisodes();
@@ -93,7 +92,7 @@ class PodbeanPublicationWatcher {
 					}
 				}
 				return null;
-			}) //
+			})) //
 			.handle(episodeSyncApplicationEventPublishingMessageHandler)//
 			.get();
 

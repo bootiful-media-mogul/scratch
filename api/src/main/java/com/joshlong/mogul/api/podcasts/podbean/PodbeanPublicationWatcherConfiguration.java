@@ -7,8 +7,8 @@ import com.joshlong.mogul.api.utils.NodeUtils;
 import com.joshlong.podbean.PodbeanClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.PollerFactory;
@@ -16,7 +16,6 @@ import org.springframework.integration.dsl.context.IntegrationFlowContext;
 import org.springframework.integration.event.inbound.ApplicationEventListeningMessageProducer;
 import org.springframework.integration.event.outbound.ApplicationEventPublishingMessageHandler;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
@@ -27,10 +26,13 @@ class PodbeanPublicationWatcherConfiguration {
 	IntegrationFlow outstandingPublicationsIntegrationFlow(TaskExecutor applicationTaskExecutor,
 			PodbeanPublicationWatcher watcher, MogulService mogulService) {
 		return IntegrationFlow
-			.from((MessageSource<Boolean>) () -> MessageBuilder.withPayload(Boolean.TRUE).build(),
+			.from((MessageSource<Long>) () -> MessageBuilder.withPayload(System.currentTimeMillis()).build(),
 					poller -> poller
 						.poller(pollerFactory -> PollerFactory.fixedRate(Duration.ofMinutes(1), Duration.ofMinutes(0))))
-			.handle(message -> refresh(applicationTaskExecutor, mogulService, watcher))
+			.handle((payload, headers) -> {
+				refresh(applicationTaskExecutor, mogulService, watcher);
+				return null;
+			})
 			.get();
 	}
 
@@ -59,44 +61,26 @@ class PodbeanPublicationWatcherConfiguration {
 				mogulService);
 	}
 
-	/*
-	 * @Bean ApplicationEventListeningMessageProducer
-	 * podbeanEpisodePublishedEventApplicationEventListeningMessageProducer() { var
-	 * eventListeningMessageProducer = new ApplicationEventListeningMessageProducer();
-	 * eventListeningMessageProducer.setEventTypes(PodbeanEpisodePublishedEvent.class);
-	 * return eventListeningMessageProducer; }
-	 */
+	@Bean
+	ApplicationEventListeningMessageProducer podbeanEpisodePublishedEventApplicationEventListeningMessageProducer() {
+		var producer = new ApplicationEventListeningMessageProducer();
+		producer.setEventTypes(PodbeanEpisodePublishedEvent.class);
+		return producer;
+	}
 
-	/**
-	 * there could be many ways we get the {@link PodbeanEpisodePublishedEvent} event so
-	 * best to decouple it
-	 */
-	/*
-	 * @Bean IntegrationFlow publishedEpisodePromotionIntegrationFlow(MogulService
-	 * mogulService, ApplicationEventListeningMessageProducer
-	 * applicationEventListeningMessageProducer) { return IntegrationFlow//
-	 * .from(applicationEventListeningMessageProducer)//
-	 * .handle((GenericHandler<PodbeanEpisodePublishedEvent>) (payload, headers) -> { var
-	 * podbeanEpisode = payload.episode(); var podcast = payload.podcast();
-	 * mogulService.confirmPodbeanPublication(podcast, podbeanEpisode.getId()); return
-	 * null; })// .get(); }
-	 */
+	@Bean
+	IntegrationFlow episodePublishedIntegrationFlow(
+			ApplicationEventListeningMessageProducer podbeanEpisodePublishedEventApplicationEventListeningMessageProducer,
+			MogulService mogulService) {
 
-	@Component
-	static class EpisodePublishedListener {
-
-		private final MogulService mogulService;
-
-		EpisodePublishedListener(MogulService mogulService) {
-			this.mogulService = mogulService;
-		}
-
-		@EventListener
-		void episodesPublished(PodbeanEpisodePublishedEvent podbeanEpisodePublishedEvent) {
-			this.mogulService.confirmPodbeanPublication(podbeanEpisodePublishedEvent.podcast(),
-					podbeanEpisodePublishedEvent.episode().getId());
-		}
-
+		return IntegrationFlow.from(podbeanEpisodePublishedEventApplicationEventListeningMessageProducer)
+			.handle((GenericHandler<PodbeanEpisodePublishedEvent>) (payload, headers) -> {
+				var episode = payload.episode();
+				mogulService.confirmPodbeanPublication(payload.podcast(), episode.getId(), episode.getMediaUrl(),
+						episode.getLogoUrl(), episode.getPermalinkUrl(), episode.getPlayerUrl(), episode.getDuration());
+				return null;
+			})
+			.get();
 	}
 
 }

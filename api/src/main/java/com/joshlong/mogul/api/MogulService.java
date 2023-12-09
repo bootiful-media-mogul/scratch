@@ -4,6 +4,7 @@ import com.joshlong.mogul.api.podcasts.podbean.PodbeanPublication;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 
@@ -26,7 +27,8 @@ public interface MogulService {
 
 	Podcast getPodcastByPodbeanEpisode(String podbeanEpisodeId);
 
-	Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId);
+	Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl, URI logoUrl,
+			URI podbeanPermalinkUrl, URI podbeanPlayerUrl, int duration);
 
 	PodcastDraft createPodcastDraft(Long mogulId, String uuid);
 
