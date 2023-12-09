@@ -54,12 +54,10 @@ create table if not exists podcast
     date                    timestamp,
     description             text,
     notes                   varchar(255),
-    podbean_draft_created   timestamp,
-    podbean_draft_published timestamp,
     podbean_media_uri       varchar(255),
     podbean_photo_uri       varchar(255),
-    permalink_uri varchar(255),
-    player_uri    varchar(255),
+    podbean_permalink_uri varchar(255),
+    podbean_player_uri    varchar(255),
     duration      bigint,
     s3_audio_file_name      varchar(255),
     s3_audio_uri            varchar(255),
@@ -70,7 +68,6 @@ create table if not exists podcast
     uid                     varchar(255) unique,
     mogul_id                bigint not null,
     needs_promotion bool not null default false,
-    podbean_revision varchar(255) null ,
     unique  (mogul_id , title) ,
     foreign key (mogul_id) references mogul (id)
 );

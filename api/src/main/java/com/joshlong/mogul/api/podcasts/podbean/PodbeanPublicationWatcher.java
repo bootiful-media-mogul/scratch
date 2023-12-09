@@ -84,7 +84,7 @@ class PodbeanPublicationWatcher {
 				var episodes = podbeanClient.getAllEpisodes();
 				var podcast = mogulService.getPodcastById(podcastId);
 				for (var e : episodes) {
-					var matches = e.getTitle().equalsIgnoreCase(podcast.title());
+					var matches = e.getId().equalsIgnoreCase(podcast.podbean().id());
 					var published = StringUtils.hasText(e.getStatus())
 							&& e.getStatus().equalsIgnoreCase(EpisodeStatus.PUBLISH.name());
 					if (matches && published) {

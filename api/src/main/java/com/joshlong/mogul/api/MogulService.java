@@ -25,9 +25,10 @@ public interface MogulService {
 
 	Podcast addPodcastEpisode(Long mogulId, Podcast podcast);
 
+	Podcast connectPodcastToPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI logoUrl,
+			URI podbeanPermalinkUrl, URI podbeanPlayerUrl);
 
-	Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl, URI logoUrl,
-			URI podbeanPermalinkUrl, URI podbeanPlayerUrl, int duration);
+	Podcast confirmPodbeanPublication(Podcast podcast, URI permalinkUrl, int duration);
 
 	PodcastDraft createPodcastDraft(Long mogulId, String uuid);
 

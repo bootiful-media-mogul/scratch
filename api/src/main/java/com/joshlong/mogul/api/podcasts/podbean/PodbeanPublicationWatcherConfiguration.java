@@ -76,8 +76,8 @@ class PodbeanPublicationWatcherConfiguration {
 		return IntegrationFlow.from(podbeanEpisodePublishedEventApplicationEventListeningMessageProducer)
 			.handle((GenericHandler<PodbeanEpisodePublishedEvent>) (payload, headers) -> {
 				var episode = payload.episode();
-				mogulService.confirmPodbeanPublication(payload.podcast(), episode.getId(), episode.getMediaUrl(),
-						episode.getLogoUrl(), episode.getPermalinkUrl(), episode.getPlayerUrl(), episode.getDuration());
+				mogulService.confirmPodbeanPublication(payload.podcast(), episode.getPermalinkUrl(),
+						episode.getDuration());
 				return null;
 			})
 			.get();

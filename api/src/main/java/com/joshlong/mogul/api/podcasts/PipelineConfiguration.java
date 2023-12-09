@@ -28,6 +28,7 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
@@ -160,8 +161,8 @@ class PipelineConfiguration {
 
 	@Bean
 	IntegrationFlow pipeline(PodbeanClient podbeanClient, MogulService mogulService, ApiProperties properties,
-			Storage storage, Deserializer<PodcastArchive> podcastArchiveDeserializer,
-			MogulSecurityContexts mogulSecurityContexts,
+			TransactionTemplate transactionTemplate, Storage storage,
+			Deserializer<PodcastArchive> podcastArchiveDeserializer, MogulSecurityContexts mogulSecurityContexts,
 			@Qualifier(PodcastIntegrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
 			@Qualifier(PodcastIntegrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
 			@Qualifier(PodcastIntegrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
@@ -227,7 +228,12 @@ class PipelineConfiguration {
 				Assert.isTrue(mp3File.exists() && mp3File.delete(),
 						"the" + " file " + mp3File.getAbsolutePath() + " does not exist or could not be deleted");
 
-				mogulService.monitorPodbeanPublication(NodeUtils.nodeId(), podcast);
+				transactionTemplate.execute(status -> {
+					mogulService.connectPodcastToPodbeanPublication(podcast, episode.getId(), episode.getMediaUrl(),
+							episode.getLogoUrl(), episode.getPlayerUrl());
+					mogulService.monitorPodbeanPublication(NodeUtils.nodeId(), podcast);
+					return null;
+				});
 
 				return podcast;
 			})

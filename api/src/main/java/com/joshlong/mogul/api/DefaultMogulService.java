@@ -262,30 +262,36 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
-	public Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl, URI logoUrl,
-			URI podbeanPermalinkUrl, URI podbeanPlayerUrl, int duration) {
-
+	public Podcast connectPodcastToPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl,
+			URI logoUrl, URI podbeanPlayerUrl) {
 		return this.transactionTemplate.execute(tx -> {
 			this.db.sql("""
 					update podcast set
 						podbean_episode_id =? ,
 						podbean_media_uri = ? ,
 						podbean_photo_uri = ? ,
-						duration = ? ,
-						player_uri = ? ,
-						permalink_uri = ? ,
+								podbean_player_uri  = ?
+							    where id =?
+					""")
+				.params(podbeanEpisodeId, podbeanMediaUrl.toString(), logoUrl.toString(), podbeanPlayerUrl.toString(),
+						podcast.id())
+				.update();
+
+			return getPodcastById(podcast.id());
+		});
+	}
+
+	@Override
+	public Podcast confirmPodbeanPublication(Podcast podcast, URI permalinkUrl, int duration) {
+
+		return this.transactionTemplate.execute(tx -> {
+			this.db.sql("""
+					update podcast set
+					   	podbean_permalink_uri = ? ,
+					    duration = ? ,
 					  	needs_promotion = true
 					  where id =?
-					""")
-				.params(podbeanEpisodeId,
-
-						podbeanMediaUrl.toString(), logoUrl.toString(), duration, podbeanPlayerUrl.toString(),
-						podbeanPermalinkUrl.toString(),
-
-						podcast.id()
-
-				)
-				.update();
+					""").params(permalinkUrl == null ? null : permalinkUrl.toString(), duration, podcast.id()).update();
 			this.db.sql(
 					"update podbean_publication_tracker set continue_tracking = false  , stopped = ? where podcast_id = ? ")
 				.params(new Date(), podcast.id())
