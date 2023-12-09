@@ -1,11 +1,9 @@
 export class Podcast {
-
   title: string
   id: number
   uid: string
   html: string
   date: Date
-
 
   constructor(id: number, date: Date, html: string, title: string, uid: string) {
     this.title = title

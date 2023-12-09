@@ -231,7 +231,6 @@ class DefaultMogulService implements MogulService {
 
 			db.sql("update podcast_draft set podcast_id = ? where uid =?").params(podcastId, podcast.uid()).update();
 
-
 			return getPodcastById(podcastId);
 		});
 	}
@@ -331,14 +330,16 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Collection<PodcastDraft> getPodcastDraftsByMogul(Long mogulId) {
-		return this.db.sql("select * from podcast_draft where podcast_id is null and mogul_id = ?").param(mogulId).query(new PodcastDraftRowMapper()).list();
+		return this.db.sql("select * from podcast_draft where podcast_id is null and mogul_id = ?")
+			.param(mogulId)
+			.query(new PodcastDraftRowMapper())
+			.list();
 	}
 
 	@Override
 	public Collection<Podcast> getDeletedPodcasts() {
 		return this.db.sql("select * from podcast where deleted = true ").query(new PodcastRowMapper()).list();
 	}
-
 
 	@Override
 	public PodbeanPublication monitorPodbeanPublication(String nodeName, Podcast podcast) {
@@ -384,10 +385,7 @@ class DefaultMogulService implements MogulService {
 	public boolean schedulePodcastForDeletion(Long podcastId) {
 		var podcast = getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] does not exist!");
-		this.db
-				.sql(" update podcast p set deleted = true where id = ? ")
-				.param(podcastId)
-				.update();
+		this.db.sql(" update podcast p set deleted = true where id = ? ").param(podcastId).update();
 
 		return true;
 	}

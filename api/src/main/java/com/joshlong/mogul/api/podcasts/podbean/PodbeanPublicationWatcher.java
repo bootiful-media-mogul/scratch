@@ -112,7 +112,8 @@ class PodbeanPublicationWatcher {
 	}
 
 	private void stop(Long podcastId) {
-		log.info("stopping " + getClass().getName() + " for outstanding podcast publication for podcast [" + podcastId + "]");
+		log.info("stopping " + getClass().getName() + " for outstanding podcast publication for podcast [" + podcastId
+				+ "]");
 		if (watchers.containsKey(podcastId)) {
 			var flow = watchers.remove(podcastId);
 			if (null != flow) {

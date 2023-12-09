@@ -43,11 +43,11 @@
 </template>
 
 <script lang="ts">
-import {  mogul, AiWorkshopReplyEvent } from '@/services'
+import { mogul, AiWorkshopReplyEvent } from '@/services'
 import axios from 'axios'
 import AiWorkshopItIcon from '@/components/AiWorkshopItIconComponent.vue'
 
-function getFileFrom(event: any) : File {
+function getFileFrom(event: any): File {
   const fileList = event.target['files'] as FileList
   const first = fileList.item(0)
   return first as File
@@ -65,9 +65,7 @@ export default {
       interview: null as null | File
     }
   },
-  async created() {
-  },
-
+  async created() {},
 
   methods: {
     afterDescriptionWorkshop(updated: AiWorkshopReplyEvent) {

@@ -41,7 +41,7 @@ public interface MogulService {
 
 	PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId);
 
-//	Collection<PodbeanPublication> getPodbeanPublicationsByNode(String nodeName);
+	// Collection<PodbeanPublication> getPodbeanPublicationsByNode(String nodeName);
 
 	PodbeanPublication monitorPodbeanPublication(String nodeName, Podcast podcast);
 
@@ -51,10 +51,12 @@ public interface MogulService {
 
 	Podcast getPodcastById(Long podcastId);
 
-	Collection<PodcastDraft> getPodcastDraftsByMogul(Long  mogulId);
+	Collection<PodcastDraft> getPodcastDraftsByMogul(Long mogulId);
 
-	Collection <Podcast> getDeletedPodcasts () ;
+	Collection<Podcast> getDeletedPodcasts();
 
 	boolean schedulePodcastForDeletion(Long podcastId);
+
 	boolean deletePodcast(Long podcastId);
+
 }

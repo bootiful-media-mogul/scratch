@@ -1,17 +1,14 @@
 <template>
-
-
   <h3>
     {{ podcast.title }}
   </h3>
-  <div> {{ buildPresentableDate(podcast.date) }}</div>
+  <div>{{ buildPresentableDate(podcast.date) }}</div>
   <div>
     <div v-html="podcast.html"></div>
   </div>
   <div>
     <a href="#" @click.prevent="$emit('episodeDeleted')">delete</a>
   </div>
-
 </template>
 
 <script lang="ts">
@@ -27,12 +24,9 @@ export default {
     }
   },
   methods: {
-
     buildPresentableDate(existingDate: Date) {
       return dateTimeFormatter.format(existingDate)
     }
   }
-
-
 }
 </script>

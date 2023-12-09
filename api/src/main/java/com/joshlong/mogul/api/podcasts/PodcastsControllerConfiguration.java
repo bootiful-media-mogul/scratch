@@ -12,10 +12,10 @@ class PodcastsControllerConfiguration {
 
 	@Bean
 	PodcastsController podcastsController(MogulService mogulService, ApiProperties properties,
-										  Serializer<PodcastArchive> podcastArchiveSerializer, MarkdownService markdownService) {
+			Serializer<PodcastArchive> podcastArchiveSerializer, MarkdownService markdownService) {
 		var pipeline = properties.podcasts().pipeline();
-		return new PodcastsController(pipeline.drafts(), pipeline.archives(),
-				mogulService, podcastArchiveSerializer, markdownService);
+		return new PodcastsController(pipeline.drafts(), pipeline.archives(), mogulService, podcastArchiveSerializer,
+				markdownService);
 	}
 
 }

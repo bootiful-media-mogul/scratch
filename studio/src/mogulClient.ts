@@ -8,7 +8,6 @@ export default class MogulClient {
     this.client = client
   }
 
-
   async podcastDrafts() {
     const query = `
                 query {
@@ -23,19 +22,28 @@ export default class MogulClient {
                 }
         `
     type GraphqlPodcast = {
-      id: number,
-      created: number,
-      title: string,
-      uid: string,
-      completed: boolean,
-      uploadPath: string,
+      id: number
+      created: number
+      title: string
+      uid: string
+      completed: boolean
+      uploadPath: string
       description: string
     }
     const queryResult = await this.client.query(query, {})
     const podcasts = this.indexIntoQueryField(queryResult, 'podcastDrafts') as Array<GraphqlPodcast>
-    return podcasts.map((podcast: GraphqlPodcast) => new PodcastDraft(
-      podcast.uploadPath, podcast.id, podcast.completed, podcast.uid, new Date(podcast.created), podcast.title, podcast.description
-    ))
+    return podcasts.map(
+      (podcast: GraphqlPodcast) =>
+        new PodcastDraft(
+          podcast.uploadPath,
+          podcast.id,
+          podcast.completed,
+          podcast.uid,
+          new Date(podcast.created),
+          podcast.title,
+          podcast.description
+        )
+    )
   }
 
   async podcasts() {
@@ -51,12 +59,14 @@ export default class MogulClient {
               }
             } 
     `
-    type GraphqlPodcast = { id: number, created: number, html: string, title: string, uid: string }
+    type GraphqlPodcast = { id: number; created: number; html: string; title: string; uid: string }
     const queryResult = await this.client.query(query, {})
     const podcasts = this.indexIntoQueryField(queryResult, 'podcasts') as Array<GraphqlPodcast>
-    return podcasts.map((podcast: GraphqlPodcast) => (new Podcast(podcast.id, new Date(podcast.created), podcast.html, podcast.title, podcast.uid)))
+    return podcasts.map(
+      (podcast: GraphqlPodcast) =>
+        new Podcast(podcast.id, new Date(podcast.created), podcast.html, podcast.title, podcast.uid)
+    )
   }
-
 
   async me(): Promise<string> {
     const query = `

@@ -1,16 +1,16 @@
 <template>
-  <h1> Episodes </h1>
+  <h1>Episodes</h1>
 
   <div v-if="drafts.length > 0">
-    <h2> Drafts </h2>
+    <h2>Drafts</h2>
     <div v-bind:key="podcast.id" v-for="podcast in drafts">
       <PodcastDraftComponent :podcast="podcast" />
     </div>
   </div>
   <div>
-    <h2> Published </h2>
+    <h2>Published</h2>
     <div v-bind:key="podcast.id" v-for="podcast in podcasts">
-      <PodcastComponent @episode-deleted="deletePodcast (podcast )" :podcast="podcast" />
+      <PodcastComponent @episode-deleted="deletePodcast(podcast)" :podcast="podcast" />
     </div>
   </div>
 </template>
@@ -40,6 +40,5 @@ export default {
       drafts: [] as Array<PodcastDraft>
     }
   }
-
 }
 </script>

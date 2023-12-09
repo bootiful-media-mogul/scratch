@@ -27,10 +27,10 @@ public class Storage {
 		this.s3 = s3;
 	}
 
-	public void remove (String bucket, String objectName) {
-		if  (bucketExists(bucket)) {
-			var delete=DeleteObjectRequest.builder().bucket(bucket).key(objectName).build();
-			s3.deleteObject( delete) ;
+	public void remove(String bucket, String objectName) {
+		if (bucketExists(bucket)) {
+			var delete = DeleteObjectRequest.builder().bucket(bucket).key(objectName).build();
+			s3.deleteObject(delete);
 		}
 	}
 

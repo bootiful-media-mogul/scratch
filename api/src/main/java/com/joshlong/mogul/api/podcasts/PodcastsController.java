@@ -49,7 +49,7 @@ class PodcastsController {
 	private final MarkdownService markdownService;
 
 	PodcastsController(File podcastDraftsDirectory, File podcastArchiveDirectory, MogulService mogulService,
-					   Serializer<PodcastArchive> podcastArchiveSerializer, MarkdownService markdownService) {
+			Serializer<PodcastArchive> podcastArchiveSerializer, MarkdownService markdownService) {
 		this.mogulService = mogulService;
 		this.podcastDraftsDirectory = podcastDraftsDirectory;
 		this.podcastArchiveDirectory = podcastArchiveDirectory;
@@ -101,8 +101,8 @@ class PodcastsController {
 		Assert.state(!zipTmp.exists(),
 				"the temporary zip archive file [" + zipTmp.getAbsolutePath() + "] still exists. Why?");
 		Assert.state(zip.exists(), "the final .zip archive file [" + zip.getAbsolutePath() + "] does not exist");
-		return this.mogulService.completePodcastDraft(getCurrentMogulId(), uid, title, description,
-				pictureFN, introFN, interviewFN);
+		return this.mogulService.completePodcastDraft(getCurrentMogulId(), uid, title, description, pictureFN, introFN,
+				interviewFN);
 	}
 
 	@MutationMapping
@@ -162,7 +162,8 @@ class PodcastsController {
 		var ogFileName = resource.getFilename();
 		var child = type + "." + Objects.requireNonNull(ogFileName).substring(ogFileName.lastIndexOf('.') + 1);
 		var output = new File(root, child);
-		try (var in = new BufferedInputStream(resource.getInputStream()); var out = new BufferedOutputStream(new FileOutputStream(output))) {
+		try (var in = new BufferedInputStream(resource.getInputStream());
+				var out = new BufferedOutputStream(new FileOutputStream(output))) {
 			FileCopyUtils.copy(in, out);
 		}
 		return new FileSystemResource(output);
