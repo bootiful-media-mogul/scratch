@@ -17,7 +17,7 @@ html {
     'welcome welcome'
     'toolbar toolbar'
     'main sidebar ';
-  grid-template-columns: 75vw auto;
+  grid-template-columns: auto 300px;
 }
 
 .welcome {

@@ -18,28 +18,6 @@ create table if not exists settings
     unique (mogul_id, category, key)
 ) ;
 
-/*create table if not exists podbean_account
-(
-    mogul_id      bigint not null ,
-    client_id     text not null,
-    client_secret text not null,
-    foreign key (mogul_id) references mogul (id)
-);
-*/
-
-create table if not exists podbean_episode
-(
-    revision             text                  not null,
-    title                text,
-    published            boolean default false not null,
-    previously_published boolean default false not null,
-    id                   varchar(255)          not null unique
-);
-
--- todo change the ddl so that the podbean_episode_id is a foreign key pointing to the podbean_episode table, somehow
---  also the two things should have similar names: either podbean_podcast* or podbean_episode*
-
-
 create table if not exists podcast_draft
 (
     id          serial primary key,
@@ -88,6 +66,7 @@ create table if not exists podcast
     transcript              text,
     uid                     varchar(255) unique,
     mogul_id                bigint not null,
+    needs_promotion bool not null default false,
     podbean_revision varchar(255) null ,
     unique  (mogul_id , title) ,
     foreign key (mogul_id) references mogul (id)

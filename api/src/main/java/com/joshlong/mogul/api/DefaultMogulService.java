@@ -1,6 +1,8 @@
 package com.joshlong.mogul.api;
 
+import com.joshlong.mogul.api.podcasts.podbean.PodbeanPublication;
 import com.joshlong.mogul.api.utils.JdbcUtils;
+import com.joshlong.mogul.api.utils.NodeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.sql.ResultSet;
@@ -25,8 +28,17 @@ import java.util.function.Function;
 @Transactional
 class DefaultMogulService implements MogulService {
 
+	//
+	private final static String PODBEAN_ACCOUNTS_SETTINGS = "podbean";
+
+	private final static String PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID = "client-id";
+
+	private final static String PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET = "client-secret";
+
+	//
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
+	//
 	private final JdbcClient db;
 
 	private final TransactionTemplate transactionTemplate;
@@ -87,26 +99,14 @@ class DefaultMogulService implements MogulService {
 		return getPodbeanAccountSettings(mogulId);
 	}
 
-	private final static String PODBEAN_ACCOUNTS_SETTINGS = "podbean";
-
-	private final static String PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID = "client-id";
-
-	private final static String PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET = "client-secret";
-
 	@Override
 	public PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId) {
 		var clientId = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID);
 		var clientSecret = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
 				PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET);
-		return new PodbeanAccountSettings(clientId, clientSecret);
+		var configured = StringUtils.hasText(clientId) || StringUtils.hasText(clientSecret);
+		return configured ? new PodbeanAccountSettings(clientId, clientSecret) : null;
 	}
-	/*
-	 *
-	 * @Override public PodbeanAccountSettings getPodbeanAccountByMogul(Long mogul) { var
-	 * list = this.db.sql("select * from podbean_account where mogul_id = ?")
-	 * .param(mogul) .query(new PodbeanAccountRowMapper()) .list(); if (list.isEmpty())
-	 * return null; return list.get(0); }
-	 */
 
 	@Override
 	public List<Podcast> getPodcastsByMogul(Long mogul) {
@@ -255,8 +255,7 @@ class DefaultMogulService implements MogulService {
 		if (null == input) {
 			var typeOfVar = args.getClass().getComponentType();
 			var rt = (T) defaults.get(typeOfVar);
-			if (log.isDebugEnabled())
-				log.debug("returning " + rt + " for query class [" + typeOfVar.getName() + "]");
+			log.debug("returning " + rt + " for query class [" + typeOfVar.getName() + "]");
 			return rt;
 		}
 		return input;
@@ -271,12 +270,70 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
-	public Podcast markPodcastForPromotion(Podcast podcast) {
-		var id = podcast.id();
+	public Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId) {
+
 		return this.transactionTemplate.execute(tx -> {
-			this.db.sql("update podcast set needs_promotion = true where id =? ").param(id).update();
-			return getPodcastById(id);
+			this.db.sql("update podcast set podbean_episode_id =? ,  needs_promotion = true where id =? ")
+				.params(podbeanEpisodeId, podcast.id())
+				.update();
+			this.db.sql(
+					"update podbean_publication_tracker set continue_tracking = false  , stopped = ? where podcast_id = ? ")
+				.params(new Date(), podcast.id())
+				.update();
+			return getPodcastById(podcast.id());
 		});
+	}
+
+	@Override
+	public PodbeanPublication getPodbeanPublicationByPodcast(Podcast podcast) {
+
+		var sql = """
+					select * from podbean_publication_tracker where
+					mogul_id = ?
+					and
+					podcast_id = ?
+					and
+					stopped is null
+				""";
+		var all = db.sql(sql)
+			.params(podcast.mogulId(), podcast.id())
+			.query(new PodbeanPublicationTrackerRowMapper())
+			.list();
+		if (all.isEmpty())
+			return null;
+		return all.getFirst();
+
+	}
+
+	@Override
+	public Collection<PodbeanPublication> getOutstandingPodbeanPublications() {
+		var sql = """
+				select * from podbean_publication_tracker where node_id = ? and stopped  is   null
+				""";
+		return db.sql(sql).params(NodeUtils.nodeId()).query(new PodbeanPublicationTrackerRowMapper()).list();
+	}
+
+	@Override
+	public Collection<PodbeanPublication> getPodbeanPublicationsByNode(String nodeName) {
+		var mogulPodcasts = """
+				select  * from podbean_publication_tracker where node_id = ?
+				""";
+		return db.sql(mogulPodcasts).param(nodeName).query(new PodbeanPublicationTrackerRowMapper()).list();
+	}
+
+	@Override
+	public PodbeanPublication monitorPodbeanPublication(String nodeName, Podcast podcast) {
+		var sql = """
+				insert into podbean_publication_tracker (  node_id, mogul_id, continue_tracking, podcast_id, started, stopped )
+				values (?, ?, ?, ?, ?, ? )
+				on conflict on constraint  podbean_publication_tracker_podcast_id_key
+				do nothing
+				""";
+
+		this.db.sql(sql).params(nodeName, podcast.mogulId(), true, podcast.id(), new Date(), null).update();
+
+		return getPodbeanPublicationByPodcast(podcast);
+
 	}
 
 	@Override
@@ -302,7 +359,8 @@ class DefaultMogulService implements MogulService {
 			.single();
 	}
 
-	private Podcast getPodcastById(Long id) {
+	@Override
+	public Podcast getPodcastById(Long id) {
 		return this.db.sql("select * from podcast where id =? ").param(id).query(new PodcastRowMapper()).single();
 	}
 
@@ -334,6 +392,16 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 				podbeanMediaUri);
 		var mogulId = rs.getLong("mogul_id");
 		return new Podcast(mogulId, id, uid, date, description, transcript, title, podbean, notes, s3);
+	}
+
+}
+
+class PodbeanPublicationTrackerRowMapper implements RowMapper<PodbeanPublication> {
+
+	@Override
+	public PodbeanPublication mapRow(ResultSet rs, int rowNum) throws SQLException {
+		return new PodbeanPublication(rs.getLong("mogul_id"), rs.getLong("podcast_id"), rs.getString("node_id"),
+				rs.getBoolean("continue_tracking"), rs.getDate("started"), rs.getDate("stopped"));
 	}
 
 }

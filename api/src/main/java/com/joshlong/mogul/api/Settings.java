@@ -44,15 +44,20 @@ public class Settings {
 	}
 
 	private Setting get(Long mogulId, String category, String key) {
-		return this.db//
+		var settings = this.db//
 			.sql("select * from settings where mogul_id = ? and category =? and key = ? ")
 			.params(mogulId, category, key)
 			.query(this.rowMapper)
-			.single();
+			.list();
+		Assert.state(settings.size() <= 1, "there should never be more than one setting configured.");
+		return settings.isEmpty() ? null : settings.getFirst();
 	}
 
 	public String getValue(Long mogulId, String category, String key) {
-		return get(mogulId, category, key).value();
+		var v = get(mogulId, category, key);
+		if (v != null)
+			return v.value();
+		return null;
 	}
 
 	public String getString(Long mogulId, String category, String key) {

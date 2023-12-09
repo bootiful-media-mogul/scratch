@@ -13,25 +13,4 @@ import org.springframework.integration.event.inbound.ApplicationEventListeningMe
 @Configuration
 class PodcastPromotionIntegrationFlowConfiguration {
 
-	@Bean
-	ApplicationEventListeningMessageProducer podbeanEpisodePublishedEventApplicationEventListeningMessageProducer() {
-		var eventListeningMessageProducer = new ApplicationEventListeningMessageProducer();
-		eventListeningMessageProducer.setEventTypes(PodbeanEpisodePublishedEvent.class);
-		return eventListeningMessageProducer;
-	}
-
-	@Bean
-	IntegrationFlow publishedEpisodePromotionIntegrationFlow(MogulService repository,
-			ApplicationEventListeningMessageProducer applicationEventListeningMessageProducer) {
-		return IntegrationFlow.from(applicationEventListeningMessageProducer)
-			.transform((GenericTransformer<PodbeanEpisodePublishedEvent, Object>) PodbeanEpisodePublishedEvent::episode)
-			.transform((GenericTransformer<Episode, Podcast>) source -> repository
-				.getPodcastByPodbeanEpisode(source.getId()))
-			.handle((GenericHandler<Podcast>) (payload, headers) -> {
-				repository.markPodcastForPromotion(payload);
-				return null;
-			})
-			.get();
-	}
-
 }

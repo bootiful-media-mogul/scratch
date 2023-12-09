@@ -51,7 +51,8 @@ export default {
     },
     finished(e: Event) {
       console.log('finishing...')
-      this.callback(new AiWorkshopReplyEvent(this.prompt, AiWorkshopReplyEventType.TEXT))
+      this.hide()
+      this.callback(new AiWorkshopReplyEvent(this.prompt.trim(), AiWorkshopReplyEventType.TEXT))
     },
     show() {
       this.visible = true

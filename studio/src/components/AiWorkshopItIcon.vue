@@ -7,7 +7,7 @@ import { AiWorkshopReplyEvent, workshopInAi } from '@/services'
 
 export default {
   emits: ['ai-workshop-completed'],
-  props: ['text'],
+  props: ['text', 'prompt'],
   data() {
     return {
       description: ''
@@ -24,7 +24,11 @@ export default {
   methods: {
     workshop(e: Event) {
       e.preventDefault()
-      workshopInAi(this.callbackFunction, this.text)
+      const prompt =
+        this.prompt == null || this.prompt.trim() == ''
+          ? this.text
+          : this.prompt + '\n\n' + this.text
+      workshopInAi(this.callbackFunction, prompt)
     }
   }
 }

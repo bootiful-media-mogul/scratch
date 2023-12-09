@@ -14,7 +14,9 @@ import org.springframework.util.StringUtils;
 import java.util.Locale;
 
 @Configuration
-public class Integrations {
+public class PodcastIntegrations {
+
+	public static final String PODCAST_HEADER = "podcast";
 
 	public static final String HEADER_ARCHIVE = "archive";
 
@@ -89,7 +91,7 @@ public class Integrations {
 	}
 
 	public static GenericHandler<Object> terminatingDebugHandler(String header) {
-		var log = LoggerFactory.getLogger(Integrations.class);
+		var log = LoggerFactory.getLogger(PodcastIntegrations.class);
 		return (payload, headers) -> {
 			var message = new StringBuilder();
 			if (StringUtils.hasText(header))

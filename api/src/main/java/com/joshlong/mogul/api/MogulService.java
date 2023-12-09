@@ -1,8 +1,10 @@
 package com.joshlong.mogul.api;
 
+import com.joshlong.mogul.api.podcasts.podbean.PodbeanPublication;
 import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface MogulService {
@@ -24,7 +26,7 @@ public interface MogulService {
 
 	Podcast getPodcastByPodbeanEpisode(String podbeanEpisodeId);
 
-	Podcast markPodcastForPromotion(Podcast podcast);
+	Podcast confirmPodbeanPublication(Podcast podcast, String podbeanEpisodeId);
 
 	PodcastDraft createPodcastDraft(Long mogulId, String uuid);
 
@@ -36,5 +38,15 @@ public interface MogulService {
 	PodbeanAccountSettings configurePodbeanAccountSettings(Long mogulId, String clientId, String clientSecret);
 
 	PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId);
+
+	Collection<PodbeanPublication> getPodbeanPublicationsByNode(String nodeName);
+
+	PodbeanPublication monitorPodbeanPublication(String nodeName, Podcast podcast);
+
+	PodbeanPublication getPodbeanPublicationByPodcast(Podcast podcast);
+
+	Collection<PodbeanPublication> getOutstandingPodbeanPublications();
+
+	Podcast getPodcastById(Long podcastId);
 
 }

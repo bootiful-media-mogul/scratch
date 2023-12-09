@@ -5,13 +5,21 @@
       <h2>title</h2>
       <input type="text" v-model="title" />
       <br />
-      <AiWorkshopItIcon @ai-workshop-completed="afterTitleWorkshop" :text="title" />
+      <AiWorkshopItIcon
+        @ai-workshop-completed="afterTitleWorkshop"
+        prompt="Make the following podcast title more lively:"
+        :text="title"
+      />
     </div>
     <div>
       <h2>description</h2>
       <textarea rows="10" cols="30" v-model="description"></textarea>
       <br />
-      <AiWorkshopItIcon @ai-workshop-completed="afterDescriptionWorkshop" :text="description" />
+      <AiWorkshopItIcon
+        @ai-workshop-completed="afterDescriptionWorkshop"
+        prompt="Make the following podcast description more lively:"
+        :text="description"
+      />
     </div>
     <div>
       <h2>picture</h2>

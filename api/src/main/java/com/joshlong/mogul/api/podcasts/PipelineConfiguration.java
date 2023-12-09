@@ -3,6 +3,7 @@ package com.joshlong.mogul.api.podcasts;
 import com.joshlong.mogul.api.*;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
 import com.joshlong.mogul.api.utils.FileUtils;
+import com.joshlong.mogul.api.utils.NodeUtils;
 import com.joshlong.podbean.EpisodeStatus;
 import com.joshlong.podbean.EpisodeType;
 import com.joshlong.podbean.PodbeanClient;
@@ -75,8 +76,8 @@ class PipelineConfiguration {
 		private static Message<Resource> resourceMessage(PodcastArchive archive, ArchiveResourceType type,
 				Resource resource) {
 			return MessageBuilder.withPayload(resource)
-				.setHeader(Integrations.HEADER_ARCHIVE, archive)
-				.setHeader(Integrations.HEADER_RESOURCE_TYPE, type)
+				.setHeader(PodcastIntegrations.HEADER_ARCHIVE, archive)
+				.setHeader(PodcastIntegrations.HEADER_RESOURCE_TYPE, type)
 				.build();
 		}
 
@@ -128,9 +129,9 @@ class PipelineConfiguration {
 				var title = (String) null;
 				var description = (String) null;
 				for (var m : messages) {
-					var type = (ArchiveResourceType) m.getHeaders().get(Integrations.HEADER_RESOURCE_TYPE);
+					var type = (ArchiveResourceType) m.getHeaders().get(PodcastIntegrations.HEADER_RESOURCE_TYPE);
 					map.put(type, new FileSystemResource((File) m.getPayload()));
-					var pa = (PodcastArchive) m.getHeaders().get(Integrations.HEADER_ARCHIVE);
+					var pa = (PodcastArchive) m.getHeaders().get(PodcastIntegrations.HEADER_ARCHIVE);
 					title = pa.title();
 					uuid = pa.uuid();
 					description = pa.description();
@@ -146,8 +147,6 @@ class PipelineConfiguration {
 
 	private static final String AUTHENTICATION_HEADER = "Authorization";
 
-
-
 	private static void doMove(Resource resource, File file) {
 		try {
 			try (var in = resource.getInputStream(); var out = new FileOutputStream(file)) {
@@ -161,10 +160,11 @@ class PipelineConfiguration {
 
 	@Bean
 	IntegrationFlow pipeline(PodbeanClient podbeanClient, MogulService mogulService, ApiProperties properties,
-							 Storage storage, Deserializer<PodcastArchive> podcastArchiveDeserializer, MogulSecurityContexts mogulSecurityContexts,
-			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
-			@Qualifier(Integrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
-			@Qualifier(Integrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
+			Storage storage, Deserializer<PodcastArchive> podcastArchiveDeserializer,
+			MogulSecurityContexts mogulSecurityContexts,
+			@Qualifier(PodcastIntegrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests,
+			@Qualifier(PodcastIntegrations.FLOW_PROCESSOR) IntegrationFlow processorIntegrationFlow,
+			@Qualifier(PodcastIntegrations.FLOW_MEDIA_NORMALIZATION) IntegrationFlow mediaNormalizationIntegrationFlow) {
 		return IntegrationFlow //
 			.from(requests)//
 			.transform(new FileToPodcastArchiveGenericTransformer(podcastArchiveDeserializer))
@@ -179,7 +179,6 @@ class PipelineConfiguration {
 						.setHeader(MOGUL_ID_HEADER, podcastDraftByUid.mogulId())
 						.build();
 				}
-
 				throw new IllegalStateException("the PodcastArchive is invalid");
 			})
 			.split(new ArchiveMediaSplitter())
@@ -192,19 +191,18 @@ class PipelineConfiguration {
 			.transform((GenericHandler<Object>) (payload, headers) -> {
 				Assert.state(headers.containsKey(MOGUL_ID_HEADER), "there is not [" + MOGUL_ID_HEADER + "] header!");
 				var authentication = mogulSecurityContexts.install((Long) headers.get(MOGUL_ID_HEADER));
-				return MessageBuilder
-						.withPayload(payload) //
-						.copyHeadersIfAbsent(headers) //
-						.setHeader(AUTHENTICATION_HEADER, authentication) //
-						.build();
+				return MessageBuilder.withPayload(payload) //
+					.copyHeadersIfAbsent(headers) //
+					.setHeader(AUTHENTICATION_HEADER, authentication) //
+					.build();
 			})
 			.transform(new HeaderFilter("sequenceNumber", "sequenceSize", "file_name", "correlationId",
 					"json_resolvableType", "json__TypeId__", "sequenceSize", "resource-type", "file_originalFile",
 					"file_relativePath"))
-			.transform(Integrations.debugHandler("processing reply from processor"))
+			.transform(PodcastIntegrations.debugHandler("processing reply from processor"))
 			.transform(new JsonToObjectTransformer())
 			.transform(new ProcessorReplyToDatabasePodcastGenericTransformer(mogulService))
-			.handle(Integrations.debugHandler(
+			.handle(PodcastIntegrations.debugHandler(
 					"got the reply from the processor, writing to the DB, going to send a request to Podbean"))
 			.transform((GenericTransformer<Podcast, Podcast>) podcast -> {
 				var podbeanDirectory = FileUtils
@@ -228,13 +226,15 @@ class PipelineConfiguration {
 				log.info("the episode has been published to " + episode.toString() + '.');
 				Assert.isTrue(mp3File.exists() && mp3File.delete(),
 						"the" + " file " + mp3File.getAbsolutePath() + " does not exist or could not be deleted");
+
+				mogulService.monitorPodbeanPublication(NodeUtils.nodeId(), podcast);
+
 				return podcast;
 			})
-			.handle(Integrations.terminatingDebugHandler(
+			.handle(PodcastIntegrations.terminatingDebugHandler(
 					"....at this point there's a separate integrationFlow that'll kick in once the podbean episode has been published"))
 			.get();
 	}
-
 
 	private static String fileNameFor(Podcast podcast, String ext) {
 		return podcast.uid() + "." + (ext.toLowerCase());
@@ -242,7 +242,7 @@ class PipelineConfiguration {
 
 	@Bean
 	IntegrationFlow errorHandlingIntegrationFlow(@Qualifier(MessageHeaders.ERROR_CHANNEL) MessageChannel errors) {
-		return IntegrationFlow.from(errors).handle(Integrations.terminatingDebugHandler("error!")).get();
+		return IntegrationFlow.from(errors).handle(PodcastIntegrations.terminatingDebugHandler("error!")).get();
 	}
 
 	/**
@@ -280,15 +280,11 @@ class PipelineConfiguration {
 						new Podcast.S3(new Podcast.S3.Audio(new URI(exportedAudioS3Name), exportedAudioS3FileName),
 								new Podcast.S3.Photo(new URI(exportedPhotoS3Name), exportedPhotoS3FileName)));
 
-				this.mogulService.addPodcastEpisode(mogul.id(), podcast);
-
-				return podcast;
-
+				return this.mogulService.addPodcastEpisode(mogul.id(), podcast);
 			} //
 			catch (URISyntaxException e) {
 				throw new RuntimeException(e);
 			}
-
 		}
 
 	}
@@ -299,12 +295,15 @@ class PipelineConfiguration {
 
 	@Bean
 	IntegrationFlow archiveFilesIntegrationFlow(ApiProperties properties,
-			@Qualifier(Integrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests) {
+			@Qualifier(PodcastIntegrations.CHANNEL_PIPELINE_REQUESTS) MessageChannel requests) {
 		var inboundFileAdapter = Files.inboundAdapter(properties.podcasts().pipeline().archives())//
 			.filterFunction(PipelineConfiguration::isValidPodcastArchiveFile)
 			.preventDuplicates(true)//
 			.autoCreateDirectory(true);
-		return IntegrationFlow.from(inboundFileAdapter).handle(Integrations.debugHandler()).channel(requests).get();
+		return IntegrationFlow.from(inboundFileAdapter)
+			.handle(PodcastIntegrations.debugHandler())
+			.channel(requests)
+			.get();
 	}
 
 	// https://developers.podbean.com/podbean-api-docs/#api-appendix-Podbean-API-Limit

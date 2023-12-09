@@ -1,6 +1,6 @@
 package com.joshlong.mogul.api.podcasts.media;
 
-import com.joshlong.mogul.api.podcasts.Integrations;
+import com.joshlong.mogul.api.podcasts.PodcastIntegrations;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
 import com.joshlong.mogul.api.utils.FileUtils;
 import org.slf4j.Logger;
@@ -15,7 +15,6 @@ import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.unit.DataSize;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,7 +23,7 @@ import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.Set;
 
-import static com.joshlong.mogul.api.podcasts.Integrations.*;
+import static com.joshlong.mogul.api.podcasts.PodcastIntegrations.*;
 
 /**
  * the idea here is that we want a way to take any asset - be it a {@literal .wav} or a
@@ -36,12 +35,13 @@ class MediaNormalizationIntegration {
 
 	@Bean(AUDIO_NORMALIZATION_FLOW)
 	IntegrationFlow audioNormalizationFlow() {
-		return flow -> flow.handle(Integrations.debugHandler("audio flow"));
+		return flow -> flow.handle(PodcastIntegrations.debugHandler("audio flow"));
 	}
 
 	@Bean(IMAGE_NORMALIZATION_FLOW)
 	IntegrationFlow imageNormalizationFlow(@Qualifier(ImageEncoder.IMAGE_ENCODER) MediaEncoder imageEncoder) {
-		return flow -> flow.handle(Integrations.debugHandler("image flow")).transform(File.class, imageEncoder::encode);
+		return flow -> flow.handle(PodcastIntegrations.debugHandler("image flow"))
+			.transform(File.class, imageEncoder::encode);
 	}
 
 	@Bean(name = FLOW_MEDIA_NORMALIZATION)

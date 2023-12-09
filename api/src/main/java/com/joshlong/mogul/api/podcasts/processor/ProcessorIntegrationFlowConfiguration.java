@@ -2,7 +2,7 @@ package com.joshlong.mogul.api.podcasts.processor;
 
 import com.joshlong.mogul.api.ApiProperties;
 import com.joshlong.mogul.api.Storage;
-import com.joshlong.mogul.api.podcasts.Integrations;
+import com.joshlong.mogul.api.podcasts.PodcastIntegrations;
 import com.joshlong.mogul.api.podcasts.PodcastArchive;
 import com.joshlong.mogul.api.podcasts.archives.ArchiveResourceType;
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ class ProcessorIntegrationFlowConfiguration {
 
 	}
 
-	@Bean(Integrations.FLOW_PROCESSOR)
+	@Bean(PodcastIntegrations.FLOW_PROCESSOR)
 	IntegrationFlow outboundProcessorFlow(Storage storage, ProcessorClient processorClient, ApiProperties properties) {
 
 		return flow -> flow//
@@ -82,7 +82,7 @@ class ProcessorIntegrationFlowConfiguration {
 							var s3UploadRequest = s3UploadRequestForResource(podcastArchive,
 									properties.podcasts().processor().s3().inputBucket(), k, map.get(k));
 							set.add(MessageBuilder.withPayload(s3UploadRequest)
-								.setHeader(Integrations.HEADER_RESOURCE_TYPE, k)
+								.setHeader(PodcastIntegrations.HEADER_RESOURCE_TYPE, k)
 								.copyHeadersIfAbsent(message.getHeaders())
 								.build());
 						}
@@ -106,14 +106,14 @@ class ProcessorIntegrationFlowConfiguration {
 				var payloadArchive = (PodcastArchive) messages.iterator()
 					.next()
 					.getHeaders()
-					.get(Integrations.HEADER_ARCHIVE);
+					.get(PodcastIntegrations.HEADER_ARCHIVE);
 				Assert.notNull(payloadArchive, "the podcastArchive must be non-null ");
 				var s3UploadResponseHashMap = new HashMap<ArchiveResourceType, S3UploadResponse>();
 				for (var message : messages) {
 					var payload = (S3UploadResponse) message.getPayload();
 					var headers = message.getHeaders();
-					s3UploadResponseHashMap.put((ArchiveResourceType) headers.get(Integrations.HEADER_RESOURCE_TYPE),
-							payload);
+					s3UploadResponseHashMap
+						.put((ArchiveResourceType) headers.get(PodcastIntegrations.HEADER_RESOURCE_TYPE), payload);
 				}
 				return new S3UploadedPodcastArchive(payloadArchive, s3UploadResponseHashMap);
 			}))//
@@ -152,7 +152,7 @@ class ProcessorIntegrationFlowConfiguration {
 				.routingKey(q)//
 				.exchangeName(q)//
 			)
-			.handle(Integrations.debugHandler("outbound processor AMQP message"))
+			.handle(PodcastIntegrations.debugHandler("outbound processor AMQP message"))
 			.channel(inbound)
 			.get();
 	}
