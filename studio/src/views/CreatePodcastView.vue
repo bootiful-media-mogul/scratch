@@ -43,11 +43,11 @@
 </template>
 
 <script lang="ts">
-import { workshopInAi, mogul, AiWorkshopReplyEvent } from '@/services'
+import {  mogul, AiWorkshopReplyEvent } from '@/services'
 import axios from 'axios'
-import AiWorkshopItIcon from '@/components/AiWorkshopItIcon.vue'
+import AiWorkshopItIcon from '@/components/AiWorkshopItIconComponent.vue'
 
-function getFileFrom(event: any) {
+function getFileFrom(event: any) : File {
   const fileList = event.target['files'] as FileList
   const first = fileList.item(0)
   return first as File
@@ -60,12 +60,14 @@ export default {
     return {
       title: '',
       description: '',
-      picture: null,
-      intro: null,
-      interview: null
+      picture: null as null | File,
+      intro: null as null | File,
+      interview: null as null | File
     }
   },
-  async created() {},
+  async created() {
+  },
+
 
   methods: {
     afterDescriptionWorkshop(updated: AiWorkshopReplyEvent) {
@@ -76,7 +78,6 @@ export default {
       this.title = updated.text
     },
 
-    workshopInAi,
     uploadPicture(event: any) {
       this.picture = getFileFrom(event)
     },
@@ -95,9 +96,9 @@ export default {
       const uploadPath: string = '/api' + result.uploadPath
 
       const data = new FormData(this.$refs.createPodcastForm as HTMLFormElement)
-      data.set('picture', this.picture)
-      data.set('interview', this.interview)
-      data.set('intro', this.intro)
+      data.set('picture', this.picture as File)
+      data.set('interview', this.interview as File)
+      data.set('intro', this.intro as File)
       data.set('title', this.title)
       data.set('description', this.description)
 

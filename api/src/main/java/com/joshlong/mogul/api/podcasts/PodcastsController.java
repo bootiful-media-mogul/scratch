@@ -4,6 +4,7 @@ import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.Podcast;
 import com.joshlong.mogul.api.PodcastDraft;
 import com.joshlong.mogul.api.utils.FileUtils;
+import com.joshlong.templates.MarkdownService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.FileSystemResource;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -44,12 +46,16 @@ class PodcastsController {
 
 	private final File podcastArchiveDirectory;
 
+	private final MarkdownService markdownService;
+
 	PodcastsController(File podcastDraftsDirectory, File podcastArchiveDirectory, MogulService mogulService,
-			Serializer<PodcastArchive> podcastArchiveSerializer) {
+					   Serializer<PodcastArchive> podcastArchiveSerializer, MarkdownService markdownService) {
 		this.mogulService = mogulService;
 		this.podcastDraftsDirectory = podcastDraftsDirectory;
 		this.podcastArchiveDirectory = podcastArchiveDirectory;
 		this.podcastArchiveSerializer = podcastArchiveSerializer;
+		this.markdownService = markdownService;
+		Assert.notNull(this.markdownService, "the markDownService is null");
 		Assert.notNull(this.mogulService, "the mogulService is null");
 		Assert.notNull(this.podcastDraftsDirectory, "the podcastsDraftDirectory is null");
 		Assert.notNull(this.podcastArchiveDirectory, "the podcastArchiveDirectory is null");
@@ -95,18 +101,60 @@ class PodcastsController {
 		Assert.state(!zipTmp.exists(),
 				"the temporary zip archive file [" + zipTmp.getAbsolutePath() + "] still exists. Why?");
 		Assert.state(zip.exists(), "the final .zip archive file [" + zip.getAbsolutePath() + "] does not exist");
-		return this.mogulService.completePodcastDraft(this.mogulService.getCurrentMogul().id(), uid, title, description,
+		return this.mogulService.completePodcastDraft(getCurrentMogulId(), uid, title, description,
 				pictureFN, introFN, interviewFN);
 	}
 
 	@MutationMapping
 	PodcastDraft createPodcastDraft(@Argument String uid) {
-		return this.mogulService.createPodcastDraft(this.mogulService.getCurrentMogul().id(), uid);
+		return this.mogulService.createPodcastDraft(getCurrentMogulId(), uid);
+	}
+
+	@MutationMapping
+	Boolean deletePodcast(@Argument Long id) {
+		System.out.println("deleting podcast [" + id + "]");
+		this.mogulService.schedulePodcastForDeletion(id);
+		return true;
+	}
+
+	@SchemaMapping(typeName = "Podcast")
+	Long created(Podcast podcast) {
+		return podcast.date().getTime();
+	}
+
+	@SchemaMapping(typeName = "PodcastDraft")
+	Long created(PodcastDraft podcastDraft) {
+		return podcastDraft.date().getTime();
+	}
+
+	@SchemaMapping(typeName = "Podcast")
+	String permalinkUri(Podcast podcast) {
+		return podcast.podbean().permalink().toString();
+	}
+
+	@SchemaMapping(typeName = "Podcast")
+	String playerUri(Podcast podcast) {
+		return podcast.podbean().player().toString();
+	}
+
+	@SchemaMapping(typeName = "Podcast")
+	String html(Podcast podcast) {
+		return this.markdownService.convertMarkdownTemplateToHtml(podcast.description());
+	}
+
+	/* convenience method! don't export. */
+	private Long getCurrentMogulId() {
+		return this.mogulService.getCurrentMogul().id();
+	}
+
+	@QueryMapping
+	Collection<PodcastDraft> podcastDrafts() {
+		return this.mogulService.getPodcastDraftsByMogul(getCurrentMogulId());
 	}
 
 	@QueryMapping
 	Collection<Podcast> podcasts() {
-		return this.mogulService.getPodcastsByMogul(this.mogulService.getCurrentMogul().id());
+		return this.mogulService.getPodcastsByMogul(getCurrentMogulId());
 	}
 
 	private Resource handle(File root, String type, MultipartFile file) throws Exception {
@@ -114,7 +162,7 @@ class PodcastsController {
 		var ogFileName = resource.getFilename();
 		var child = type + "." + Objects.requireNonNull(ogFileName).substring(ogFileName.lastIndexOf('.') + 1);
 		var output = new File(root, child);
-		try (var in = resource.getInputStream(); var out = new FileOutputStream(output)) {
+		try (var in = new BufferedInputStream(resource.getInputStream()); var out = new BufferedOutputStream(new FileOutputStream(output))) {
 			FileCopyUtils.copy(in, out);
 		}
 		return new FileSystemResource(output);

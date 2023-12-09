@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
@@ -24,6 +25,13 @@ public class Storage {
 
 	public Storage(S3Client s3) {
 		this.s3 = s3;
+	}
+
+	public void remove (String bucket, String objectName) {
+		if  (bucketExists(bucket)) {
+			var delete=DeleteObjectRequest.builder().bucket(bucket).key(objectName).build();
+			s3.deleteObject( delete) ;
+		}
 	}
 
 	public void write(String bucket, String objectName, Resource resource) {

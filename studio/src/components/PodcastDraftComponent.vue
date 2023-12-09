@@ -6,23 +6,19 @@
   </h3>
   <div> {{ buildPresentableDate(podcast.date) }}</div>
   <div>
-    <div v-html="podcast.html"></div>
-  </div>
-  <div>
-    <a href="#" @click.prevent="$emit('episodeDeleted')">delete</a>
+    <div v-html="podcast.description"></div>
   </div>
 
 </template>
 
 <script lang="ts">
-import { Podcast } from '@/model'
+import { PodcastDraft } from '@/model'
 import { dateTimeFormatter } from '@/dates'
 
 export default {
-  emits: ['episodeDeleted'],
   props: {
     podcast: {
-      type: Object as () => Podcast,
+      type: Object as () => PodcastDraft,
       required: true
     }
   },

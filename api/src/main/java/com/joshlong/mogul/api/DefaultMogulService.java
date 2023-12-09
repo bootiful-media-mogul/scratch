@@ -226,6 +226,12 @@ class DefaultMogulService implements MogulService {
 
 			log.info("wrote " + updated + " records");
 			var podcastId = Objects.requireNonNull(kh.getKey()).longValue();
+
+			// todo connect podcast to podcast_draft via the UID
+
+			db.sql("update podcast_draft set podcast_id = ? where uid =?").params(podcastId, podcast.uid()).update();
+
+
 			return getPodcastById(podcastId);
 		});
 	}
@@ -236,7 +242,7 @@ class DefaultMogulService implements MogulService {
 
 	private final Podcast.S3 s3 = new Podcast.S3(new Podcast.S3.Audio(null, null), new Podcast.S3.Photo(null, null));
 
-	private final Podcast.Podbean podbean = new Podcast.Podbean(null, null, null);
+	private final Podcast.Podbean podbean = new Podcast.Podbean(null, null, null, null, null);
 
 	private final Map<Class<?>, ?> defaults = Map.of(Podcast.S3.class, s3, Podcast.S3.Audio.class, s3.audio(),
 			Podcast.S3.Photo.class, s3.photo(), Podcast.Podbean.class, podbean);
@@ -324,12 +330,15 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
-	public Collection<PodbeanPublication> getPodbeanPublicationsByNode(String nodeName) {
-		var mogulPodcasts = """
-				select  * from podbean_publication_tracker where node_id = ?
-				""";
-		return db.sql(mogulPodcasts).param(nodeName).query(new PodbeanPublicationTrackerRowMapper()).list();
+	public Collection<PodcastDraft> getPodcastDraftsByMogul(Long mogulId) {
+		return this.db.sql("select * from podcast_draft where podcast_id is null and mogul_id = ?").param(mogulId).query(new PodcastDraftRowMapper()).list();
 	}
+
+	@Override
+	public Collection<Podcast> getDeletedPodcasts() {
+		return this.db.sql("select * from podcast where deleted = true ").query(new PodcastRowMapper()).list();
+	}
+
 
 	@Override
 	public PodbeanPublication monitorPodbeanPublication(String nodeName, Podcast podcast) {
@@ -362,6 +371,28 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
+	public boolean deletePodcast(Long podcastId) {
+		var podcast = getPodcastById(podcastId);
+		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] does not exist!");
+		this.db.sql("delete from podbean_publication_tracker where podcast_id = ?").param(podcastId).update();
+		this.db.sql("delete from podcast_draft where podcast_id = ?").param(podcastId).update();
+		this.db.sql("delete from podcast where id = ?").param(podcastId).update();
+		return true;
+	}
+
+	@Override
+	public boolean schedulePodcastForDeletion(Long podcastId) {
+		var podcast = getPodcastById(podcastId);
+		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] does not exist!");
+		this.db
+				.sql(" update podcast p set deleted = true where id = ? ")
+				.param(podcastId)
+				.update();
+
+		return true;
+	}
+
+	@Override
 	public PodcastDraft getPodcastDraftByUid(String uuid) {
 		return this.db.sql("select * from podcast_draft where uid =? ")
 			.param(uuid)
@@ -387,6 +418,8 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 		var notes = rs.getString("notes");
 		var podbeanMediaUri = JdbcUtils.uri(rs, "podbean_media_uri");
 		var podbeanPhotoUri = JdbcUtils.uri(rs, "podbean_photo_uri");
+		var playerUri = JdbcUtils.uri(rs, "podbean_player_uri");
+		var permalinkUri = JdbcUtils.uri(rs, "podbean_permalink_uri");
 		var s3AudioFileName = rs.getString("s3_audio_file_name");
 		var s3AudioUri = JdbcUtils.uri(rs, "s3_audio_uri");
 		var s3PhotoFileName = rs.getString("s3_photo_file_name");
@@ -396,7 +429,7 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 		var podbeanEpisodeId = rs.getString("podbean_episode_id");
 		var s3 = new Podcast.S3(new Podcast.S3.Audio(s3AudioUri, s3AudioFileName),
 				new Podcast.S3.Photo(s3PhotoUri, s3PhotoFileName));
-		var podbean = new Podcast.Podbean(podbeanEpisodeId, podbeanPhotoUri, podbeanMediaUri);
+		var podbean = new Podcast.Podbean(podbeanEpisodeId, podbeanPhotoUri, podbeanMediaUri, playerUri, permalinkUri);
 		var mogulId = rs.getLong("mogul_id");
 		return new Podcast(mogulId, id, uid, date, description, transcript, title, podbean, notes, s3);
 	}

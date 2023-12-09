@@ -2,7 +2,7 @@
  renders a list of all the existing podcasts
 -->
 <script lang="ts">
-import AiChat from '@/components/AiChat.vue'
+import AiChat from '@/components/AiChatComponent.vue'
 
 import { mogul } from '@/services'
 

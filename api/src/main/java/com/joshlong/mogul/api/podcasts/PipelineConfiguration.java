@@ -282,7 +282,7 @@ class PipelineConfiguration {
 
 				var podcast = new Podcast(mogul.id(), null, (String) source.get("uid"), new Date(),
 						(String) source.get("description"), null, (String) source.get("title"),
-						new Podcast.Podbean(null, null, null), null,
+						new Podcast.Podbean(null, null, null,null, null), null,
 						new Podcast.S3(new Podcast.S3.Audio(new URI(exportedAudioS3Name), exportedAudioS3FileName),
 								new Podcast.S3.Photo(new URI(exportedPhotoS3Name), exportedPhotoS3FileName)));
 
@@ -306,9 +306,10 @@ class PipelineConfiguration {
 			.filterFunction(PipelineConfiguration::isValidPodcastArchiveFile)
 			.preventDuplicates(true)//
 			.autoCreateDirectory(true);
-		return IntegrationFlow.from(inboundFileAdapter)
-			.handle(PodcastIntegrations.debugHandler())
-			.channel(requests)
+		return IntegrationFlow //
+				.from(inboundFileAdapter)
+			.handle(PodcastIntegrations.debugHandler())//
+			.channel(requests)//
 			.get();
 	}
 
