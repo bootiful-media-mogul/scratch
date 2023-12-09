@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * each mogul may have a configured podbean account, typically stored in the DB
@@ -37,12 +36,12 @@ class PodbeanConfiguration {
 		proxyFactory.addAdvice((MethodInterceptor) invocation -> {
 			var methodName = invocation.getMethod().getName();
 			if (methodName.equalsIgnoreCase("getToken")) {
-				var mogulName = SecurityContextHolder.getContext().getAuthentication().getName();
-				var podbeanAccount = mogulService.getPodbeanAccountSettings(mogulService.getCurrentMogul().id());
+				var currentMogul = mogulService.getCurrentMogul();
+				log.info("do we have a valid Mogul? [" + currentMogul + "]");
+				var podbeanAccount = mogulService.getPodbeanAccountSettings(currentMogul.id());
 				var podbeanClientId = podbeanAccount.clientId();
 				var podbeanClientSecret = podbeanAccount.clientSecret();
 				var tp = new ClientCredentialsTokenProvider(podbeanClientId, podbeanClientSecret);
-				log.debug("mogul name: " + mogulName);
 				return tp.getToken();
 			}
 

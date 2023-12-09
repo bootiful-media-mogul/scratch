@@ -4,11 +4,11 @@ import com.joshlong.mogul.api.MogulSecurityContexts;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.podcasts.PodbeanEpisodePublishedEvent;
 import com.joshlong.mogul.api.podcasts.PodcastIntegrations;
-import com.joshlong.mogul.api.utils.NodeUtils;
 import com.joshlong.podbean.EpisodeStatus;
 import com.joshlong.podbean.PodbeanClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.event.EventListener;
 import org.springframework.integration.core.MessageSource;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.PollerFactory;
@@ -65,13 +65,17 @@ class PodbeanPublicationWatcher {
 		var messageSource = new MessageSource<Boolean>() {
 			@Override
 			public Message<Boolean> receive() {
-				for (var podbeanPublication : mogulService.getPodbeanPublicationsByNode(NodeUtils.nodeId()))
-					if (!podbeanPublication.continueTracking())
-						stop(podbeanPublication.podcastId());
+				/*
+				 * for (var podbeanPublication :
+				 * mogulService.getPodbeanPublicationsByNode(NodeUtils.nodeId())) if
+				 * (!podbeanPublication.continueTracking())
+				 * stop(podbeanPublication.podcastId());
+				 */
 				var shouldContinue = mogulService.getPodbeanPublicationByPodcast(mogulService.getPodcastById(podcastId))
 					.continueTracking();
-				return MessageBuilder.withPayload(shouldContinue)
-					.setHeader(PodcastIntegrations.PODCAST_HEADER, podcastId)
+				return MessageBuilder//
+					.withPayload(shouldContinue)//
+					.setHeader(PodcastIntegrations.PODCAST_HEADER, podcastId) //
 					.build();
 			}
 		};
@@ -101,7 +105,13 @@ class PodbeanPublicationWatcher {
 		return registration;
 	}
 
-	public void stop(Long podcastId) {
+	@EventListener
+	void complete(PodbeanEpisodePublishedEvent evt) {
+		var podcastId = evt.podcast().id();
+		stop(podcastId);
+	}
+
+	private void stop(Long podcastId) {
 		log.info("stopping " + podcastId + ".");
 		if (watchers.containsKey(podcastId)) {
 			var flow = watchers.remove(podcastId);

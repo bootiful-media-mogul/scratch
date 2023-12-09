@@ -156,37 +156,33 @@ class DefaultMogulService implements MogulService {
 	public Podcast addPodcastEpisode(Long mogulId, Podcast podcast) {
 
 		var sql = """
-				           insert into podcast (
-				date,
-				description,
-				notes,
-				podbean_draft_created,
-				podbean_draft_published,
-				podbean_media_uri,
-				podbean_photo_uri,
-				s3_audio_file_name,
-				s3_audio_uri,
-				s3_photo_file_name,
-				s3_photo_uri,
-				title,
-				uid ,
-				mogul_id
-				           )
-				           values (
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?,
-				 ?
+				  insert into podcast (
+					date,
+					description,
+					notes,
+					podbean_media_uri,
+					podbean_photo_uri,
+					s3_audio_file_name,
+					s3_audio_uri,
+					s3_photo_file_name,
+					s3_photo_uri,
+					title,
+					uid ,
+					mogul_id
+					)
+				   values (
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?,
+					 ?
 				)
 				on conflict on constraint podcast_mogul_id_title_key
 				do update
@@ -194,8 +190,6 @@ class DefaultMogulService implements MogulService {
 					date = excluded.date,
 					description = excluded.description,
 					notes = excluded.notes,
-					podbean_draft_created = excluded.podbean_draft_created,
-					podbean_draft_published = excluded.podbean_draft_published,
 					podbean_media_uri = excluded.podbean_media_uri,
 					podbean_photo_uri = excluded.podbean_photo_uri,
 					s3_audio_file_name = excluded.s3_audio_file_name,
@@ -219,8 +213,6 @@ class DefaultMogulService implements MogulService {
 				.param(ctr++, podcast.date())
 				.param(ctr++, podcast.description())
 				.param(ctr++, podcast.notes())
-				.param(ctr++, nnPodbean.draftCreated())
-				.param(ctr++, nnPodbean.draftPublished())
 				.param(ctr++, nullSafeUri(nnPodbean.media()))
 				.param(ctr++, nullSafeUri(nnPodbean.photo()))
 				.param(ctr++, nnS3Audio.fileName())
@@ -244,7 +236,7 @@ class DefaultMogulService implements MogulService {
 
 	private final Podcast.S3 s3 = new Podcast.S3(new Podcast.S3.Audio(null, null), new Podcast.S3.Photo(null, null));
 
-	private final Podcast.Podbean podbean = new Podcast.Podbean(null, null, null, null, null);
+	private final Podcast.Podbean podbean = new Podcast.Podbean(null, null, null);
 
 	private final Map<Class<?>, ?> defaults = Map.of(Podcast.S3.class, s3, Podcast.S3.Audio.class, s3.audio(),
 			Podcast.S3.Photo.class, s3.photo(), Podcast.Podbean.class, podbean);
@@ -291,11 +283,14 @@ class DefaultMogulService implements MogulService {
 					    duration = ? ,
 					  	needs_promotion = true
 					  where id =?
-					""").params(permalinkUrl == null ? null : permalinkUrl.toString(), duration, podcast.id()).update();
+					""")///
+				.params(permalinkUrl == null ? null : permalinkUrl.toString(), duration, podcast.id())
+				.update();
 			this.db.sql(
 					"update podbean_publication_tracker set continue_tracking = false  , stopped = ? where podcast_id = ? ")
 				.params(new Date(), podcast.id())
 				.update();
+			log.debug("confirmed publication for podcast [" + podcast + "]");
 			return getPodcastById(podcast.id());
 		});
 	}
@@ -308,8 +303,7 @@ class DefaultMogulService implements MogulService {
 					mogul_id = ?
 					and
 					podcast_id = ?
-					and
-					stopped is null
+
 				""";
 		var all = db.sql(sql)
 			.params(podcast.mogulId(), podcast.id())
@@ -391,8 +385,6 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 		var date = rs.getDate("date");
 		var description = rs.getString("description");
 		var notes = rs.getString("notes");
-		var podbeanDraftCreated = rs.getDate("podbean_draft_created");
-		var podbeanDraftPublished = rs.getDate("podbean_draft_published");
 		var podbeanMediaUri = JdbcUtils.uri(rs, "podbean_media_uri");
 		var podbeanPhotoUri = JdbcUtils.uri(rs, "podbean_photo_uri");
 		var s3AudioFileName = rs.getString("s3_audio_file_name");
@@ -404,8 +396,7 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 		var podbeanEpisodeId = rs.getString("podbean_episode_id");
 		var s3 = new Podcast.S3(new Podcast.S3.Audio(s3AudioUri, s3AudioFileName),
 				new Podcast.S3.Photo(s3PhotoUri, s3PhotoFileName));
-		var podbean = new Podcast.Podbean(podbeanEpisodeId, podbeanDraftCreated, podbeanDraftPublished, podbeanPhotoUri,
-				podbeanMediaUri);
+		var podbean = new Podcast.Podbean(podbeanEpisodeId, podbeanPhotoUri, podbeanMediaUri);
 		var mogulId = rs.getLong("mogul_id");
 		return new Podcast(mogulId, id, uid, date, description, transcript, title, podbean, notes, s3);
 	}
