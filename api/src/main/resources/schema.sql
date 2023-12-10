@@ -52,7 +52,7 @@ create table if not exists podcast_draft
     date                timestamp,
     title               text,
     description         text,
-    completed           bool,
+    completed           bool not null  default false,
     mogul_id            bigint not null,
 
     picture_file_name   text,

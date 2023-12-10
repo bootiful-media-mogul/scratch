@@ -110,7 +110,12 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public List<Podcast> getPodcastsByMogul(Long mogul) {
-		return this.db.sql("select * from podcast where mogul_id = ? ")
+		return this.db//
+			.sql("""
+							select * from podcast where mogul_id = ? and deleted = false
+							and id in ( select pd.podcast_id from podcast_draft pd
+							where pd.podcast_id=id and pd.completed = true )
+					""")
 			.param(mogul)
 			.query(new PodcastRowMapper())
 			.list();
@@ -122,8 +127,8 @@ class DefaultMogulService implements MogulService {
 	}
 
 	@Override
-	public PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description,
-			Resource pictureFN, Resource introFN, Resource interviewFN) {
+	public PodcastDraft updatePodcastDraft(Long mogulId, String uid, String title, String description,
+			Resource pictureFN, Resource introFN, Resource interviewFN, boolean completed) {
 
 		Assert.hasText(uid, "the uid must be non-null");
 		Assert.notNull(mogulId, "the mogulId must be non-null");
@@ -134,22 +139,26 @@ class DefaultMogulService implements MogulService {
 		Assert.notNull(interviewFN, "the interview file name must be non-null");
 
 		var sql = """
-
-				insert into podcast_draft (uid,  title, description, completed , mogul_id , picture_file_name, intro_file_name, interview_file_name )
-				values (?,?,?,?,?,?,?,?)
+				insert into podcast_draft (uid,  title, description,  mogul_id , picture_file_name, intro_file_name, interview_file_name )
+				values (?,?,?,?,?,?,? )
 				on conflict on constraint podcast_draft_uid_key do update set
 				title = excluded.title,
 				description = excluded.description,
-				completed = excluded.completed ,
 				picture_file_name = excluded.picture_file_name,
 				intro_file_name = excluded.intro_file_name,
 				interview_file_name = excluded.interview_file_name
 				""";
 		this.db.sql(sql)
-			.params(uid, title, description, true, mogulId, pictureFN.getFilename(), introFN.getFilename(),
+			.params(uid, title, description, completed, mogulId, pictureFN.getFilename(), introFN.getFilename(),
 					interviewFN.getFilename())
 			.update();
+		markPodcastDraftCompleted(uid, completed);
 		return getPodcastDraftByUid(uid);
+	}
+
+	private void markPodcastDraftCompleted(String podcastDraftUid, boolean completed) {
+		var draft = getPodcastDraftByUid(podcastDraftUid);
+		this.db.sql("update podcast_draft set completed = ? where uid=?").params(completed, draft.uid()).update();
 	}
 
 	@Override
@@ -262,17 +271,20 @@ class DefaultMogulService implements MogulService {
 	public Podcast connectPodcastToPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl,
 			URI logoUrl, URI podbeanPlayerUrl) {
 		return this.transactionTemplate.execute(tx -> {
+
 			this.db.sql("""
 					update podcast set
 						podbean_episode_id =? ,
 						podbean_media_uri = ? ,
 						podbean_photo_uri = ? ,
 								podbean_player_uri  = ?
-							    where id =?
+								where id =?
 					""")
 				.params(podbeanEpisodeId, podbeanMediaUrl.toString(), logoUrl.toString(), podbeanPlayerUrl.toString(),
 						podcast.id())
 				.update();
+
+			// todo markPodcastDraftCompleted(podcast.uid(), true);
 
 			return getPodcastById(podcast.id());
 		});
@@ -296,6 +308,9 @@ class DefaultMogulService implements MogulService {
 				.params(new Date(), podcast.id())
 				.update();
 			log.debug("confirmed publication for podcast [" + podcast + "]");
+
+			markPodcastDraftCompleted(podcast.uid(), true);
+
 			return getPodcastById(podcast.id());
 		});
 	}
@@ -330,9 +345,10 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Collection<PodcastDraft> getPodcastDraftsByMogul(Long mogulId) {
-		return this.db.sql("select * from podcast_draft where podcast_id is null and mogul_id = ?")
-			.param(mogulId)
-			.query(new PodcastDraftRowMapper())
+		return this.db//
+			.sql("select * from podcast_draft where completed = false and mogul_id = ?")//
+			.param(mogulId)//
+			.query(new PodcastDraftRowMapper())//
 			.list();
 	}
 

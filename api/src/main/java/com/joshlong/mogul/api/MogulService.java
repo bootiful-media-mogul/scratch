@@ -34,8 +34,8 @@ public interface MogulService {
 
 	PodcastDraft getPodcastDraftByUid(String uuid);
 
-	PodcastDraft completePodcastDraft(Long mogulId, String uid, String title, String description, Resource pictureFN,
-			Resource introFN, Resource interviewFN);
+	PodcastDraft updatePodcastDraft(Long mogulId, String uid, String title, String description, Resource pictureFN,
+			Resource introFN, Resource interviewFN, boolean completed);
 
 	PodbeanAccountSettings configurePodbeanAccountSettings(Long mogulId, String clientId, String clientSecret);
 

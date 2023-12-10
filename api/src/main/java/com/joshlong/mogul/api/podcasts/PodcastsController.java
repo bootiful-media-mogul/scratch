@@ -101,8 +101,8 @@ class PodcastsController {
 		Assert.state(!zipTmp.exists(),
 				"the temporary zip archive file [" + zipTmp.getAbsolutePath() + "] still exists. Why?");
 		Assert.state(zip.exists(), "the final .zip archive file [" + zip.getAbsolutePath() + "] does not exist");
-		return this.mogulService.completePodcastDraft(getCurrentMogulId(), uid, title, description, pictureFN, introFN,
-				interviewFN);
+		return this.mogulService.updatePodcastDraft(getCurrentMogulId(), uid, title, description, pictureFN, introFN,
+				interviewFN, false);
 	}
 
 	@MutationMapping

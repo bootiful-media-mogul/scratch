@@ -19,7 +19,7 @@ type Podcast {
 }
 
 type PodcastDraft  {
-    id : Float
+    id : ID
     completed: Boolean
     uid : String
     uploadPath: String
@@ -28,7 +28,7 @@ type PodcastDraft  {
     interviewFileName: String
     title: String
     description: String
-    created : Int
+    created : Float
 }
 
 type Query {
