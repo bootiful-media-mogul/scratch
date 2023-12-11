@@ -6,32 +6,39 @@
   <div v-for="podcast in podcasts" v-bind:key="podcast.id">
     <b> {{ podcast.id }}</b> {{ podcast.title }}
 
-    <a href="#" v-if="podcasts.length > 1" @click="deletePodcast(podcast.id)">delete</a>
-    <span style="font-size: smaller" v-else>(you must have at least one podcast specified)</span>
+    <input type="submit" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)" value="new episode"/>
+    <input type="submit" :disabled="podcasts.length  == 1" @click="deletePodcast(podcast.id)" value="delete"/>
   </div>
 
   <h2>New Podcast</h2>
   <form>
-    <input type="text" v-model="title" /> <br />
+   <label> title </label>  <input type="text" v-model="title"/> <br/>
     <AiWorkshopItIconComponent
-      prompt="please help me take the following podcast title and make it more pithy and exciting"
-      :text="title"
-      @ai-workshop-completed="title = $event.text"
+        prompt="please help me take the following podcast title and make it more pithy and exciting"
+        :text="title"
+        @ai-workshop-completed="title = $event.text"
     />
-    <br />
-    <input type="submit" @click="createPodcast" value="create" />
+    <br/>
+    <input type="submit" :disabled="title ==  null ||  title.trim().length  == 0" @click="createPodcast"
+           value="create"/>
   </form>
 </template>
 <script lang="ts">
-import { Podcast, podcasts } from '@/services'
+import {Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
+import CreateEpisodeView from "@/podcasts/CreateEpisodeView.vue";
 
 async function refresh() {
   return await podcasts.podcasts()
 }
 
 export default {
-  components: { AiWorkshopItIconComponent },
+  computed: {
+    CreateEpisodeView() {
+      return CreateEpisodeView
+    }
+  },
+  components: {AiWorkshopItIconComponent},
 
   async created() {
     this.podcasts = await refresh()
@@ -45,10 +52,20 @@ export default {
       this.podcasts = this.podcasts.filter((p) => p.id != deleted)
     },
 
+
+    async navigateToEpisodesPageForPodcast(podcastId: number, e: Event) {
+      e.preventDefault()
+      console.log('creating podcast episode')
+      this.$router.push({
+        name: 'create-podcast-episode',
+        params: {podcastId: podcastId}
+      })
+    },
     async createPodcast(e: Event) {
       e.preventDefault()
       await podcasts.create(this.title)
       this.podcasts = await refresh()
+      this.title = ''
     }
   },
 

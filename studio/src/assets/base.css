@@ -1,43 +1,47 @@
 :root {
-  --gutter-space: 20px;
+    --gutter-space: 20px;
+}
+
+label {
+    font-weight: bold; padding-right: 1em ;
 }
 
 body {
-  background-color: cadetblue;
+    background-color: cadetblue;
 }
 
 html {
-  margin-left: var(--gutter-space);
-  margin-top: var(--gutter-space);
+    margin-left: var(--gutter-space);
+    margin-top: var(--gutter-space);
 }
 
 .page {
-  display: grid;
-  grid-template-areas:
+    display: grid;
+    grid-template-areas:
     'welcome welcome'
     'toolbar toolbar'
     'main sidebar ';
-  grid-template-columns: auto 300px;
+    grid-template-columns: auto 300px;
 }
 
 .welcome {
-  grid-area: welcome;
-  padding-bottom: var(--gutter-space);
+    grid-area: welcome;
+    padding-bottom: var(--gutter-space);
 }
 
 .toolbar {
-  grid-area: toolbar;
-  padding-bottom: var(--gutter-space);
+    grid-area: toolbar;
+    padding-bottom: var(--gutter-space);
 }
 
 .view {
-  grid-area: main;
+    grid-area: main;
 }
 
 .sidebar {
-  grid-area: sidebar;
+    grid-area: sidebar;
 }
 
 .sidebar textarea {
-  width: 100%;
+    width: 100%;
 }

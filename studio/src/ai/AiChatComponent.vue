@@ -16,6 +16,7 @@ todo support workshopping the image for the podcast as well: give it
       <textarea rows="20" v-model="prompt"></textarea>
       <div v-for="reply in replies" :key="reply">
         {{ reply }}
+        <button value="accept" @click="acceptSuggestion(reply ,$event)">accept</button>
       </div>
       <button :disabled="isPromptEmpty()" value="chat" @click="chat">workshop it!</button>
       <button :disabled="isPromptEmpty()" value="ok" @click="finished">finish</button>
@@ -43,16 +44,29 @@ import {
 
 export default {
   methods: {
+    acceptSuggestion(text: string, e: Event) {
+
+      e.preventDefault()
+
+      console.log('going to accept ' + text)
+      if (text.endsWith('"')) text = text.substring(0, text.length - 1)
+      if (text.startsWith('"')) text = text.substring(1);
+      this.prompt = text
+      console.log('ended up with [' + this.prompt + ']')
+      this.finished()
+    },
     isPromptEmpty() {
       return (this.prompt == null ? '' : this.prompt).trim().length == 0
     },
     hide() {
       this.visible = false
     },
-    finished(e: Event) {
+    finished() {
       console.log('finishing...')
       this.hide()
       this.callback(new AiWorkshopReplyEvent(this.prompt.trim(), AiWorkshopReplyEventType.TEXT))
+      this.prompt = ''
+      this.replies = []
     },
     show() {
       this.visible = true

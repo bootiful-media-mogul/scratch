@@ -29,6 +29,11 @@ class PodcastController {
 	}
 
 	@QueryMapping
+	Podcast podcastById(@Argument Long id) {
+		return this.podcastService.getPodcastById(id);
+	}
+
+	@QueryMapping
 	Collection<Podcast> podcasts() {
 		return this.podcastService.getAllPodcastsByMogul(mogulService.getCurrentMogul().id());
 	}
@@ -47,7 +52,7 @@ class PodcastController {
 		this.mogulService.assertAuthorizedMogul(mogulId);
 		var podcasts = this.podcastService.getAllPodcastsByMogul(mogulId);
 		Assert.state(!podcasts.isEmpty() && podcasts.size() - 1 > 0,
-				"you must have at least one active, non-disabled podcast");
+				"you must have at least one active, non-deleted podcast");
 		this.podcastService.deletePodcast(podcast.id());
 		return id;
 	}

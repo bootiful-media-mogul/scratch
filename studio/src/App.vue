@@ -32,8 +32,8 @@ export default {
         <router-link to="/">home</router-link>
       </div>
       <div>
-        <b>podcasts</b>&nbsp;
-        <router-link to="/create-podcast">create</router-link>
+
+        <router-link to="/podcasts">podcasts</router-link>
         <!--        <router-link to="/create-podcast">create </router-link>&nbsp;-->
       </div>
       <div>

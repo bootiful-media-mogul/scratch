@@ -59,7 +59,7 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public Collection<Podcast> getAllPodcastsByMogul(Long mogulId) {
-		return this.db.sql("select * from podcast where mogul_id =?")
+		return this.db.sql("select * from podcast where mogul_id =? order by created")
 			.param(mogulId)
 			.query(new PodcastRowMapper())
 			.list();
@@ -69,7 +69,7 @@ class DefaultPodcastService implements PodcastService {
 	public Collection<Episode> getEpisodesByPodcast(Long podcastId) {
 		var podcast = getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] is null");
-		return db.sql("select * from podcast_episode where podcast_id =? ")
+		return db.sql("select * from podcast_episode where podcast_id =? order by created ")
 			.param(podcastId)
 			.query(episodeRowMapper)
 			.list();

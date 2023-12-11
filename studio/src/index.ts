@@ -1,9 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from './HomeView.vue'
 import CreateEpisodeView from '@/podcasts/CreateEpisodeView.vue'
-import CreatePodcastView from '@/podcasts/PodcastsView.vue'
-// import ListPodcastsView from './ListPodcastsView.vue'
-// import CreatePodcastView from '@/CreateEpisodeView.vue'
+import PodcastsView from '@/podcasts/PodcastsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,9 +12,15 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/create-podcast',
-      name: 'create-podcast',
-      component: CreatePodcastView
+      path: '/podcasts',
+      name: 'podcasts',
+      component: PodcastsView
+    } ,
+    {
+      path : '/create-podcast-episode/:podcastId' ,
+      name : 'create-podcast-episode' ,
+      component : CreateEpisodeView ,
+      props: true
     }
     /* {
       path: '/list-podcasts',
