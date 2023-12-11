@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Set;
 
-
 @Configuration
 class RabbitConfiguration {
 
@@ -18,6 +17,5 @@ class RabbitConfiguration {
 		return () -> Set.of(p.podcasts().processor().amqp().replies(), p.podcasts().processor().amqp().requests())
 			.forEach(q -> RabbitUtils.defineDestination(amqp, q, q, q));
 	}
-
 
 }

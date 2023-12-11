@@ -8,7 +8,7 @@
 
 <script lang="ts">
 import axios from 'axios'
-import {ManagedFile ,managedFiles} from "@/services";
+import { ManagedFile, managedFiles } from '@/services'
 export default {
   emits: ['update:managedFile'],
   props: {

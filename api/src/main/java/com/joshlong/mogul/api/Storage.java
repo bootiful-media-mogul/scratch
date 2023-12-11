@@ -61,7 +61,8 @@ public class Storage {
 		catch (IOException e) {
 			throw new RuntimeException("got an exception writing to [" + bucket + "] for file [" + objectName + "]");
 		}
-		log.info("finished executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread [" + Thread.currentThread() + "]");
+		log.info("finished executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread ["
+				+ Thread.currentThread() + "]");
 
 	}
 
@@ -98,10 +99,11 @@ public class Storage {
 		return this.read(uri.getHost(), uri.getPath());
 	}
 
-
 	private static void validUri(URI uri) {
-		Assert.state(uri != null && uri.getScheme().toLowerCase().equalsIgnoreCase("s3") &&
-				uri.getPath().split("/").length == 2, "this uri [" + Objects.requireNonNull(uri) +
-				"] is not a valid s3 reference");
+		Assert.state(
+				uri != null && uri.getScheme().toLowerCase().equalsIgnoreCase("s3")
+						&& uri.getPath().split("/").length == 2,
+				"this uri [" + Objects.requireNonNull(uri) + "] is not a valid s3 reference");
 	}
+
 }

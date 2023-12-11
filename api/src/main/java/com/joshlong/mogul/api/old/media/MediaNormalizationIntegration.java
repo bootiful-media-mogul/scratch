@@ -30,7 +30,7 @@ import static com.joshlong.mogul.api.old.PodcastIntegrations.*;
  * {@literal .png} - and turn it into a {@literal  .mp3} and a 1MB-or-less
  * {@literal .jpg}.
  */
-//@Configuration
+// @Configuration
 class MediaNormalizationIntegration {
 
 	@Bean(AUDIO_NORMALIZATION_FLOW)

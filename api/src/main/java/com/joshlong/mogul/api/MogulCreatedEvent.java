@@ -1,4 +1,4 @@
 package com.joshlong.mogul.api;
 
-public record MogulCreatedEvent  (Mogul mogul){
+public record MogulCreatedEvent(Mogul mogul) {
 }

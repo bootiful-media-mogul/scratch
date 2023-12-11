@@ -16,63 +16,62 @@ import java.sql.SQLException;
 
 @Service
 @Transactional
-class DefaultManagedFileService
-        implements ManagedFileService {
+class DefaultManagedFileService implements ManagedFileService {
 
-    private final JdbcClient db;
-    private final Storage storage;
+	private final JdbcClient db;
 
-    DefaultManagedFileService(JdbcClient db, Storage storage) {
-        this.db = db;
-        this.storage = storage;
-    }
+	private final Storage storage;
 
+	DefaultManagedFileService(JdbcClient db, Storage storage) {
+		this.db = db;
+		this.storage = storage;
+	}
 
-    @Override
-    public ManagedFile getManagedFile(Long managedFileId) {
-        if (null == managedFileId) return null;
-        return this.db.sql("select * from managed_file where id =? ").param(managedFileId).query(new ManagedFileRowMapper()).single();
-    }
+	@Override
+	public ManagedFile getManagedFile(Long managedFileId) {
+		if (null == managedFileId)
+			return null;
+		return this.db.sql("select * from managed_file where id =? ")
+			.param(managedFileId)
+			.query(new ManagedFileRowMapper())
+			.single();
+	}
 
-    @Override
-    public Resource read(Long managedFileId) {
-        var mf = getManagedFile(managedFileId);
-        return this.storage.read(mf.bucket(), mf.folder() + '/' + mf.filename());
-    }
+	@Override
+	public Resource read(Long managedFileId) {
+		var mf = getManagedFile(managedFileId);
+		return this.storage.read(mf.bucket(), mf.folder() + '/' + mf.filename());
+	}
 
-    @Override
-    public ManagedFile write(Long managedFileId, Resource resource) {
-        var mf = getManagedFile(managedFileId);
-        var bucket = mf.bucket();
-        var folder = mf.folder();
-        var fn = mf.filename();
-        this.storage.write(bucket, folder + '/' + fn, resource);
-        this.db.sql("update managed_file set written = true where id=?").param(managedFileId).update();
-        return getManagedFile(managedFileId);
-    }
+	@Override
+	public ManagedFile write(Long managedFileId, Resource resource) {
+		var mf = getManagedFile(managedFileId);
+		var bucket = mf.bucket();
+		var folder = mf.folder();
+		var fn = mf.filename();
+		this.storage.write(bucket, folder + '/' + fn, resource);
+		this.db.sql("update managed_file set written = true where id=?").param(managedFileId).update();
+		return getManagedFile(managedFileId);
+	}
 
-    @Override
-    public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size) {
-        var kh = new GeneratedKeyHolder();
-        this.db.sql("insert into managed_file(mogul_id,   bucket, folder, filename, size ) VALUES (mogul_id,   bucket, folder, filename, size )")
-                .params(mogulId, bucket, folder, fileName, size)
-                .update(kh);
-        return getManagedFile(((Number) kh.getKeys().get("id")).longValue());
-    }
+	@Override
+	public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size) {
+		var kh = new GeneratedKeyHolder();
+		this.db.sql(
+				"insert into managed_file(mogul_id,   bucket, folder, filename, size ) VALUES (mogul_id,   bucket, folder, filename, size )")
+			.params(mogulId, bucket, folder, fileName, size)
+			.update(kh);
+		return getManagedFile(((Number) kh.getKeys().get("id")).longValue());
+	}
+
 }
 
 class ManagedFileRowMapper implements RowMapper<ManagedFile> {
 
-    @Override
-    public ManagedFile mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new ManagedFile(
-                rs.getLong("mogul_id"),
-                rs.getLong("id"),
-                rs.getString("bucket"),
-                rs.getString("folder"),
-                rs.getString("filename"),
-                rs.getDate("created"),
-                rs.getLong("size")
-        );
-    }
+	@Override
+	public ManagedFile mapRow(ResultSet rs, int rowNum) throws SQLException {
+		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"), rs.getString("bucket"), rs.getString("folder"),
+				rs.getString("filename"), rs.getDate("created"), rs.getLong("size"));
+	}
+
 }

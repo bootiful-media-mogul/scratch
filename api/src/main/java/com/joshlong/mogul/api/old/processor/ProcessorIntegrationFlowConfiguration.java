@@ -37,8 +37,8 @@ import java.util.Map;
 /**
  * this handles the integration with the external Python multiplexer
  */
-//@Configuration
-//@IntegrationComponentScan
+// @Configuration
+// @IntegrationComponentScan
 class ProcessorIntegrationFlowConfiguration {
 
 	private static final Logger log = LoggerFactory.getLogger(ProcessorIntegrationFlowConfiguration.class);
@@ -132,7 +132,7 @@ class ProcessorIntegrationFlowConfiguration {
 		return MessageChannels.direct();
 	}
 
-	//@MessagingGateway
+	// @MessagingGateway
 	public interface ProcessorClient {
 
 		@Gateway(requestChannel = PROCESSOR_OUTBOUND_MESSAGE_CHANNEL, replyChannel = PROCESSOR_INBOUND_MESSAGE_CHANNEL)

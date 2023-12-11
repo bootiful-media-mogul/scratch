@@ -4,10 +4,6 @@ import com.joshlong.mogul.api.managedfiles.ManagedFile;
 
 import java.util.Date;
 
-
-public record Episode(
-        Podcast podcast,
-        String title, String description, Date created,
-        ManagedFile graphic, ManagedFile introduction, ManagedFile interview ,
-        ManagedFile producedAudio){
+public record Episode(Podcast podcast, String title, String description, Date created, ManagedFile graphic,
+		ManagedFile introduction, ManagedFile interview, ManagedFile producedAudio) {
 }

@@ -8,28 +8,25 @@ import java.util.Collection;
 
 public interface PodcastService {
 
-    String PODCAST_EPISODES_BUCKET = "podcast-episodes";
+	String PODCAST_EPISODES_BUCKET = "podcast-episodes";
 
-    Collection<Podcast> getAllPodcastsByMogul(Long mogulId);
+	Collection<Podcast> getAllPodcastsByMogul(Long mogulId);
 
-    Collection <Episode> getEpisodesByPodcast(Long podcastId) ;
+	Collection<Episode> getEpisodesByPodcast(Long podcastId);
 
-    //    PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId);
-//
-//    PodbeanAccountSettings configurePodbeanAccountSettings(Long mogulId, String clientId, String clientSecret);
-    Podcast createPodcast(Long mogulId, String title);
+	// PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId);
+	//
+	// PodbeanAccountSettings configurePodbeanAccountSettings(Long mogulId, String
+	// clientId, String clientSecret);
+	Podcast createPodcast(Long mogulId, String title);
 
-    Episode createPodcastEpisode(Long podcastId,
-                                 String title,
-                                 String description,
-                                 ManagedFile graphic,
-                                 ManagedFile introduction,
-                                 ManagedFile interview
-    );
+	Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
+			ManagedFile introduction, ManagedFile interview);
 
-    Podcast getPodcastById(Long podcastId);
+	Podcast getPodcastById(Long podcastId);
 
-    Episode getEpisodeById(Long episodeId) ;
+	Episode getEpisodeById(Long episodeId);
 
-    void deletePodcast(Long podcastId);
+	void deletePodcast(Long podcastId);
+
 }

@@ -37,24 +37,24 @@ class PodbeanConfiguration {
 			@Nullable
 			@Override
 			public Object invoke(@NotNull MethodInvocation invocation) throws Throwable {
-				System.out.println("not supported yet! Figure this out and soon!! we need for each mogul to have 0-N Podbean configurations as supported podcast publishing targets!");
+				System.out.println(
+						"not supported yet! Figure this out and soon!! we need for each mogul to have 0-N Podbean configurations as supported podcast publishing targets!");
 				return null;
 			}
 		});
-/*		proxyFactory.addAdvice((MethodInterceptor) invocation -> {
-			var methodName = invocation.getMethod().getName();
-			if (methodName.equalsIgnoreCase("getToken")) {
-				var currentMogul = ms.getCurrentMogul();
-				log.debug("do we have a valid Mogul? [" + currentMogul + "]");
-				var podbeanAccount = podcastService.getPodbeanAccountSettings(currentMogul.id());
-				var podbeanClientId = podbeanAccount.clientId();
-				var podbeanClientSecret = podbeanAccount.clientSecret();
-				var tp = new ClientCredentialsTokenProvider(podbeanClientId, podbeanClientSecret);
-				return tp.getToken();
-			}
-
-			return null;
-		});*/
+		/*
+		 * proxyFactory.addAdvice((MethodInterceptor) invocation -> { var methodName =
+		 * invocation.getMethod().getName(); if (methodName.equalsIgnoreCase("getToken"))
+		 * { var currentMogul = ms.getCurrentMogul();
+		 * log.debug("do we have a valid Mogul? [" + currentMogul + "]"); var
+		 * podbeanAccount = podcastService.getPodbeanAccountSettings(currentMogul.id());
+		 * var podbeanClientId = podbeanAccount.clientId(); var podbeanClientSecret =
+		 * podbeanAccount.clientSecret(); var tp = new
+		 * ClientCredentialsTokenProvider(podbeanClientId, podbeanClientSecret); return
+		 * tp.getToken(); }
+		 *
+		 * return null; });
+		 */
 
 		return (TokenProvider) proxyFactory.getProxy();
 
