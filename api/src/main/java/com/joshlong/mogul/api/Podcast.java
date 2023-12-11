@@ -3,6 +3,7 @@ package com.joshlong.mogul.api;
 import java.net.URI;
 import java.util.Date;
 
+@Deprecated
 public record Podcast(Long mogulId, Long id, String uid, Date date, String description, String transcript, String title,
 		Podbean podbean, String notes, S3 s3) {
 

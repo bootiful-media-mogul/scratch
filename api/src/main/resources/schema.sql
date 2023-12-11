@@ -4,20 +4,63 @@ create table if not exists mogul
     username text not null ,
     client_id  text not null ,
     email text null,
+    created timestamp not null default now(),
     unique (client_id, username)
 ) ;
 
+--
+-- public record ManagedFile (Long mogulId, Long id, String bucket, String folder, String filename , Date created, long size) {
+-- }
+
+create table if not exists managed_file
+(
+    mogul_id bigint             not null references mogul (id),
+    created  timestamp          not null default now(),
+    id       serial primary key not null,
+    bucket   text               not null,
+    folder   text               not null,
+    filename text               not null,
+    size     bigint             not null,
+    written  bool               not null default false
+);
 
 create table if not exists settings
 (
-    mogul_id bigint not null ,
+    mogul_id bigint    not null references mogul (id),
     key      text   not null,
     "value"  text   not null,
     category text   not null,
-    foreign key (mogul_id) references mogul(id),
+    created  timestamp not null default now(),
     unique (mogul_id, category, key)
 ) ;
 
+create table if not exists podcast
+(
+    mogul_id bigint             not null references mogul (id),
+    title    text               not null,
+    created  timestamp          not null default now(),
+    id       serial primary key not null,
+    unique (mogul_id, title)
+
+);
+
+create table if not exists podcast_episode
+(
+    podcast_id     bigint             not null references podcast (id),
+    title          text               not null,
+    description    text               not null,
+
+    graphic        bigint             not null references managed_file (id),
+    interview      bigint             not null references managed_file (id),
+    introduction   bigint             not null references managed_file (id),
+    produced_audio bigint             null references managed_file (id),
+
+    id             serial primary key not null,
+    created        timestamp          not null default now()
+);
+
+
+/*
 create table if not exists podcast
 (
     podbean_episode_id varchar(255),
@@ -75,3 +118,4 @@ create table if not exists podbean_publication_tracker
     stopped           timestamp,
     unique (podcast_id)
 );
+*/

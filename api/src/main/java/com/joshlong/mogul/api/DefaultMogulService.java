@@ -1,14 +1,12 @@
 package com.joshlong.mogul.api;
 
-import com.joshlong.mogul.api.podcasts.podbean.PodbeanPublication;
+import com.joshlong.mogul.api.old.podbean.PodbeanPublication;
 import com.joshlong.mogul.api.utils.JdbcUtils;
-import com.joshlong.mogul.api.utils.NodeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -21,7 +19,7 @@ import org.springframework.util.StringUtils;
 import java.net.URI;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.List;
 import java.util.function.Function;
 
 @Service
@@ -42,12 +40,13 @@ class DefaultMogulService implements MogulService {
 	private final JdbcClient db;
 
 	private final TransactionTemplate transactionTemplate;
-
+	private final ApplicationEventPublisher publisher;
 	private final Settings settings;
 
-	DefaultMogulService(JdbcClient jdbcClient, TransactionTemplate transactionTemplate, Settings settings) {
+	DefaultMogulService(JdbcClient jdbcClient, TransactionTemplate transactionTemplate, ApplicationEventPublisher publisher, Settings settings) {
 		this.db = jdbcClient;
 		this.transactionTemplate = transactionTemplate;
+		this.publisher = publisher;
 		this.settings = settings;
 		Assert.notNull(this.settings, "the settings are null");
 		Assert.notNull(this.db, "the db is null");
@@ -62,18 +61,22 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul login(Authentication principal) {
+		var principalName = principal.getName();
+		var exists = getMogulByName(principalName) != null;
 		var sql = """
 				insert into mogul(username,  client_id) values (?, ?)
 				on conflict on constraint mogul_client_id_username_key do nothing
 				""";
 		if (principal.getPrincipal() instanceof Jwt jwt && jwt.getClaims().get("aud") instanceof List list
 				&& list.get(0) instanceof String aud) {
-			var name = principal.getName();
-			this.db.sql(sql).params(name, aud).update();
-			return this.getMogulByName(name);
+			this.db.sql(sql).params(principalName, aud).update();
 		}
-		throw new IllegalStateException(
-				"failed to register a new user with authentication [" + principal.toString() + "]");
+		var mogul = this.getMogulByName(principalName);
+		if (!exists) {
+			publisher.publishEvent(new MogulCreatedEvent(mogul));
+		}
+		return mogul;
+
 	}
 
 	@Override
@@ -86,20 +89,34 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul getMogulByName(String name) {
-		return this.db.sql("select * from mogul where  username  = ? ")
+		var moguls = this.db//
+				.sql("select * from mogul where  username  = ? ")
 			.param(name)
 			.query(new MogulRowMapper(this::getPodbeanAccountSettings))
-			.single();
+				.list();
+		Assert.state(moguls.size() <= 1, "there should only be one mogul with this username [" +
+				name + "]");
+		return moguls.isEmpty() ? null: moguls.getFirst();
 	}
 
 	@Override
+	public void assertAuthorizedMogul(Long aLong) {
+
+		var currentlyAuthenticated=getCurrentMogul() ;
+		Assert.state(
+                currentlyAuthenticated != null &&
+                        currentlyAuthenticated.id().equals(aLong), "the requested mogul [" + aLong +
+				"] is not currently authenticated");
+
+	}
+/*
+
 	public PodbeanAccountSettings configurePodbeanAccountSettings(Long mogulId, String clientId, String clientSecret) {
 		this.settings.set(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET, clientSecret);
 		this.settings.set(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID, clientId);
 		return getPodbeanAccountSettings(mogulId);
-	}
+	}*/
 
-	@Override
 	public PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId) {
 		var clientId = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID);
 		var clientSecret = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
@@ -108,146 +125,146 @@ class DefaultMogulService implements MogulService {
 		return configured ? new PodbeanAccountSettings(clientId, clientSecret) : null;
 	}
 
-	@Override
-	public List<Podcast> getPodcastsByMogul(Long mogul) {
-		return this.db//
-			.sql("""
-							select * from podcast where mogul_id = ? and deleted = false
-							and id in ( select pd.podcast_id from podcast_draft pd
-							where pd.podcast_id=id and pd.completed = true )
-					""")
-			.param(mogul)
-			.query(new PodcastRowMapper())
-			.list();
-	}
+	/*
+      public List<Podcast> getPodcastsByMogul(Long mogul) {
+          return this.db//
+              .sql("""
+                              select * from podcast where mogul_id = ? and deleted = false
+                              and id in ( select pd.podcast_id from podcast_draft pd
+                              where pd.podcast_id=id and pd.completed = true )
+                      """)
+              .param(mogul)
+              .query(new PodcastRowMapper())
+              .list();
+      }
 
-	@Override
-	public List<Podcast> getAllPodcasts() {
-		return this.db.sql("select * from podcast  ").query(new PodcastRowMapper()).list();
-	}
 
-	@Override
-	public PodcastDraft updatePodcastDraft(Long mogulId, String uid, String title, String description,
-			Resource pictureFN, Resource introFN, Resource interviewFN, boolean completed) {
+      public List<Podcast> getAllPodcasts() {
+          return this.db.sql("select * from podcast  ").query(new PodcastRowMapper()).list();
+      }
 
-		Assert.hasText(uid, "the uid must be non-null");
-		Assert.notNull(mogulId, "the mogulId must be non-null");
-		Assert.hasText(title, "the title must be non-null");
-		Assert.hasText(description, "the description must be non-null");
-		Assert.notNull(pictureFN, "the picture file name must be non-null");
-		Assert.notNull(introFN, "the introduction file name must be non-null");
-		Assert.notNull(interviewFN, "the interview file name must be non-null");
 
-		var sql = """
-				insert into podcast_draft (uid,  title, description,  mogul_id , picture_file_name, intro_file_name, interview_file_name )
-				values (?,?,?,?,?,?,? )
-				on conflict on constraint podcast_draft_uid_key do update set
-				title = excluded.title,
-				description = excluded.description,
-				picture_file_name = excluded.picture_file_name,
-				intro_file_name = excluded.intro_file_name,
-				interview_file_name = excluded.interview_file_name
-				""";
-		this.db.sql(sql)
-			.params(uid, title, description, completed, mogulId, pictureFN.getFilename(), introFN.getFilename(),
-					interviewFN.getFilename())
-			.update();
-		markPodcastDraftCompleted(uid, completed);
-		return getPodcastDraftByUid(uid);
-	}
+      public PodcastDraft updatePodcastDraft(Long mogulId, String uid, String title, String description,
+              Resource pictureFN, Resource introFN, Resource interviewFN, boolean completed) {
 
-	private void markPodcastDraftCompleted(String podcastDraftUid, boolean completed) {
-		var draft = getPodcastDraftByUid(podcastDraftUid);
-		this.db.sql("update podcast_draft set completed = ? where uid=?").params(completed, draft.uid()).update();
-	}
+          Assert.hasText(uid, "the uid must be non-null");
+          Assert.notNull(mogulId, "the mogulId must be non-null");
+          Assert.hasText(title, "the title must be non-null");
+          Assert.hasText(description, "the description must be non-null");
+          Assert.notNull(pictureFN, "the picture file name must be non-null");
+          Assert.notNull(introFN, "the introduction file name must be non-null");
+          Assert.notNull(interviewFN, "the interview file name must be non-null");
 
-	@Override
-	public Podcast addPodcastEpisode(Long mogulId, Podcast podcast) {
+          var sql = """
+                  insert into podcast_draft (uid,  title, description,  mogul_id , picture_file_name, intro_file_name, interview_file_name )
+                  values (?,?,?,?,?,?,? )
+                  on conflict on constraint podcast_draft_uid_key do update set
+                  title = excluded.title,
+                  description = excluded.description,
+                  picture_file_name = excluded.picture_file_name,
+                  intro_file_name = excluded.intro_file_name,
+                  interview_file_name = excluded.interview_file_name
+                  """;
+          this.db.sql(sql)
+              .params(uid, title, description, completed, mogulId, pictureFN.getFilename(), introFN.getFilename(),
+                      interviewFN.getFilename())
+              .update();
+          markPodcastDraftCompleted(uid, completed);
+          return getPodcastDraftByUid(uid);
+      }
 
-		var sql = """
-				  insert into podcast (
-					date,
-					description,
-					notes,
-					podbean_media_uri,
-					podbean_photo_uri,
-					s3_audio_file_name,
-					s3_audio_uri,
-					s3_photo_file_name,
-					s3_photo_uri,
-					title,
-					uid ,
-					mogul_id
-					)
-				   values (
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?,
-					 ?
-				)
-				on conflict on constraint podcast_mogul_id_title_key
-				do update
-				set
-					date = excluded.date,
-					description = excluded.description,
-					notes = excluded.notes,
-					podbean_media_uri = excluded.podbean_media_uri,
-					podbean_photo_uri = excluded.podbean_photo_uri,
-					s3_audio_file_name = excluded.s3_audio_file_name,
-					s3_audio_uri = excluded.s3_audio_uri,
-					s3_photo_file_name = excluded.s3_photo_file_name,
-					s3_photo_uri = excluded.s3_photo_uri,
-					title = excluded.title,
-					uid = excluded.uid
-				           """;
-		return this.transactionTemplate.execute(status -> {
+      private void markPodcastDraftCompleted(String podcastDraftUid, boolean completed) {
+          var draft = getPodcastDraftByUid(podcastDraftUid);
+          this.db.sql("update podcast_draft set completed = ? where uid=?").params(completed, draft.uid()).update();
+      }
 
-			var ctr = 1;
-			var nnPodbean = nonNull((podcast).podbean());
-			var nnbS3 = nonNull(podcast.s3());
-			var nnS3Audio = nonNull(nnbS3.audio());
-			var nnS3Photo = nonNull(nnbS3.photo());
 
-			var al = new ArrayList<Map<String, Object>>();
-			var kh = new GeneratedKeyHolder(al);
-			var updated = db.sql(sql)
-				.param(ctr++, podcast.date())
-				.param(ctr++, podcast.description())
-				.param(ctr++, podcast.notes())
-				.param(ctr++, nullSafeUri(nnPodbean.media()))
-				.param(ctr++, nullSafeUri(nnPodbean.photo()))
-				.param(ctr++, nnS3Audio.fileName())
-				.param(ctr++, nullSafeUri(nnS3Audio.uri()))
-				.param(ctr++, nnS3Photo.fileName())
-				.param(ctr++, nullSafeUri(nnS3Photo.uri()))
-				.param(ctr++, podcast.title())
-				.param(ctr++, podcast.uid())
-				.param(ctr++, mogulId)
-				.update(kh, "id");
+      public Podcast addPodcastEpisode(Long mogulId, Podcast podcast) {
 
-			log.info("wrote " + updated + " records");
-			var podcastId = Objects.requireNonNull(kh.getKey()).longValue();
+          var sql = """
+                    insert into podcast (
+                      date,
+                      description,
+                      notes,
+                      podbean_media_uri,
+                      podbean_photo_uri,
+                      s3_audio_file_name,
+                      s3_audio_uri,
+                      s3_photo_file_name,
+                      s3_photo_uri,
+                      title,
+                      uid ,
+                      mogul_id
+                      )
+                     values (
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?,
+                       ?
+                  )
+                  on conflict on constraint podcast_mogul_id_title_key
+                  do update
+                  set
+                      date = excluded.date,
+                      description = excluded.description,
+                      notes = excluded.notes,
+                      podbean_media_uri = excluded.podbean_media_uri,
+                      podbean_photo_uri = excluded.podbean_photo_uri,
+                      s3_audio_file_name = excluded.s3_audio_file_name,
+                      s3_audio_uri = excluded.s3_audio_uri,
+                      s3_photo_file_name = excluded.s3_photo_file_name,
+                      s3_photo_uri = excluded.s3_photo_uri,
+                      title = excluded.title,
+                      uid = excluded.uid
+                             """;
+          return this.transactionTemplate.execute(status -> {
 
-			// todo connect podcast to podcast_draft via the UID
+              var ctr = 1;
+              var nnPodbean = nonNull((podcast).podbean());
+              var nnbS3 = nonNull(podcast.s3());
+              var nnS3Audio = nonNull(nnbS3.audio());
+              var nnS3Photo = nonNull(nnbS3.photo());
 
-			db.sql("update podcast_draft set podcast_id = ? where uid =?").params(podcastId, podcast.uid()).update();
+              var al = new ArrayList<Map<String, Object>>();
+              var kh = new GeneratedKeyHolder(al);
+              var updated = db.sql(sql)
+                  .param(ctr++, podcast.date())
+                  .param(ctr++, podcast.description())
+                  .param(ctr++, podcast.notes())
+                  .param(ctr++, nullSafeUri(nnPodbean.media()))
+                  .param(ctr++, nullSafeUri(nnPodbean.photo()))
+                  .param(ctr++, nnS3Audio.fileName())
+                  .param(ctr++, nullSafeUri(nnS3Audio.uri()))
+                  .param(ctr++, nnS3Photo.fileName())
+                  .param(ctr++, nullSafeUri(nnS3Photo.uri()))
+                  .param(ctr++, podcast.title())
+                  .param(ctr++, podcast.uid())
+                  .param(ctr++, mogulId)
+                  .update(kh, "id");
 
-			return getPodcastById(podcastId);
-		});
-	}
+              log.info("wrote " + updated + " records");
+              var podcastId = Objects.requireNonNull(kh.getKey()).longValue();
 
+              // todo connect podcast to podcast_draft via the UID
+
+              db.sql("update podcast_draft set podcast_id = ? where uid =?").params(podcastId, podcast.uid()).update();
+
+              return getPodcastById(podcastId);
+          });
+      }
+  */
 	private String nullSafeUri(URI uri) {
 		return uri == null ? null : uri.toString();
 	}
-
+/*
 	private final Podcast.S3 s3 = new Podcast.S3(new Podcast.S3.Audio(null, null), new Podcast.S3.Photo(null, null));
 
 	private final Podcast.Podbean podbean = new Podcast.Podbean(null, null, null, null, null);
@@ -265,9 +282,10 @@ class DefaultMogulService implements MogulService {
 			return rt;
 		}
 		return input;
-	}
+	}*/
+/*
 
-	@Override
+//	@Override
 	public Podcast connectPodcastToPodbeanPublication(Podcast podcast, String podbeanEpisodeId, URI podbeanMediaUrl,
 			URI logoUrl, URI podbeanPlayerUrl) {
 		return this.transactionTemplate.execute(tx -> {
@@ -290,7 +308,7 @@ class DefaultMogulService implements MogulService {
 		});
 	}
 
-	@Override
+//	@Override
 	public Podcast confirmPodbeanPublication(Podcast podcast, URI permalinkUrl, int duration) {
 
 		return this.transactionTemplate.execute(tx -> {
@@ -314,8 +332,8 @@ class DefaultMogulService implements MogulService {
 			return getPodcastById(podcast.id());
 		});
 	}
-
-	@Override
+//
+//	@Override
 	public PodbeanPublication getPodbeanPublicationByPodcast(Podcast podcast) {
 
 		var sql = """
@@ -335,7 +353,7 @@ class DefaultMogulService implements MogulService {
 
 	}
 
-	@Override
+//	@Override
 	public Collection<PodbeanPublication> getOutstandingPodbeanPublications() {
 		var sql = """
 				select * from podbean_publication_tracker where node_id = ? and stopped  is   null
@@ -343,7 +361,7 @@ class DefaultMogulService implements MogulService {
 		return db.sql(sql).params(NodeUtils.nodeId()).query(new PodbeanPublicationTrackerRowMapper()).list();
 	}
 
-	@Override
+//	@Override
 	public Collection<PodcastDraft> getPodcastDraftsByMogul(Long mogulId) {
 		return this.db//
 			.sql("select * from podcast_draft where completed = false and mogul_id = ?")//
@@ -352,12 +370,12 @@ class DefaultMogulService implements MogulService {
 			.list();
 	}
 
-	@Override
+//	@Override
 	public Collection<Podcast> getDeletedPodcasts() {
 		return this.db.sql("select * from podcast where deleted = true ").query(new PodcastRowMapper()).list();
 	}
 
-	@Override
+//	@Override
 	public PodbeanPublication monitorPodbeanPublication(String nodeName, Podcast podcast) {
 		var sql = """
 				insert into podbean_publication_tracker (  node_id, mogul_id, continue_tracking, podcast_id, started, stopped )
@@ -372,7 +390,7 @@ class DefaultMogulService implements MogulService {
 
 	}
 
-	@Override
+//	@Override
 	public PodcastDraft createPodcastDraft(Long mogulId, String uuid) {
 		var sql = """
 				insert into podcast_draft (uid, date, title, description, completed , mogul_id ) values (?, ? , ? , ?, ? ,? )
@@ -387,7 +405,7 @@ class DefaultMogulService implements MogulService {
 		return getPodcastDraftByUid(uuid);
 	}
 
-	@Override
+//	@Override
 	public boolean deletePodcast(Long podcastId) {
 		var podcast = getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] does not exist!");
@@ -397,7 +415,7 @@ class DefaultMogulService implements MogulService {
 		return true;
 	}
 
-	@Override
+//	@Override
 	public boolean schedulePodcastForDeletion(Long podcastId) {
 		var podcast = getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] does not exist!");
@@ -406,7 +424,7 @@ class DefaultMogulService implements MogulService {
 		return true;
 	}
 
-	@Override
+//	@Override
 	public PodcastDraft getPodcastDraftByUid(String uuid) {
 		return this.db.sql("select * from podcast_draft where uid =? ")
 			.param(uuid)
@@ -414,12 +432,14 @@ class DefaultMogulService implements MogulService {
 			.single();
 	}
 
-	@Override
+//	@Override
 	public Podcast getPodcastById(Long id) {
 		return this.db.sql("select * from podcast where id =? ").param(id).query(new PodcastRowMapper()).single();
 	}
+*/
 
 }
+/*
 
 class PodcastRowMapper implements RowMapper<Podcast> {
 
@@ -449,8 +469,9 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 	}
 
 }
+*/
 
-class PodbeanPublicationTrackerRowMapper implements RowMapper<PodbeanPublication> {
+/*class PodbeanPublicationTrackerRowMapper implements RowMapper<PodbeanPublication> {
 
 	@Override
 	public PodbeanPublication mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -458,7 +479,7 @@ class PodbeanPublicationTrackerRowMapper implements RowMapper<PodbeanPublication
 				rs.getBoolean("continue_tracking"), rs.getDate("started"), rs.getDate("stopped"));
 	}
 
-}
+}*/
 
 class MogulRowMapper implements RowMapper<Mogul> {
 
@@ -475,6 +496,7 @@ class MogulRowMapper implements RowMapper<Mogul> {
 	}
 
 }
+/*
 
 class PodcastDraftRowMapper implements RowMapper<PodcastDraft> {
 
@@ -485,4 +507,4 @@ class PodcastDraftRowMapper implements RowMapper<PodcastDraft> {
 				rs.getString("interview_file_name"), rs.getString("picture_file_name"), rs.getLong("mogul_id"));
 	}
 
-}
+}*/

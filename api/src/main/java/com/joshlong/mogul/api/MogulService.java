@@ -1,12 +1,6 @@
 package com.joshlong.mogul.api;
 
-import com.joshlong.mogul.api.podcasts.podbean.PodbeanPublication;
-import org.springframework.core.io.Resource;
 import org.springframework.security.core.Authentication;
-
-import java.net.URI;
-import java.util.Collection;
-import java.util.List;
 
 public interface MogulService {
 
@@ -18,9 +12,13 @@ public interface MogulService {
 
 	Mogul getMogulByName(String name);
 
+	void assertAuthorizedMogul(Long aLong);
+
+
+/*
 	List<Podcast> getPodcastsByMogul(Long mogul);
 
-	/** use to return <em>all</em> podcast episodes, regardless of {@code mogulId} */
+	*//** use to return <em>all</em> podcast episodes, regardless of {@code mogulId} *//*
 	List<Podcast> getAllPodcasts();
 
 	Podcast addPodcastEpisode(Long mogulId, Podcast podcast);
@@ -57,6 +55,6 @@ public interface MogulService {
 
 	boolean schedulePodcastForDeletion(Long podcastId);
 
-	boolean deletePodcast(Long podcastId);
+	boolean deletePodcast(Long podcastId);*/
 
 }

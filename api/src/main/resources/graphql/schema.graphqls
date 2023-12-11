@@ -1,47 +1,93 @@
+type Mutation {
+
+
+
+    createPodcast (title:String) :Podcast
+
+    createPodcastEpisodeDraft ( podcastId: Float , title :String, description:String   ) : Episode
+
+    deletePodcast(id:ID)  : ID
+}
 
 type Mogul {
  name :String
 }
 
+type Query {
+    me: Mogul
+
+    # ai
+    aiChat(prompt:String): String
+    # podcasts first
+
+    podcasts : [Podcast]
+
+}
+type ManagedFile {
+    id: ID
+    bucket: String
+    folder: String
+    filename: String
+    size: Float
+    written : Boolean
+
+}
+type Episode {
+    id : ID
+    title: String
+    description: String
+    valid: Boolean
+    graphic: ManagedFile
+    introduction: ManagedFile
+    interview: ManagedFile
+    producedAudio: ManagedFile
+}
 
 type Podcast {
-    created : Float
-    html :String
-    title :String
-    description : String
-    uid : String
-    permalinkUri: String
-    playerUri: String
-    duration : Int
-    audioUri: String
-    photoUri: String
+    title: String
+    episodes : [Episode]
     id: ID
 }
 
-type PodcastDraft  {
-    id : ID
-    completed: Boolean
-    uid : String
-    uploadPath: String
-    pictureFileName: String
-    introductionFileName: String
-    interviewFileName: String
-    title: String
-    description: String
-    created : Float
-}
-
-type Query {
-    me: Mogul
-    podcasts: [Podcast]
-    podcastDrafts: [PodcastDraft]
-    aiChat  (prompt:String): String
-}
-
-type Mutation {
-
-    deletePodcast (id:  Int ) : Boolean
-    podcastDrafts : [PodcastDraft ]
-    createPodcastDraft(uid:String) : PodcastDraft
-
-}
+#
+#type Podcast {
+#    created : Float
+#    html :String
+#    title :String
+#    description : String
+#    uid : String
+#    permalinkUri: String
+#    playerUri: String
+#    duration : Int
+#    audioUri: String
+#    photoUri: String
+#    id: ID
+#}
+#
+#type PodcastDraft  {
+#    id : ID
+#    completed: Boolean
+#    uid : String
+#    uploadPath: String
+#    pictureFileName: String
+#    introductionFileName: String
+#    interviewFileName: String
+#    title: String
+#    description: String
+#    created : Float
+#}
+#
+#type Query {
+#    me: Mogul
+#    podcasts: [Podcast]
+#    podcastDrafts: [PodcastDraft]
+#
+#}
+#
+#type Mutation {
+#
+#    deletePodcast (id:  Int ) : Boolean
+#    podcastDrafts : [PodcastDraft ]
+#    createPodcastDraft(uid:String) : PodcastDraft
+#
+#}

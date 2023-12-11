@@ -2,7 +2,7 @@
  renders a list of all the existing podcasts
 -->
 <script lang="ts">
-import AiChat from '@/components/AiChatComponent.vue'
+import AiChat from '@/ai/AiChatComponent.vue'
 
 import { mogul } from '@/services'
 
@@ -29,13 +29,12 @@ export default {
     </div>
     <div class="toolbar">
       <div>
-        <router-link to="/"> home</router-link>
+        <router-link to="/">home</router-link>
       </div>
       <div>
         <b>podcasts</b>&nbsp;
-        <router-link to="/list-podcasts">search</router-link>&nbsp;<router-link to="/create-podcast"
-          >create </router-link
-        >&nbsp;
+        <router-link to="/create-podcast">create</router-link>
+        <!--        <router-link to="/create-podcast">create </router-link>&nbsp;-->
       </div>
       <div>
         <b>blogs</b>&nbsp;
