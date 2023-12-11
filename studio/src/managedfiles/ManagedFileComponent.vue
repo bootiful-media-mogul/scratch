@@ -1,9 +1,8 @@
 <template>
-  <div>
-    <form ref="fileUploadForm">
+
       <input type="file" @change="uploadFile($event)"/>
-    </form>
-  </div>
+
+
 </template>
 
 <script lang="ts">
@@ -22,8 +21,8 @@ export default {
     async uploadFile(event: any) {
       event.preventDefault()
 
-      const data: FormData = new FormData(this.$refs.fileUploadForm as HTMLFormElement)
-      const file: File = event.target.files[0] as File
+      const data = new FormData()
+      const file = event.target.files[0] as File
       data.set('file', file)
 
       const mf = await managedFiles.getManagedFileById(12)

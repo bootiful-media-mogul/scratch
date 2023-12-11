@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from './HomeView.vue'
-import CreateEpisodeView from '@/podcasts/CreateEpisodeView.vue'
+import CreateEpisodeView from '@/podcasts/EpisodesView.vue'
 import PodcastsView from '@/podcasts/PodcastsView.vue'
 
 const router = createRouter({

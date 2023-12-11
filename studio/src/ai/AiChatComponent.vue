@@ -5,31 +5,58 @@ todo support workshopping the image for the podcast as well: give it
 
 -->
 <template>
-  <div id="ai-chat-side-panel" class="panel">
-    <div>
-      <a href="#" @click="hide" v-if="visible">hide</a>
-      <a href="#" @click="show" v-if="!visible">show</a>
-    </div>
-    <div v-if="visible">
-      <h3>ai workshop</h3>
-      <div><a href="">chat</a> | <a href="">render</a> | <a href="">transcribe</a></div>
-      <textarea rows="20" v-model="prompt"></textarea>
+
+  <form class="ai-workshop-panel pure-form pure-form-stacked">
+
+    <!--    <img  src="../assets/images/clippy.png"/>-->
+
+
+    <fieldset>
+
+      <legend>
+       AI   Workshop
+      </legend>
+
+
+      <label for="prompt">prompt</label>
+      <textarea required id="prompt" rows="20" v-model="prompt"></textarea>
+
       <div v-for="reply in replies" :key="reply">
         {{ reply }}
-        <button value="accept" @click="acceptSuggestion(reply ,$event)">accept</button>
+        <button value="accept" @click="acceptSuggestion(reply,$event)">accept</button>
       </div>
-      <button :disabled="isPromptEmpty()" value="chat" @click="chat">workshop it!</button>
-      <button :disabled="isPromptEmpty()" value="ok" @click="finished">finish</button>
-    </div>
-  </div>
-</template>
+      <div>
+        <button :disabled="isPromptEmpty()" class="pure-button pure-button-primary" value="chat" @click="chat">workshop
+          it!
+        </button>
+        <button :disabled="isPromptEmpty()" class="pure-button" value="ok" @click="finished">finish</button>
+      </div>
+    </fieldset>
+  </form>
 
+
+</template>
 <style>
-.panel {
-  background-color: aliceblue;
-  padding: calc(var(--gutter-space));
-  border-radius: 10px 0  0  10px;
-  right: calc(-1 * var(--gutter-space));
+.ai-workshop-panel textarea {
+  width: 100%;
+}
+
+.ai-workshop-panel img {
+  width: 50px;
+}
+
+.sidebar-panel-hidden .ai-workshop-panel {
+  display: none;
+}
+
+.ai-workshop-panel fieldset legend {
+  background-image: url("../assets/images/clippy.png");
+  background-size: contain;
+  background-clip: border-box;
+  background-position-x: right;
+  background-position-y: top;
+  background-repeat: no-repeat;
+
 }
 </style>
 
@@ -43,6 +70,8 @@ import {
 } from '@/services'
 
 export default {
+  components: {},
+  computed: {},
   methods: {
     acceptSuggestion(text: string, e: Event) {
 
@@ -58,19 +87,14 @@ export default {
     isPromptEmpty() {
       return (this.prompt == null ? '' : this.prompt).trim().length == 0
     },
-    hide() {
-      this.visible = false
-    },
+
     finished() {
       console.log('finishing...')
-      this.hide()
       this.callback(new AiWorkshopReplyEvent(this.prompt.trim(), AiWorkshopReplyEventType.TEXT))
       this.prompt = ''
       this.replies = []
     },
-    show() {
-      this.visible = true
-    },
+
     async chat(event: Event) {
       event.preventDefault()
       const response = await ai.chat(this.prompt)

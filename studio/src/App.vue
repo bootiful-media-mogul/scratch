@@ -2,12 +2,13 @@
  renders a list of all the existing podcasts
 -->
 <script lang="ts">
-import AiChat from '@/ai/AiChatComponent.vue'
+import AiChatComponent from '@/ai/AiChatComponent.vue'
 
-import { mogul } from '@/services'
+import {mogul} from '@/services'
+import SidebarPanelComponent from "@/layout/SidebarPanel.vue";
 
 export default {
-  components: { AiChat },
+  components: {AiChatComponent,  SidebarPanelComponent},
 
   methods: {},
   data() {
@@ -23,27 +24,16 @@ export default {
 
 <template>
   <div class="page">
-    <div class="welcome">
-      hello,
-      <span style="font-weight: bold"> {{ mogul }} </span>!
-    </div>
-    <div class="toolbar">
-      <div>
-        <router-link to="/">home</router-link>
-      </div>
-      <div>
 
-        <router-link to="/podcasts">podcasts</router-link>
-        <!--        <router-link to="/create-podcast">create </router-link>&nbsp;-->
-      </div>
-      <div>
-        <b>blogs</b>&nbsp;
-        <a href="">create</a>
-      </div>
-      <div>
-        <b>videos </b>&nbsp;
-        <a href="">create</a>
-      </div>
+
+    <div class="welcome">
+      hello, <span style="font-weight: bold"> {{ mogul }} </span>!
+    </div>
+
+    <div class="toolbar">
+      <router-link to="/">home</router-link>
+      |
+      <router-link to="/podcasts">podcasts</router-link>
     </div>
 
     <div class="view">
@@ -51,9 +41,10 @@ export default {
     </div>
 
     <div class="sidebar">
-      <AiChat />
+       <SidebarPanelComponent title="AI">
+        <AiChatComponent/>
+       </SidebarPanelComponent>
     </div>
   </div>
 </template>
 
-<style scoped></style>

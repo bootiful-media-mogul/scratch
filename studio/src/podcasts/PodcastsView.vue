@@ -1,32 +1,50 @@
 <template>
   <h1>Podcasts</h1>
 
-  <h2>Existing Podcasts</h2>
 
-  <div v-for="podcast in podcasts" v-bind:key="podcast.id">
-    <b> {{ podcast.id }}</b> {{ podcast.title }}
+<form class="pure-form pure-form-aligned">
+  <fieldset>
+    <legend>
+      Podcasts
+    </legend>
+    <div v-for="podcast in podcasts" v-bind:key="podcast.id">
+      <b> {{ podcast.id }}</b> {{ podcast.title }}
 
-    <input type="submit" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)" value="new episode"/>
-    <input type="submit" :disabled="podcasts.length  == 1" @click="deletePodcast(podcast.id)" value="delete"/>
-  </div>
+      <input type="submit" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)" value="new episode"/>
+      <input type="submit" :disabled="podcasts.length  == 1" @click="deletePodcast(podcast.id)" value="delete"/>
+    </div>
 
-  <h2>New Podcast</h2>
-  <form>
-   <label> title </label>  <input type="text" v-model="title"/> <br/>
-    <AiWorkshopItIconComponent
-        prompt="please help me take the following podcast title and make it more pithy and exciting"
-        :text="title"
-        @ai-workshop-completed="title = $event.text"
-    />
-    <br/>
-    <input type="submit" :disabled="title ==  null ||  title.trim().length  == 0" @click="createPodcast"
-           value="create"/>
+  </fieldset>
+</form>
+
+
+  <form class="pure-form pure-form-aligned">
+    <fieldset>
+      <legend>  New Podcast </legend>
+      <div class="pure-control-group">
+        <label for="title"> title </label>
+        <input type="text" required  id="title" v-model="title"/>
+
+        <AiWorkshopItIconComponent
+            prompt="please help me take the following podcast title and make it more pithy and exciting"
+            :text="title"
+            @ai-workshop-completed="title = $event.text"
+        />
+
+      </div>
+      <div class="pure-controls">
+        <button class="pure-button pure-button-primary " type="submit"
+                :disabled="title == null ||  title.trim().length  == 0"
+                @click="createPodcast"
+                value="create">create</button>
+      </div>
+    </fieldset>
   </form>
 </template>
 <script lang="ts">
 import {Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
-import CreateEpisodeView from "@/podcasts/CreateEpisodeView.vue";
+import CreateEpisodeView from "@/podcasts/EpisodesView.vue";
 
 async function refresh() {
   return await podcasts.podcasts()

@@ -2,8 +2,8 @@
     --gutter-space: 20px;
 }
 
-label {
-    font-weight: bold; padding-right: 1em ;
+fieldset legend {
+    font-weight: bold;
 }
 
 body {
@@ -18,10 +18,10 @@ html {
 .page {
     display: grid;
     grid-template-areas:
-    'welcome welcome'
-    'toolbar toolbar'
-    'main sidebar ';
-    grid-template-columns: auto 300px;
+    'welcome welcome welcome'
+    'toolbar toolbar toolbar'
+    'main gap sidebar ';
+    grid-template-columns: auto 1em min-content ;
 }
 
 .welcome {
@@ -43,5 +43,5 @@ html {
 }
 
 .sidebar textarea {
-    width: 100%;
+
 }
