@@ -1,14 +1,15 @@
 <template>
-
-
-  <div :class="visibilityCss ">
-    <div class="visibility-controls">
-      <a href="#" @click="hide" v-if="visible">close</a>
-      <a href="#" @click="show" v-if="!visible">{{ title }}</a>
+  <div :class="visibilityCss">
+    <div class="sidebar-panel-top ">
+      <div class="visibility-controls">
+        <a href="#" @click="hide" v-if="visible">close</a>
+        <a href="#" @click="show" v-if="!visible">{{ title }}</a>
+      </div>
     </div>
-    <div class="content">
+    <div class="sidebar-panel-content">
       <slot/>
     </div>
+    <div class="sidebar-panel-bottom"></div>
   </div>
 </template>
 
@@ -17,44 +18,74 @@
   text-transform: uppercase;
   font-weight: bold;
   font-size: smaller;
-
-}
-
-.sidebar-panel-visible .visibility-controls {
-  padding-bottom: calc( 0.5 * var(--gutter-space)) ;
-  padding-top : calc( -1 * var(--gutter-space))
-
-}
-
-.sidebar-panel-visible .content {
-  background-color: white;
-  margin-left: calc(-1 * var(--gutter-space));
-  padding-left: var(--gutter-space);
-  margin-right: calc(-1 * var(--gutter-space));
-  padding-right: var(--gutter-space);
 }
 
 .visibility-controls a {
   color: white;
+  font-size: small;
 }
 
 .sidebar-panel {
-  padding: calc(var(--gutter-space));
-  border-radius: 10px 0 0 10px;
-  right: 0;
-  position: relative;
-  background-color: black;
-  margin-right: 0;
-  /*right: calc(-1 * var(--gutter-space)); */
+  overflow: hidden;
+  border-radius: var(--gutter-space) 0 0 var(--gutter-space);
+  padding: var(--gutter-space);
+  background-color: white;
 }
 
+.sidebar-panel-hidden {
+  background-color: black;
+}
+
+
+.sidebar-panel-visible .sidebar-panel-top {
+  background-color: black;
+
+  padding-bottom: calc(0.5 * var(--gutter-space));
+  margin-left: calc(-1 * var(--gutter-space));
+  margin-top: calc(-1 * var(--gutter-space));
+  margin-right: calc(-1 * var(--gutter-space));
+  padding-left: var(--gutter-space);
+  padding-top: var(--gutter-space);
+}
+
+.sidebar-panel-visible .sidebar-panel-content {
+
+  padding-top: var(--gutter-space);
+}
+
+
+/*
+
+.sidebar-panel {
+  !*  padding: calc(var(--gutter-space));
+    padding-bottom: 0 ;
+    border-radius: 10px 0 0  0px;*!
+  right: 0;
+  position: relative;
+
+  margin-right: 0;
+}
+
+.sidebar-panel-top {
+  padding: calc(var(--gutter-space));
+  padding-top: 0;
+  border-radius: 10px 0 0 0px;
+  background-color: black;
+}
+
+.sidebar-panel-bottom {
+  padding: calc(var(--gutter-space));
+  padding-bottom: 0;
+  height: 20px;
+  border-radius: 10px 10px 10px 10px;
+}
+*/
 .sidebar-panel a {
-  text-decoration: none
+  text-decoration: none;
 }
 
 .sidebar-panel-visible {
   width: 300px;
-
 }
 
 .sidebar-panel-hidden {
@@ -63,11 +94,10 @@
 </style>
 
 <script lang="ts">
-
 export default {
   data() {
     return {
-      visible: true,
+      visible: true
     }
   },
 
@@ -78,7 +108,7 @@ export default {
     },
     show() {
       this.visible = true
-    },
+    }
   },
   computed: {
     visibilityCss() {

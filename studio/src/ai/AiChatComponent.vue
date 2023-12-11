@@ -5,36 +5,34 @@ todo support workshopping the image for the podcast as well: give it
 
 -->
 <template>
-
   <form class="ai-workshop-panel pure-form pure-form-stacked">
-
     <!--    <img  src="../assets/images/clippy.png"/>-->
 
-
     <fieldset>
-
-      <legend>
-       AI   Workshop
-      </legend>
-
+      <legend>AI Workshop</legend>
 
       <label for="prompt">prompt</label>
       <textarea required id="prompt" rows="20" v-model="prompt"></textarea>
 
       <div v-for="reply in replies" :key="reply">
         {{ reply }}
-        <button value="accept" @click="acceptSuggestion(reply,$event)">accept</button>
+        <button value="accept" @click="acceptSuggestion(reply, $event)">accept</button>
       </div>
       <div>
-        <button :disabled="isPromptEmpty()" class="pure-button pure-button-primary" value="chat" @click="chat">workshop
-          it!
+        <button
+          :disabled="isPromptEmpty()"
+          class="pure-button pure-button-primary"
+          value="chat"
+          @click="chat"
+        >
+          workshop it!
         </button>
-        <button :disabled="isPromptEmpty()" class="pure-button" value="ok" @click="finished">finish</button>
+        <button :disabled="isPromptEmpty()" class="pure-button" value="ok" @click="finished">
+          finish
+        </button>
       </div>
     </fieldset>
   </form>
-
-
 </template>
 <style>
 .ai-workshop-panel textarea {
@@ -50,13 +48,12 @@ todo support workshopping the image for the podcast as well: give it
 }
 
 .ai-workshop-panel fieldset legend {
-  background-image: url("../assets/images/clippy.png");
+  background-image: url('../assets/images/clippy.png');
   background-size: contain;
   background-clip: border-box;
   background-position-x: right;
   background-position-y: top;
   background-repeat: no-repeat;
-
 }
 </style>
 
@@ -74,12 +71,11 @@ export default {
   computed: {},
   methods: {
     acceptSuggestion(text: string, e: Event) {
-
       e.preventDefault()
 
       console.log('going to accept ' + text)
       if (text.endsWith('"')) text = text.substring(0, text.length - 1)
-      if (text.startsWith('"')) text = text.substring(1);
+      if (text.startsWith('"')) text = text.substring(1)
       this.prompt = text
       console.log('ended up with [' + this.prompt + ']')
       this.finished()

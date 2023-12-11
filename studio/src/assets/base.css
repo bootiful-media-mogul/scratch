@@ -6,6 +6,18 @@ fieldset legend {
     font-weight: bold;
 }
 
+a:hover {
+    text-decoration: underline;
+}
+a {
+    color: black;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: 'Arial Black', sans-serif;
+    font-size: small;
+    text-decoration: none;
+}
+
 body {
     background-color: cadetblue;
 }
@@ -21,7 +33,7 @@ html {
     'welcome welcome welcome'
     'toolbar toolbar toolbar'
     'main gap sidebar ';
-    grid-template-columns: auto 1em min-content ;
+    grid-template-columns: auto 1em min-content;
 }
 
 .welcome {
@@ -43,5 +55,4 @@ html {
 }
 
 .sidebar textarea {
-
 }

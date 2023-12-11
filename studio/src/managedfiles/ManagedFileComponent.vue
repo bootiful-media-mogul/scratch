@@ -1,14 +1,10 @@
 <template>
-
-      <input type="file" @change="uploadFile($event)"/>
-
-
+  <input type="file" @change="uploadFile($event)" />
 </template>
 
 <script lang="ts">
 import axios from 'axios'
-import {ManagedFile, managedFiles} from '@/services'
-
+import { ManagedFile, managedFiles } from '@/services'
 
 export default {
   emits: ['update:managedFile'],
@@ -34,8 +30,8 @@ export default {
       })
 
       console.assert(
-          response.status >= 200 && response.status <= 300,
-          'the http post to upload the archive did not succeed.'
+        response.status >= 200 && response.status <= 300,
+        'the http post to upload the archive did not succeed.'
       )
       console.log('uploaded to ' + uploadPath + ' vis ' + uploadPath)
       this.$emit('update:managedFile', await managedFiles.getManagedFileById(mf.id))

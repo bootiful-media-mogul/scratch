@@ -15,11 +15,11 @@ const router = createRouter({
       path: '/podcasts',
       name: 'podcasts',
       component: PodcastsView
-    } ,
+    },
     {
-      path : '/create-podcast-episode/:podcastId' ,
-      name : 'create-podcast-episode' ,
-      component : CreateEpisodeView ,
+      path: '/create-podcast-episode/:podcastId',
+      name: 'create-podcast-episode',
+      component: CreateEpisodeView,
       props: true
     }
     /* {
