@@ -2,11 +2,9 @@
 todo support workshopping the image for the podcast as well: give it
  a prompt and it renders an image which the code could store in a place
  to then be plugged in instead of a user submitted image
-
 -->
 <template>
   <form class="ai-workshop-panel pure-form pure-form-stacked">
-    <!--    <img  src="../assets/images/clippy.png"/>-->
 
     <fieldset>
       <legend>AI Workshop</legend>
@@ -72,12 +70,9 @@ export default {
   methods: {
     acceptSuggestion(text: string, e: Event) {
       e.preventDefault()
-
-      console.log('going to accept ' + text)
       if (text.endsWith('"')) text = text.substring(0, text.length - 1)
       if (text.startsWith('"')) text = text.substring(1)
       this.prompt = text
-      console.log('ended up with [' + this.prompt + ']')
       this.finished()
     },
     isPromptEmpty() {
@@ -85,10 +80,11 @@ export default {
     },
 
     finished() {
-      console.log('finishing...')
+      events.emit('sidebar-panel-closed' , this.$el)
       this.callback(new AiWorkshopReplyEvent(this.prompt.trim(), AiWorkshopReplyEventType.TEXT))
       this.prompt = ''
       this.replies = []
+
     },
 
     async chat(event: Event) {
@@ -99,7 +95,7 @@ export default {
   },
   data() {
     return {
-      visible: false,
+
       prompt: '' as string,
       replies: [] as Array<string>,
       callback: function (arg0: AiWorkshopReplyEvent) {
@@ -113,9 +109,11 @@ export default {
       const aiEvent = event as AiWorkshopRequestEvent
       console.log('going to workshop the text [' + aiEvent.text + ']')
       this.prompt = aiEvent.text
-      this.visible = true
       this.callback = aiEvent.callback
       this.replies = [] as Array<string>
+
+      events.emit('sidebar-panel-opened' , this.$el)
+
     })
   }
 }

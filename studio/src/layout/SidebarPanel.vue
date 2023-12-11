@@ -2,12 +2,12 @@
   <div :class="visibilityCss">
     <div class="sidebar-panel-top">
       <div class="visibility-controls">
-        <a href="#" @click="hide" v-if="visible">close</a>
-        <a href="#" @click="show" v-if="!visible">{{ title }}</a>
+        <a href="#" @click="hide" v-if="expanded">close</a>
+        <a href="#" @click="show" v-if="!expanded">{{ title }}</a>
       </div>
     </div>
     <div class="sidebar-panel-content">
-      <slot />
+      <slot/>
     </div>
     <div class="sidebar-panel-bottom"></div>
   </div>
@@ -30,6 +30,7 @@
   border-radius: var(--gutter-space) 0 0 var(--gutter-space);
   padding: var(--gutter-space);
   background-color: white;
+  margin-bottom: var(--gutter-space);
 }
 
 .sidebar-panel-hidden {
@@ -51,32 +52,6 @@
   padding-top: var(--gutter-space);
 }
 
-/*
-
-.sidebar-panel {
-  !*  padding: calc(var(--gutter-space));
-    padding-bottom: 0 ;
-    border-radius: 10px 0 0  0px;*!
-  right: 0;
-  position: relative;
-
-  margin-right: 0;
-}
-
-.sidebar-panel-top {
-  padding: calc(var(--gutter-space));
-  padding-top: 0;
-  border-radius: 10px 0 0 0px;
-  background-color: black;
-}
-
-.sidebar-panel-bottom {
-  padding: calc(var(--gutter-space));
-  padding-bottom: 0;
-  height: 20px;
-  border-radius: 10px 10px 10px 10px;
-}
-*/
 .sidebar-panel a {
   text-decoration: none;
 }
@@ -86,30 +61,52 @@
 }
 
 .sidebar-panel-hidden {
-  width: 20px;
+  width: 300px;
 }
 </style>
 
 <script lang="ts">
+
+
+import {events} from "@/services";
+
 export default {
-  data() {
+
+  created() {
+    // allow child components to ask for visibility in their parent panels
+    events.on('sidebar-panel-closed', (event: any) => {
+      if (this.$el.contains (event)) {
+        this.hide()
+      }
+    })
+    events.on('sidebar-panel-opened', (event: any) => {
+      // does event match any of our children nodes? if so, we show visibility
+      if (this.$el.contains(event)) {
+        this.show()
+      }
+    })
+  },
+
+  data(vm) {
+    const expanded = false
     return {
-      visible: true
+      expanded
     }
   },
 
   props: ['title'],
   methods: {
     hide() {
-      this.visible = false
+      this.expanded = false
     },
     show() {
-      this.visible = true
+      this.expanded = true
     }
   },
   computed: {
+
     visibilityCss() {
-      return 'sidebar-panel ' + (this.visible ? 'sidebar-panel-visible' : 'sidebar-panel-hidden')
+      return 'sidebar-panel ' + (this.expanded ? 'sidebar-panel-visible' : 'sidebar-panel-hidden')
     }
   }
 }
