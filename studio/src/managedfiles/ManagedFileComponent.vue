@@ -10,6 +10,7 @@
 import axios from 'axios'
 import {ManagedFile, managedFiles} from '@/services'
 
+
 export default {
   emits: ['update:managedFile'],
   props: {
