@@ -1,57 +1,57 @@
 :root {
-    --gutter-space: 20px;
+  --gutter-space: 20px;
 }
 
 fieldset legend {
-    font-weight: bold;
+  font-weight: bold;
 }
 
 a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 a {
-    color: black;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-family: 'Arial Black', sans-serif;
-    font-size: small;
-    text-decoration: none;
+  color: black;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-family: 'Arial Black', sans-serif;
+  font-size: small;
+  text-decoration: none;
 }
 
 body {
-    background-color: cadetblue;
+  background-color: cadetblue;
 }
 
 html {
-    margin-left: var(--gutter-space);
-    margin-top: var(--gutter-space);
+  margin-left: var(--gutter-space);
+  margin-top: var(--gutter-space);
 }
 
 .page {
-    display: grid;
-    grid-template-areas:
+  display: grid;
+  grid-template-areas:
     'welcome welcome welcome'
     'toolbar toolbar toolbar'
     'main gap sidebar ';
-    grid-template-columns: auto 1em min-content;
+  grid-template-columns: auto 1em min-content;
 }
 
 .welcome {
-    grid-area: welcome;
-    padding-bottom: var(--gutter-space);
+  grid-area: welcome;
+  padding-bottom: var(--gutter-space);
 }
 
 .toolbar {
-    grid-area: toolbar;
-    padding-bottom: var(--gutter-space);
+  grid-area: toolbar;
+  padding-bottom: var(--gutter-space);
 }
 
 .view {
-    grid-area: main;
+  grid-area: main;
 }
 
 .sidebar {
-    grid-area: sidebar;
+  grid-area: sidebar;
 }
 
 .sidebar textarea {

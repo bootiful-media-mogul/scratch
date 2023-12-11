@@ -1,13 +1,13 @@
 <template>
   <div :class="visibilityCss">
-    <div class="sidebar-panel-top ">
+    <div class="sidebar-panel-top">
       <div class="visibility-controls">
         <a href="#" @click="hide" v-if="visible">close</a>
         <a href="#" @click="show" v-if="!visible">{{ title }}</a>
       </div>
     </div>
     <div class="sidebar-panel-content">
-      <slot/>
+      <slot />
     </div>
     <div class="sidebar-panel-bottom"></div>
   </div>
@@ -36,7 +36,6 @@
   background-color: black;
 }
 
-
 .sidebar-panel-visible .sidebar-panel-top {
   background-color: black;
 
@@ -49,10 +48,8 @@
 }
 
 .sidebar-panel-visible .sidebar-panel-content {
-
   padding-top: var(--gutter-space);
 }
-
 
 /*
 

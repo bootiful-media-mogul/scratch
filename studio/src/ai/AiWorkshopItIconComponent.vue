@@ -4,7 +4,6 @@
 <style>
 .ai-workshop-it-link {
   margin-left: var(--gutter-space);
-
 }
 </style>
 
