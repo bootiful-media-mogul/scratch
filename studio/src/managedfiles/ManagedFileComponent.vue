@@ -17,9 +17,6 @@ export default {
       type: ManagedFile
     }
   },
-  setup(props) {
-     //
-  },
   methods: {
     async uploadFile(event: any) {
       event.preventDefault()

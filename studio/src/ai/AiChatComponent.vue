@@ -28,7 +28,7 @@ todo support workshopping the image for the podcast as well: give it
 .panel {
   background-color: aliceblue;
   padding: calc(var(--gutter-space));
-  border-radius: 10px 0px 0px 10px;
+  border-radius: 10px 0  0  10px;
   right: calc(-1 * var(--gutter-space));
 }
 </style>
@@ -83,6 +83,7 @@ export default {
       prompt: '' as string,
       replies: [] as Array<string>,
       callback: function (arg0: AiWorkshopReplyEvent) {
+        console.log('using the event ' + arg0)
         // noop
       }
     }

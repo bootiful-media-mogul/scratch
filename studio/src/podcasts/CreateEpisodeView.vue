@@ -42,7 +42,7 @@ export default defineComponent({
     <label>podcast</label>
 
     <select v-model="podcast">
-      <option v-for="option in podcasts" :value="option">
+      <option v-for="option in podcasts" :value="option" :key="option.id">
         {{ option.id }}  - {{ option.title }}
       </option>
     </select>
