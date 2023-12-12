@@ -58,11 +58,10 @@ class DefaultPodcastService implements PodcastService {
 	public Collection<Episode> getEpisodesByPodcast(Long podcastId) {
 		var podcast = getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] is null");
-		return this.db
-				.sql("select * from podcast_episode where podcast_id =? order by created ")
-				.param(podcastId)
-				.query(episodeRowMapper)
-				.list();
+		return this.db.sql("select * from podcast_episode where podcast_id =? order by created ")
+			.param(podcastId)
+			.query(episodeRowMapper)
+			.list();
 	}
 
 	@Override

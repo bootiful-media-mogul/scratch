@@ -4,15 +4,13 @@
   <form class="pure-form">
     <fieldset>
       <legend>Podcasts</legend>
-      <div class="pure-g form-row"
-           v-for="podcast in podcasts" v-bind:key="podcast.id">
+      <div class="pure-g form-row" v-for="podcast in podcasts" v-bind:key="podcast.id">
         <div class="pure-u-1-24">
           <b> {{ podcast.id }}</b>
         </div>
 
         <div class="pure-u-6-24">
-          <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)">
-            episodes</a>
+          <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)"> episodes</a>
           |
           <a v-if="podcasts.length > 1" href="#" @click="deletePodcast(podcast.id)"> delete </a>
           <a v-if="podcasts.length == 1" href="#" class="disabled"> delete </a>

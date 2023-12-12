@@ -1,10 +1,10 @@
 <script lang="ts">
-import {ref} from 'vue'
-import {ManagedFile, Episode, Podcast, podcasts} from '@/services'
+import { ref } from 'vue'
+import { ManagedFile, Episode, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 
 export default {
-  components: {AiWorkshopItIconComponent /*, ManagedFileComponent*/},
+  components: { AiWorkshopItIconComponent /*, ManagedFileComponent*/ },
 
   props: ['podcastId'],
 
@@ -12,9 +12,9 @@ export default {
     async createDraft() {
       if (this.isValidPodcastDraft()) {
         const episode = await podcasts.createPodcastEpisodeDraft(
-            this.podcast.id,
-            this.title,
-            this.description
+          this.podcast.id,
+          this.title,
+          this.description
         )
         console.log(JSON.stringify(episode))
       }
@@ -67,28 +67,28 @@ export default {
       </div>
       <div class="pure-control-group">
         <label>title</label>
-        <input required v-model="title" type="text"/>
+        <input required v-model="title" type="text" />
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast title more pithy and exciting"
-            :text="title"
-            @ai-workshop-completed="title = $event.text"
+          prompt="please help me make the following podcast title more pithy and exciting"
+          :text="title"
+          @ai-workshop-completed="title = $event.text"
         />
       </div>
       <div class="pure-control-group">
         <label>description</label>
-        <textarea rows="10" required v-model="description"/>
+        <textarea rows="10" required v-model="description" />
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast description more pithy and exciting"
-            :text="description"
-            @ai-workshop-completed="description = $event.text"
+          prompt="please help me make the following podcast description more pithy and exciting"
+          :text="description"
+          @ai-workshop-completed="description = $event.text"
         />
       </div>
       <div class="pure-controls">
         <button
-            @click="createDraft"
-            :disabled="!isValidPodcastDraft()"
-            type="button"
-            class="pure-button pure-button-primary"
+          @click="createDraft"
+          :disabled="!isValidPodcastDraft()"
+          type="button"
+          class="pure-button pure-button-primary"
         >
           continue
         </button>
@@ -111,15 +111,13 @@ export default {
     <fieldset>
       <legend>Past Episodes</legend>
 
-      <div class="pure-g form-row" v-bind:key="episode.id"
-           v-for="episode in episodes">
+      <div class="pure-g form-row" v-bind:key="episode.id" v-for="episode in episodes">
         <div class="pure-u-4-24">{{ episode.id }}</div>
         <div class="pure-u-6-24">{{ episode.title }}</div>
         <div class="pure-u-14-24">{{ episode.description }}</div>
       </div>
     </fieldset>
   </form>
-
 
   <!--
 
@@ -148,6 +146,4 @@ export default {
 
 
   -->
-
-
 </template>

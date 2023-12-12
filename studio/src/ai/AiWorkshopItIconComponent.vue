@@ -8,7 +8,7 @@
 </style>
 
 <script lang="ts">
-import {AiWorkshopReplyEvent, workshopInAi} from '@/services'
+import { AiWorkshopReplyEvent, workshopInAi } from '@/services'
 
 export default {
   emits: ['ai-workshop-completed'],
@@ -22,7 +22,7 @@ export default {
   setup(props, ctx) {
     return {
       callbackFunction: (updated: AiWorkshopReplyEvent) =>
-          ctx.emit('ai-workshop-completed', updated)
+        ctx.emit('ai-workshop-completed', updated)
     }
   },
 
@@ -30,9 +30,9 @@ export default {
     workshop(e: Event) {
       e.preventDefault()
       const prompt =
-          this.prompt == null || this.prompt.trim() == ''
-              ? this.text
-              : this.prompt + '\n\n' + this.text
+        this.prompt == null || this.prompt.trim() == ''
+          ? this.text
+          : this.prompt + '\n\n' + this.text
       workshopInAi(this.callbackFunction, prompt)
     }
   }
