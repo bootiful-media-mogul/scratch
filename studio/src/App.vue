@@ -40,7 +40,7 @@ export default {
     </div>
 
     <div class="sidebar">
-      <SidebarPanelComponent title="AI">
+      <SidebarPanelComponent title="A.I.">
         <AiChatComponent />
       </SidebarPanelComponent>
 

@@ -50,6 +50,21 @@ export class Podcast {
 }
 
 class Podcasts {
+
+  async create(title: String): Promise<Podcast> {
+    const mutation = `
+         mutation CreatePodcast ($title: String){ 
+          createPodcast(title: $title) { 
+           id, title
+          }
+         }
+        `
+    const result = await graphqlClient.mutation(mutation, {
+      title: title
+    })
+    return (await result.data['createPodcast']) as Podcast
+  }
+
   async podcastEpisodes(podcastId: number): Promise<Array<Episode>> {
     const q = `
            query GetPodcastEpisodesByPodcast( $podcastId: ID){
@@ -91,7 +106,7 @@ class Podcasts {
     podcastId: number,
     title: String,
     description: String
-  ): Promise<Podcast> {
+  ): Promise<Episode> {
     const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: Float, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
@@ -115,11 +130,7 @@ class Podcasts {
             query GetPodcastById( $id: ID){
                 podcastById ( id : $id) { 
                     id,
-                    title,
-                    picture 
-                    interview 
-                    introduction
-                    
+                    title 
                 }
             }
         `

@@ -1,5 +1,5 @@
 <template>
-  <a class="ai-workshop-it-link" href="#" @click="workshop">AI workshop</a>
+  <a class="ai-workshop-it-link" href="#" @click="workshop">A.I. workshop</a>
 </template>
 <style>
 .ai-workshop-it-link {

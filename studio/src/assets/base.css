@@ -24,6 +24,12 @@ a {
   vertical-align: bottom;
 }
 
+.pure-form label {
+  text-transform: capitalize;
+  font-size: smaller;
+  margin-top: 1em ;
+}
+
 .form-row .pure-button {
   margin-left: calc(0.5 * var(--gutter-space));
   right: 0;

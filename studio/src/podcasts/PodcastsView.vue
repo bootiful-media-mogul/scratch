@@ -83,7 +83,7 @@ export default {
       e.preventDefault()
       console.log('creating podcast episode')
       this.$router.push({
-        name: 'create-podcast-episode',
+        name: 'podcast-episodes',
         params: { podcastId: podcastId }
       })
     },
