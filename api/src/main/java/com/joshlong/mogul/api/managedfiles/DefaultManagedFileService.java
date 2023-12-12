@@ -84,7 +84,9 @@ class ManagedFileRowMapper implements RowMapper<ManagedFile> {
 	@Override
 	public ManagedFile mapRow(ResultSet rs, int rowNum) throws SQLException {
 		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"), rs.getString("bucket"), rs.getString("folder"),
-				rs.getString("filename"), rs.getDate("created"), rs.getLong("size"));
+				rs.getString("filename"), rs.getDate("created"),
+				rs.getBoolean("written") ,
+				rs.getLong("size"));
 	}
 
 }

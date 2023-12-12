@@ -35,7 +35,8 @@ export default {
     async refreshManagedFile() {
       this.managedFile = await managedFiles.getManagedFileById(parseInt(this.managedFileId))
       this.written = this.managedFile.written
-      console.log('written? ' + this.written)
+      console.log('written? ' + JSON.stringify(this.managedFile))
+
     },
     async uploadFile(event: any) {
       event.preventDefault()
