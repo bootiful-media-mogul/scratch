@@ -64,13 +64,12 @@ class PodcastController {
 	}
 
 	@MutationMapping
-	Episode createPodcastEpisodeDraft(@Argument  Long podcastId, @Argument  String title, @Argument  String description) {
+	Episode createPodcastEpisodeDraft(@Argument Long podcastId, @Argument String title, @Argument String description) {
 		var currentMogulId = mogulService.getCurrentMogul().id();
 		var podcast = podcastService.getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast is null!");
 		mogulService.assertAuthorizedMogul(podcast.mogulId());
-		return podcastService.createPodcastEpisodeDraft( currentMogulId ,
-				podcastId, title, description );
+		return podcastService.createPodcastEpisodeDraft(currentMogulId, podcastId, title, description);
 
 	}
 

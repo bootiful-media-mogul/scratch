@@ -26,7 +26,7 @@ class DefaultManagedFileService implements ManagedFileService {
 	}
 
 	@Override
-	public ManagedFile getManagedFile(Long managedFileId ) {
+	public ManagedFile getManagedFile(Long managedFileId) {
 		if (null == managedFileId || managedFileId == 0)
 			return null;
 		return this.db.sql("select * from managed_file where id =? ")
@@ -55,14 +55,11 @@ class DefaultManagedFileService implements ManagedFileService {
 	@Override
 	public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size) {
 		var kh = new GeneratedKeyHolder();
-		this.db.sql(
-				"insert into managed_file(mogul_id,   bucket, folder, filename, size ) VALUES ( ?, ?, ?, ?, ? )")
+		this.db.sql("insert into managed_file(mogul_id,   bucket, folder, filename, size ) VALUES ( ?, ?, ?, ?, ? )")
 			.params(mogulId, bucket, folder, fileName, size)
 			.update(kh);
 		return getManagedFile(((Number) kh.getKeys().get("id")).longValue());
 	}
-
-
 
 }
 

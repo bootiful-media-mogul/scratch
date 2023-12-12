@@ -17,10 +17,10 @@ public class ApiApplication {
 		SpringApplication.run(ApiApplication.class, args);
 	}
 
-//	@Bean
-//	DataSourceTransactionManager dataSourceTransactionManager (DataSource dataSource) {
-//		return new DataSourceTransactionManager(dataSource) ;
-//	}
+	// @Bean
+	// DataSourceTransactionManager dataSourceTransactionManager (DataSource dataSource) {
+	// return new DataSourceTransactionManager(dataSource) ;
+	// }
 
 	@Bean
 	DateTimeFormatter dateTimeFormatter() {

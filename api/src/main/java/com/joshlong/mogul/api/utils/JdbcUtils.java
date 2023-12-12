@@ -11,6 +11,7 @@ public abstract class JdbcUtils {
 	public static Number getIdFromKeyHolder(KeyHolder kh) {
 		return (Number) Objects.requireNonNull(kh.getKeys()).get("id");
 	}
+
 	/*
 	 * URIs are not supported by the PostgreSQL JDBC driver, so we fake it 'till we make
 	 * it. (sure would be nice to have extension functions though)

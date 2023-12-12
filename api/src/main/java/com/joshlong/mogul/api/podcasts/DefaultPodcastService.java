@@ -26,15 +26,17 @@ import java.util.function.Function;
 class DefaultPodcastService implements PodcastService {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	private final JdbcClient db;
+
 	private final EpisodeRowMapper episodeRowMapper;
+
 	private final ManagedFileService managedFileService;
 
 	DefaultPodcastService(JdbcClient db, ManagedFileService managedFileService) {
 		this.db = db;
 		this.managedFileService = managedFileService;
-		this.episodeRowMapper = new EpisodeRowMapper(
-				this::getPodcastById, managedFileService::getManagedFile);
+		this.episodeRowMapper = new EpisodeRowMapper(this::getPodcastById, managedFileService::getManagedFile);
 	}
 
 	@ApplicationModuleListener
@@ -84,9 +86,9 @@ class DefaultPodcastService implements PodcastService {
 		Assert.notNull(interview, "the interview is not null ");
 		var kh = new GeneratedKeyHolder();
 		this.db.sql(
-						"insert into podcast_episode(podcast_id, title, description,  graphic ,  introduction ,interview ) VALUES (?,?,?,?,?,? )")
-				.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id())
-				.update(kh);
+				"insert into podcast_episode(podcast_id, title, description,  graphic ,  introduction ,interview ) VALUES (?,?,?,?,?,? )")
+			.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id())
+			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);
 		return this.getEpisodeById(id.longValue());
 	}
@@ -110,7 +112,6 @@ class DefaultPodcastService implements PodcastService {
 	public Podcast getPodcastById(Long podcastId) {
 		return db.sql("select * from podcast where id = ?").param(podcastId).query(new PodcastRowMapper()).single();
 	}
-
 
 	@Override
 	public Episode createPodcastEpisodeDraft(Long currentMogulId, Long podcastId, String title, String description) {
@@ -154,18 +155,14 @@ class EpisodeRowMapper implements RowMapper<Episode> {
 	@Override
 	public Episode mapRow(ResultSet rs, int rowNum) throws SQLException {
 
-		var nullProducedAudio = rs.getLong("produced_audio") ;
+		var nullProducedAudio = rs.getLong("produced_audio");
 
-		return new Episode(
-				rs.getLong("id"),
-				this.podcastFunction.apply(rs.getLong("podcast_id")), rs.getString("title"),
-				rs.getString("description"), rs.getDate("created"),
+		return new Episode(rs.getLong("id"), this.podcastFunction.apply(rs.getLong("podcast_id")),
+				rs.getString("title"), rs.getString("description"), rs.getDate("created"),
 				this.managedFileFunction.apply(rs.getLong("graphic")),
 				this.managedFileFunction.apply(rs.getLong("introduction")),
 				this.managedFileFunction.apply(rs.getLong("interview")),
-				nullProducedAudio == 0?
-						null :
-						this.managedFileFunction.apply(rs.getLong("produced_audio")));
+				nullProducedAudio == 0 ? null : this.managedFileFunction.apply(rs.getLong("produced_audio")));
 	}
 
 }

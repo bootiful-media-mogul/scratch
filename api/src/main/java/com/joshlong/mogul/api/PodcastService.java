@@ -16,14 +16,14 @@ public interface PodcastService {
 
 	Podcast createPodcast(Long mogulId, String title);
 
-	Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic, ManagedFile introduction, ManagedFile interview);
+	Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
+			ManagedFile introduction, ManagedFile interview);
 
 	Podcast getPodcastById(Long podcastId);
 
 	Episode getEpisodeById(Long episodeId);
 
 	void deletePodcast(Long podcastId);
-
 
 	Episode createPodcastEpisodeDraft(Long currentMogulId, Long podcastId, String title, String description);
 
