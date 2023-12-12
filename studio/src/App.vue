@@ -4,12 +4,11 @@
 <script lang="ts">
 import AiChatComponent from '@/ai/AiChatComponent.vue'
 
-import {mogul} from '@/services'
-import SidebarPanelComponent from '@/layout/SidebarPanel.vue'
-
+import { mogul } from '@/services'
+import SidebarPanelComponent from '@/layout/SidebarPanelComponent.vue'
 
 export default {
-  components: {AiChatComponent, SidebarPanelComponent},
+  components: { AiChatComponent, SidebarPanelComponent },
 
   methods: {},
   data() {
@@ -21,7 +20,6 @@ export default {
   async created() {
     this.mogul = await mogul.me()
   }
-
 }
 </script>
 
@@ -43,12 +41,10 @@ export default {
 
     <div class="sidebar">
       <SidebarPanelComponent title="AI">
-        <AiChatComponent/>
+        <AiChatComponent />
       </SidebarPanelComponent>
 
-      <SidebarPanelComponent title="Notes">
-
-      </SidebarPanelComponent>
+      <SidebarPanelComponent title="Notes"> </SidebarPanelComponent>
     </div>
   </div>
 </template>

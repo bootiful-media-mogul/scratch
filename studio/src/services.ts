@@ -74,18 +74,25 @@ class Podcasts {
     return (await result.data['podcasts']) as Array<Podcast>
   }
 
-  async create(title: String): Promise<Podcast> {
+  async createPodcastEpisodeDraft(
+    podcastId: number,
+    title: String,
+    description: String
+  ): Promise<Podcast> {
     const mutation = `
-         mutation CreatePodcast ($title: String){ 
-          createPodcast(title: $title) { 
-           id, title
+         mutation CreatePodcastEpisodeDraft ($podcast: Float, $title: String, $description: String ){ 
+          createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
+           id 
           }
          }
         `
+    console.log(podcastId + ':' + title + ':' + description)
     const result = await graphqlClient.mutation(mutation, {
-      title: title
+      podcast: podcastId,
+      title: title,
+      description: description
     })
-    return (await result.data['createPodcast']) as Podcast
+    return (await result.data['createPodcastEpisodeDraft']) as Podcast
   }
 
   async podcastById(podcastId: number): Promise<Podcast> {
@@ -109,15 +116,40 @@ class Podcasts {
 // todo
 export class ManagedFile {
   readonly id: number
+  readonly bucket: string
+  readonly folder: string
+  readonly filename: string
+  readonly size: number
+  readonly written: boolean
 
-  constructor(id: number) {
+  constructor(
+    id: number,
+    bucket: string,
+    folder: string,
+    filename: string,
+    size: number,
+    written: boolean
+  ) {
     this.id = id
+    this.bucket = bucket
+    this.folder = folder
+    this.filename = filename
+    this.written = written
+    this.size = size
   }
 }
 
 export class ManagedFiles {
   async getManagedFileById(id: number): Promise<ManagedFile> {
-    return new ManagedFile(id)
+    const q = `
+        query {
+          managedFileById()  { 
+           id, title
+          }
+         }
+        `
+    const result = await graphqlClient.query(q, {})
+    return (await result.data['managedFileById']) as ManagedFile
   }
 }
 

@@ -23,6 +23,9 @@ type Query {
     podcastById( id:ID): Podcast
     podcasts : [Podcast]
 
+    # managed files
+    managedFileById ( managedFileId : ID) : ManagedFile
+
 }
 type ManagedFile {
     id: ID

@@ -9,12 +9,17 @@ fieldset legend {
 a:hover {
   text-decoration: underline;
 }
+
 a {
   color: black;
   font-weight: bold;
   text-transform: uppercase;
   font-family: 'Arial Black', sans-serif;
   font-size: small;
+}
+
+a.disabled {
+  color: lightgrey;
   text-decoration: none;
 }
 

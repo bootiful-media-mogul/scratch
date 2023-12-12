@@ -2,8 +2,6 @@ package com.joshlong.mogul.api.managedfiles;
 
 import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.Storage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -28,8 +26,8 @@ class DefaultManagedFileService implements ManagedFileService {
 	}
 
 	@Override
-	public ManagedFile getManagedFile(Long managedFileId) {
-		if (null == managedFileId)
+	public ManagedFile getManagedFile(Long managedFileId ) {
+		if (null == managedFileId || managedFileId == 0)
 			return null;
 		return this.db.sql("select * from managed_file where id =? ")
 			.param(managedFileId)
@@ -58,11 +56,13 @@ class DefaultManagedFileService implements ManagedFileService {
 	public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size) {
 		var kh = new GeneratedKeyHolder();
 		this.db.sql(
-				"insert into managed_file(mogul_id,   bucket, folder, filename, size ) VALUES (mogul_id,   bucket, folder, filename, size )")
+				"insert into managed_file(mogul_id,   bucket, folder, filename, size ) VALUES ( ?, ?, ?, ?, ? )")
 			.params(mogulId, bucket, folder, fileName, size)
 			.update(kh);
 		return getManagedFile(((Number) kh.getKeys().get("id")).longValue());
 	}
+
+
 
 }
 

@@ -4,9 +4,9 @@ import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.MogulCreatedEvent;
 import com.joshlong.mogul.api.PodcastService;
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
+import com.joshlong.mogul.api.utils.JdbcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -18,36 +18,23 @@ import org.springframework.util.Assert;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.function.Function;
 
-@Service
 @Transactional
+@Service
 class DefaultPodcastService implements PodcastService {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
-
 	private final JdbcClient db;
-
-	private final ApplicationEventPublisher publisher;
-
+	private final EpisodeRowMapper episodeRowMapper;
 	private final ManagedFileService managedFileService;
 
-	private final EpisodeRowMapper episodeRowMapper;
-
-	// private boolean isValidMogul(Long mogulId) {
-	// return mogulId != null && mogulService.getCurrentMogul().id().equals(mogulId);
-	// }
-	//
-	// private void assertValidMogul(Long mogulId) {
-	// Assert.state(isValidMogul(mogulId), "the mogul specified [" + mogulId +
-	// "] is not currently authenticated");
-	// }
-
-	DefaultPodcastService(JdbcClient db, ManagedFileService managedFileService, ApplicationEventPublisher publisher) {
+	DefaultPodcastService(JdbcClient db, ManagedFileService managedFileService) {
 		this.db = db;
 		this.managedFileService = managedFileService;
-		this.publisher = publisher;
-		this.episodeRowMapper = new EpisodeRowMapper(this::getPodcastById, managedFileService::getManagedFile);
+		this.episodeRowMapper = new EpisodeRowMapper(
+				this::getPodcastById, managedFileService::getManagedFile);
 	}
 
 	@ApplicationModuleListener
@@ -78,30 +65,37 @@ class DefaultPodcastService implements PodcastService {
 	@Override
 	public Podcast createPodcast(Long mogulId, String title) {
 		var kh = new GeneratedKeyHolder();
-
 		this.db.sql(
 				"insert into podcast (mogul_id, title) values (?,?) on conflict on constraint  podcast_mogul_id_title_key do update set title =excluded.title")
 			.params(mogulId, title)
 			.update(kh);
-		var id = (Number) kh.getKeys().get("id");
+		var id = JdbcUtils.getIdFromKeyHolder(kh);
 		return getPodcastById(id.longValue());
 	}
 
 	@Override
 	public Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
 			ManagedFile introduction, ManagedFile interview) {
+		Assert.notNull(podcastId, "the podcast Id can not be null");
+		Assert.hasText(title, "the title has text");
+		Assert.hasText(description, "the description has text");
+		Assert.notNull(graphic, "the graphic is not null ");
+		Assert.notNull(introduction, "the introduction is not null ");
+		Assert.notNull(interview, "the interview is not null ");
 		var kh = new GeneratedKeyHolder();
 		this.db.sql(
-				"insert into podcast_episode(podcast_id, title, description,  graphic ,  introduction ,interview ) VALUES (?,?,?,?,?,? )")
-			.params(podcastId, title, description, graphic.toString(), introduction.toString(), interview.toString())
-			.update();
-		var id = (Number) kh.getKeys().get("id");
-		return getEpisodeById(id.longValue());
+						"insert into podcast_episode(podcast_id, title, description,  graphic ,  introduction ,interview ) VALUES (?,?,?,?,?,? )")
+				.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id())
+				.update(kh);
+		var id = JdbcUtils.getIdFromKeyHolder(kh);
+		return this.getEpisodeById(id.longValue());
 	}
 
 	@Override
 	public Episode getEpisodeById(Long episodeId) {
-		return db.sql("select * from podcast_episode where id =?").param(episodeId).query(episodeRowMapper).single();
+		var res = db.sql("select * from podcast_episode where id =?").param(episodeId).query(episodeRowMapper).list();
+		log.info("there are " + res.size() + " results.");
+		return res.isEmpty() ? null : res.getFirst();
 	}
 
 	@Override
@@ -115,6 +109,24 @@ class DefaultPodcastService implements PodcastService {
 	@Override
 	public Podcast getPodcastById(Long podcastId) {
 		return db.sql("select * from podcast where id = ?").param(podcastId).query(new PodcastRowMapper()).single();
+	}
+
+
+	@Override
+	public Episode createPodcastEpisodeDraft(Long currentMogulId, Long podcastId, String title, String description) {
+
+		var uid = UUID.randomUUID().toString();
+		var podcast = getPodcastById(podcastId);
+		Assert.notNull(podcast, "the podcast is null!");
+		var bucket = PodcastService.PODCAST_EPISODES_BUCKET;
+		var image = managedFileService.createManagedFile(currentMogulId, bucket, uid, "image.jpg", 0);
+		var intro = managedFileService.createManagedFile(currentMogulId, bucket, uid, "intro.mp3", 0);
+		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "interview.mp3", 0);
+		Assert.notNull(image, "the image managedFile is null");
+		Assert.notNull(intro, "the intro managedFile is null");
+		Assert.notNull(interview, "the interview managedFile is null");
+		return createPodcastEpisode(podcastId, title, description, image, intro, interview);
+
 	}
 
 }
@@ -141,12 +153,19 @@ class EpisodeRowMapper implements RowMapper<Episode> {
 
 	@Override
 	public Episode mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new Episode(this.podcastFunction.apply(rs.getLong("podcast_id")), rs.getString("title"),
+
+		var nullProducedAudio = rs.getLong("produced_audio") ;
+
+		return new Episode(
+				rs.getLong("id"),
+				this.podcastFunction.apply(rs.getLong("podcast_id")), rs.getString("title"),
 				rs.getString("description"), rs.getDate("created"),
 				this.managedFileFunction.apply(rs.getLong("graphic")),
 				this.managedFileFunction.apply(rs.getLong("introduction")),
 				this.managedFileFunction.apply(rs.getLong("interview")),
-				this.managedFileFunction.apply(rs.getLong("produced_audio")));
+				nullProducedAudio == 0?
+						null :
+						this.managedFileFunction.apply(rs.getLong("produced_audio")));
 	}
 
 }

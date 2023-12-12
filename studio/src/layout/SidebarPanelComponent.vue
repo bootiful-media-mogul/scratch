@@ -7,7 +7,7 @@
       </div>
     </div>
     <div class="sidebar-panel-content">
-      <slot/>
+      <slot />
     </div>
     <div class="sidebar-panel-bottom"></div>
   </div>
@@ -26,6 +26,8 @@
 }
 
 .sidebar-panel {
+  width: 200px;
+
   overflow: hidden;
   border-radius: var(--gutter-space) 0 0 var(--gutter-space);
   padding: var(--gutter-space);
@@ -57,25 +59,17 @@
 }
 
 .sidebar-panel-visible {
-  width: 300px;
-}
-
-.sidebar-panel-hidden {
-  width: 300px;
 }
 </style>
 
 <script lang="ts">
-
-
-import {events} from "@/services";
+import { events } from '@/services'
 
 export default {
-
   created() {
     // allow child components to ask for visibility in their parent panels
     events.on('sidebar-panel-closed', (event: any) => {
-      if (this.$el.contains (event)) {
+      if (this.$el.contains(event)) {
         this.hide()
       }
     })
@@ -104,7 +98,6 @@ export default {
     }
   },
   computed: {
-
     visibilityCss() {
       return 'sidebar-panel ' + (this.expanded ? 'sidebar-panel-visible' : 'sidebar-panel-hidden')
     }

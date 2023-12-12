@@ -5,38 +5,21 @@
     <fieldset>
       <legend>Podcasts</legend>
       <div class="pure-g podcast-row" v-for="podcast in podcasts" v-bind:key="podcast.id">
-
         <div class="pure-u-1-24">
           <b> {{ podcast.id }}</b>
         </div>
 
         <div class="pure-u-6-24">
-          <!--          <button
-                        type="submit" class="pure-button"
-                        @click="navigateToEpisodesPageForPodcast(podcast.id, $event)"
-                        value="new episode">
-                      new episode
-                    </button>-->
-          <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)">
-              episodes
-          </a>  |
-          <!--          <button
-                        class="pure-button"
-                        type="submit"
-                        :disabled="podcasts.length == 1"
-                        @click="deletePodcast(podcast.id)"
-                        value="delete">delete
-                    </button>-->
+          <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)"> episodes</a>
 
-          <a href="#" @click="deletePodcast(podcast.id)">
-            delete
-          </a>
+          |
+          <a v-if="podcasts.length > 1" href="#" @click="deletePodcast(podcast.id)"> delete </a>
+          <a v-if="podcasts.length == 1" href="#" class="disabled"> delete </a>
         </div>
 
         <div class="pure-u-17-24">
           {{ podcast.title }}
         </div>
-
       </div>
     </fieldset>
   </form>
@@ -46,21 +29,21 @@
       <legend>New Podcast</legend>
       <div class="pure-control-group">
         <label for="title"> title </label>
-        <input type="text" required id="title" v-model="title"/>
+        <input type="text" required id="title" v-model="title" />
 
         <AiWorkshopItIconComponent
-            prompt="please help me take the following podcast title and make it more pithy and exciting"
-            :text="title"
-            @ai-workshop-completed="title = $event.text"
+          prompt="please help me take the following podcast title and make it more pithy and exciting"
+          :text="title"
+          @ai-workshop-completed="title = $event.text"
         />
       </div>
       <div class="pure-controls">
         <button
-            class="pure-button pure-button-primary"
-            type="submit"
-            :disabled="title == null || title.trim().length == 0"
-            @click="createPodcast"
-            value="create"
+          class="pure-button pure-button-primary"
+          type="submit"
+          :disabled="title == null || title.trim().length == 0"
+          @click="createPodcast"
+          value="create"
         >
           create
         </button>
@@ -69,9 +52,7 @@
   </form>
 </template>
 <style>
-
 .podcast-row {
-
   height: calc(2 * var(--gutter-space));
   vertical-align: bottom;
 }
@@ -79,11 +60,10 @@
 .podcast-row .pure-button {
   margin-left: calc(0.5 * var(--gutter-space));
   right: 0;
-
 }
 </style>
 <script lang="ts">
-import {Podcast, podcasts} from '@/services'
+import { Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import CreateEpisodeView from '@/podcasts/EpisodesView.vue'
 
@@ -97,7 +77,7 @@ export default {
       return CreateEpisodeView
     }
   },
-  components: {AiWorkshopItIconComponent},
+  components: { AiWorkshopItIconComponent },
 
   async created() {
     this.podcasts = await refresh()
@@ -105,7 +85,7 @@ export default {
 
   methods: {
     async deletePodcast(id: number) {
-      console.log('trying to delete '+id )
+      console.log('trying to delete ' + id)
       const deleted = await podcasts.delete(id)
       // nb: i tried just setting the variable podcasts to a new array, but vue.js didn't 'see' that
       // so it's safer to modify the existing collection
@@ -117,7 +97,7 @@ export default {
       console.log('creating podcast episode')
       this.$router.push({
         name: 'create-podcast-episode',
-        params: {podcastId: podcastId}
+        params: { podcastId: podcastId }
       })
     },
     async createPodcast(e: Event) {

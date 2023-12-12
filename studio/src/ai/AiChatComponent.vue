@@ -5,7 +5,6 @@ todo support workshopping the image for the podcast as well: give it
 -->
 <template>
   <form class="ai-workshop-panel pure-form pure-form-stacked">
-
     <fieldset>
       <legend>AI Workshop</legend>
 
@@ -80,11 +79,10 @@ export default {
     },
 
     finished() {
-      events.emit('sidebar-panel-closed' , this.$el)
+      events.emit('sidebar-panel-closed', this.$el)
       this.callback(new AiWorkshopReplyEvent(this.prompt.trim(), AiWorkshopReplyEventType.TEXT))
       this.prompt = ''
       this.replies = []
-
     },
 
     async chat(event: Event) {
@@ -95,7 +93,6 @@ export default {
   },
   data() {
     return {
-
       prompt: '' as string,
       replies: [] as Array<string>,
       callback: function (arg0: AiWorkshopReplyEvent) {
@@ -112,8 +109,7 @@ export default {
       this.callback = aiEvent.callback
       this.replies = [] as Array<string>
 
-      events.emit('sidebar-panel-opened' , this.$el)
-
+      events.emit('sidebar-panel-opened', this.$el)
     })
   }
 }

@@ -64,17 +64,13 @@ class PodcastController {
 	}
 
 	@MutationMapping
-	Episode createPodcastEpisodeDraft(@Argument Long podcastId, @Argument String title, @Argument String description) {
-		var uid = UUID.randomUUID().toString();
+	Episode createPodcastEpisodeDraft(@Argument  Long podcastId, @Argument  String title, @Argument  String description) {
 		var currentMogulId = mogulService.getCurrentMogul().id();
 		var podcast = podcastService.getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast is null!");
 		mogulService.assertAuthorizedMogul(podcast.mogulId());
-		var bucket = PodcastService.PODCAST_EPISODES_BUCKET;
-		var image = managedFileService.createManagedFile(currentMogulId, bucket, uid, "image.jpg", 0);
-		var intro = managedFileService.createManagedFile(currentMogulId, bucket, uid, "intro.mp3", 0);
-		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "interview.mp3", 0);
-		return podcastService.createPodcastEpisode(podcastId, title, description, image, intro, interview);
+		return podcastService.createPodcastEpisodeDraft( currentMogulId ,
+				podcastId, title, description );
 
 	}
 

@@ -1,21 +1,38 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
+// import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
 import { ManagedFile, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 
-export default defineComponent({
-  components: { AiWorkshopItIconComponent, ManagedFileComponent },
+export default {
+  components: { AiWorkshopItIconComponent /*, ManagedFileComponent*/ },
 
   props: ['podcastId'],
 
+  methods: {
+    async createDraft() {
+      if (this.isValidPodcastDraft()) {
+        const episode = await podcasts.createPodcastEpisodeDraft(
+          this.podcast.id,
+          this.title,
+          this.description
+        )
+        console.log(JSON.stringify(episode))
+      }
+    },
+    isValidPodcastDraft(): boolean {
+      function isEmpty(txt: string): boolean {
+        return txt == null || txt.trim().length == 0
+      }
+
+      const empty = (isEmpty(this.title) || isEmpty(this.description)) as boolean
+      return !empty
+    }
+  },
   async beforeMount() {
     const possiblePodcasts = await podcasts.podcasts()
     for (let i = 0; i < possiblePodcasts.length; i++) this.podcasts.push(possiblePodcasts[i])
-
     this.podcast = this.podcasts.filter((p) => p.id == this.podcastId)[0]
-    console.log('working with ' + JSON.stringify(this.podcast))
-
     this.$forceUpdate()
   },
   setup() {
@@ -23,14 +40,14 @@ export default defineComponent({
       managedFile: null as any as ManagedFile,
       podcast: null as any as Podcast,
       podcasts: [] as Array<Podcast>,
-      title: '',
-      description: '',
+      title: ref(''),
+      description: ref(''),
       intro: ref(null as any),
       interview: ref(null as any),
       photo: ref(null as any)
     }
   }
-})
+}
 </script>
 <template>
   <h1>Episodes</h1>
@@ -49,37 +66,44 @@ export default defineComponent({
       </div>
       <div class="pure-control-group">
         <label>title</label>
-        <input required :text="title" type="text" />
+        <input required v-model="title" type="text" />
         <AiWorkshopItIconComponent
-          prompt="please help me take the following podcast title and make it more pithy and exciting"
+          prompt="please help me make the following podcast title more pithy and exciting"
           :text="title"
           @ai-workshop-completed="title = $event.text"
         />
-        <!--        <span class="pure-form-message-inline">
-                This is a required field
-                </span>-->
       </div>
       <div class="pure-control-group">
         <label>description</label>
-        <textarea required :text="description" type="text" />
+        <textarea rows="10" required v-model="description" />
         <AiWorkshopItIconComponent
-          prompt="please help me take the following podcast title and make it more pithy and exciting"
-          :text="title"
-          @ai-workshop-completed="title = $event.text"
+          prompt="please help me make the following podcast description more pithy and exciting"
+          :text="description"
+          @ai-workshop-completed="description = $event.text"
         />
       </div>
-      <div class="pure-control-group">
-        <label>photo</label>
-        <ManagedFileComponent v-model:managed-file-id="photo" />
+      <div class="pure-controls">
+        <button
+          @click="createDraft"
+          :disabled="!isValidPodcastDraft()"
+          type="button"
+          class="pure-button pure-button-primary"
+        >
+          continue
+        </button>
       </div>
-      <div class="pure-control-group">
-        <label>introduction</label>
-        <ManagedFileComponent v-model:managed-file-id="intro" />
-      </div>
-      <div class="pure-control-group">
-        <label>interview</label>
-        <ManagedFileComponent v-model:managed-file-id="interview" />
-      </div>
+      <!--      <div class="pure-control-group">
+              <label>photo</label>
+              <ManagedFileComponent v-model:managed-file-id="photo" />
+            </div>
+            <div class="pure-control-group">
+              <label>introduction</label>
+              <ManagedFileComponent v-model:managed-file-id="intro" />
+            </div>
+            <div class="pure-control-group">
+              <label>interview</label>
+              <ManagedFileComponent v-model:managed-file-id="interview" />
+            </div>-->
     </fieldset>
   </form>
 </template>
