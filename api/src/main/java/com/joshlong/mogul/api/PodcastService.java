@@ -8,7 +8,7 @@ import java.util.Collection;
 
 public interface PodcastService {
 
-	String PODCAST_EPISODES_BUCKET = "podcast-episodes";
+	String PODCAST_EPISODES_BUCKET = "mogul-podcast-episodes";
 
 	Collection<Podcast> getAllPodcastsByMogul(Long mogulId);
 

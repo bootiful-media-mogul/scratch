@@ -84,7 +84,7 @@ export default {
       console.log('creating podcast episode')
       this.$router.push({
         name: 'podcast-episodes',
-        params: { podcastId: podcastId }
+        params: {  id : podcastId }
       })
     },
     async createPodcast(e: Event) {

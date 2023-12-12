@@ -1,34 +1,50 @@
 <script lang="ts">
-import { ref } from 'vue'
-import { Episode, ManagedFile, Podcast, podcasts } from '@/services'
+import {Episode, Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
+import ManagedFileComponent from "@/managedfiles/ManagedFileComponent.vue";
 
 export default {
+
   mounted(): void {
     console.log('mounted()')
     this.refreshRecords()
   },
 
   components: {
+    ManagedFileComponent,
     AiWorkshopItIconComponent
   },
 
   props: ['id'],
 
   methods: {
+    async editEpisode(episode: Episode) {
+      console.log('you want to edit ' + JSON.stringify(episode))
+      this.draftEpisode = episode
+      this.title = this.draftEpisode.title
+      this.description = this.draftEpisode.description
+
+    },
     async createDraft() {
-      if (this.isValidPodcastDraft()) {
+      if (this.isEpisodeReadyForFiles()) {
         const episode = await podcasts.createPodcastEpisodeDraft(
-          this.selectedPodcastId,
-          this.title,
-          this.description
+            this.selectedPodcastId,
+            this.title,
+            this.description
         )
         console.log('creating a draft ' + JSON.stringify(episode))
         this.draftEpisode = episode
+        await this.refreshRecords()
       }
     },
 
-    isValidPodcastDraft(): boolean {
+
+    isEpisodeFromDb() {
+      return this.draftEpisode != null && this.draftEpisode.id != null
+    },
+
+
+    isEpisodeReadyForFiles(): boolean {
       function isEmpty(txt: string): boolean {
         return txt == null || txt.trim().length == 0
       }
@@ -77,34 +93,48 @@ export default {
 
       <div class="pure-control-group">
         <label>title</label>
-        <input required v-model="title" type="text" />
+        <input required v-model="title" type="text"/>
         <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast title more pithy and exciting"
-          :text="title"
-          @ai-workshop-completed="title = $event.text"
+            prompt="please help me make the following podcast title more pithy and exciting"
+            :text="title"
+            @ai-workshop-completed="title = $event.text"
         />
       </div>
 
       <div class="pure-control-group">
         <label>description</label>
-        <textarea rows="10" required v-model="description" />
+        <textarea rows="10" required v-model="description"/>
         <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast description more pithy and exciting"
-          :text="description"
-          @ai-workshop-completed="description = $event.text"
+            prompt="please help me make the following podcast description more pithy and exciting"
+            :text="description"
+            @ai-workshop-completed="description = $event.text"
         />
       </div>
+      <div v-if="draftEpisode" class="pure-control-group">
+        <label>photo</label>
+        <ManagedFileComponent :disabled="isEpisodeFromDb()" v-model:managed-file-id="draftEpisode.graphic.id"/>
+      </div>
+      <div v-if="draftEpisode" class="pure-control-group">
+        <label>introduction</label>
+        <ManagedFileComponent :disabled="isEpisodeFromDb()"
+                              v-model:managed-file-id=" draftEpisode.introduction.id "/>
+      </div>
+      <div v-if="draftEpisode" class="pure-control-group">
+        <label>interview</label>
+        <ManagedFileComponent :disabled="isEpisodeFromDb()" v-model:managed-file-id="draftEpisode.interview.id "/>
+      </div>
 
-      <div class="pure-controls">
+      <div class="pure-control-group">
         <button
-          @click="createDraft"
-          :disabled="!isValidPodcastDraft()"
-          type="button"
-          class="pure-button pure-button-primary"
+            @click="createDraft"
+            :disabled="!isEpisodeReadyForFiles()"
+            type="button"
+            class="pure-button pure-button-primary"
         >
           continue
         </button>
       </div>
+
     </fieldset>
   </form>
 
@@ -113,32 +143,18 @@ export default {
       <legend>Past Episodes</legend>
 
       <div class="pure-g form-row" v-bind:key="episode.id" v-for="episode in episodes">
-        <div class="pure-u-4-24">{{ episode.id }}</div>
-        <div class="pure-u-6-24">{{ episode.title }}</div>
-        <div class="pure-u-14-24">{{ episode.description }}</div>
+        <div class="pure-u-1-24">
+          <b> {{ episode.id }}</b>
+        </div>
+
+        <div class="pure-u-3-24">
+          <a href="#" @click="editEpisode( episode  )">edit</a>
+        </div>
+        <div class="pure-u-20-24">{{ episode.title }}</div>
       </div>
+
     </fieldset>
   </form>
-  <!--  <h1 v-if="podcast">Episodes for "{{ podcast.title }}"</h1>
-    <form class="pure-form pure-form-stacked">
-      <fieldset>
-        <legend>Create a New Podcast Episode</legend>
-
-
-
-        &lt;!&ndash;      <div class="pure-control-group">
-                <label>photo</label>
-                <ManagedFileComponent v-model:managed-file-id="photo" />
-              </div>
-              <div class="pure-control-group">
-                <label>introduction</label>
-                <ManagedFileComponent v-model:managed-file-id="intro" />
-              </div>
-              <div class="pure-control-group">
-                <label>interview</label>
-                <ManagedFileComponent v-model:managed-file-id="interview" />
-              </div>&ndash;&gt;
-      </fieldset>
-    </form>
+  <!--
    -->
 </template>

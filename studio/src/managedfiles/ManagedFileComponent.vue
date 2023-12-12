@@ -1,40 +1,66 @@
 <template>
-  <input type="file" @change="uploadFile($event)" />
+  <input type="file" @change="uploadFile($event)"/>
+  <span v-if="written">✅</span>
+  <span v-if="uploading">
+    🕒 ss
+  </span>
 </template>
 
 <script lang="ts">
 import axios from 'axios'
-import { ManagedFile, managedFiles } from '@/services'
+import {ManagedFile, managedFiles} from '@/services'
 
 export default {
+
+
+  async mounted() {
+    await this.refreshManagedFile()
+  },
+
   emits: ['update:managedFile'],
-  props: {
-    managedFile: {
-      type: ManagedFile
+  props: [
+    'disabled',
+    'managedFileId'
+  ],
+  data(vm) {
+    return {
+      managedFile: (null as any) as ManagedFile,
+      written: false,
+      uploading: false
     }
   },
   methods: {
+
+
+    async refreshManagedFile() {
+      this.managedFile = await managedFiles.getManagedFileById(parseInt(this.managedFileId))
+      this.written = this.managedFile.written
+      console.log('written? ' + this.written)
+    },
     async uploadFile(event: any) {
       event.preventDefault()
 
+      console.log('the managed file : ' + this.managedFileId)
       const data = new FormData()
       const file = event.target.files[0] as File
       data.set('file', file)
 
-      const mf = await managedFiles.getManagedFileById(12)
-      const uploadPath: string = '/api/managedfiles/' + mf.id
+      const uploadPath: string = '/api/managedfiles/' + this.managedFileId
+      this.uploading = true
       const response = await axios.post(uploadPath, data, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       })
-
       console.assert(
-        response.status >= 200 && response.status <= 300,
-        'the http post to upload the archive did not succeed.'
+          response.status >= 200 && response.status <= 300,
+          'the http post to upload the archive did not succeed.'
       )
-      console.log('uploaded to ' + uploadPath + ' vis ' + uploadPath)
-      this.$emit('update:managedFile', await managedFiles.getManagedFileById(mf.id))
+
+      await this.refreshManagedFile()
+      this.uploading = false
+      this.$emit('update:managedFile', this.managedFile)
+      this.$forceUpdate()
     }
   }
 }

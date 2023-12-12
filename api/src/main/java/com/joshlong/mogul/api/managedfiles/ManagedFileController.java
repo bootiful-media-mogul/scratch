@@ -4,6 +4,7 @@ import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.MogulService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.graphql.data.method.annotation.SchemaMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,9 +27,15 @@ class ManagedFileController {
 		this.mogulService = mogulService;
 	}
 
+	@SchemaMapping (typeName = "ManagedFile")
+	boolean written (ManagedFile managedFile) {
+		return managedFile.size() > 0 ;
+	}
+
+
 	@QueryMapping
-	ManagedFile managedFileById(@Argument Long managedFileId) {
-		return this.managedFileService.getManagedFile(managedFileId);
+	ManagedFile managedFileById(@Argument Long id ) {
+		return this.managedFileService.getManagedFile( id );
 	}
 
 	@ResponseBody
@@ -38,7 +45,9 @@ class ManagedFileController {
 		var mogul = this.mogulService.getCurrentMogul();
 		var managedFile = this.managedFileService.getManagedFile(id);
 		Assert.notNull(managedFile, "the managedfile is null for managed file id [" + id + "]");
-		Assert.state(managedFile.mogulId().equals(mogul.id()), "you're trying to write to an invalid file!");
+		Assert.state(managedFile.mogulId().equals(mogul.id()), "you're trying to write to an invalid file " +
+				"to which you are not authorized!");
+
 		this.managedFileService.write(managedFile.id(), file.getResource());
 		return Map.of("managedFileId", id);
 	}
