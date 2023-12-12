@@ -50,7 +50,6 @@ export class Podcast {
 }
 
 class Podcasts {
-
   async create(title: String): Promise<Podcast> {
     const mutation = `
          mutation CreatePodcast ($title: String){ 

@@ -1,15 +1,13 @@
 <script lang="ts">
-import {ref} from 'vue'
-import {Episode, ManagedFile, Podcast, podcasts} from '@/services'
+import { ref } from 'vue'
+import { Episode, ManagedFile, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 
 export default {
-
   mounted(): void {
     console.log('mounted()')
     this.refreshRecords()
   },
-
 
   components: {
     AiWorkshopItIconComponent
@@ -18,20 +16,17 @@ export default {
   props: ['id'],
 
   methods: {
-
-
     async createDraft() {
       if (this.isValidPodcastDraft()) {
         const episode = await podcasts.createPodcastEpisodeDraft(
-            this.selectedPodcastId,
-            this.title,
-            this.description
+          this.selectedPodcastId,
+          this.title,
+          this.description
         )
         console.log('creating a draft ' + JSON.stringify(episode))
         this.draftEpisode = episode
       }
     },
-
 
     isValidPodcastDraft(): boolean {
       function isEmpty(txt: string): boolean {
@@ -42,33 +37,29 @@ export default {
       return !empty
     },
 
-
     async refreshRecords() {
       const newPodcastId = this.selectedPodcastId
       console.log('podcastId: ' + newPodcastId)
       this.podcasts = await podcasts.podcasts()
-      this.currentPodcast = this.podcasts.filter(p => p.id == newPodcastId)[0]
+      this.currentPodcast = this.podcasts.filter((p) => p.id == newPodcastId)[0]
       this.episodes = await podcasts.podcastEpisodes(newPodcastId)
-    },
-
+    }
   },
 
   data(vm) {
     return {
-      draftEpisode: (null as any) as Episode,
+      draftEpisode: null as any as Episode,
       episodes: [] as Array<Episode>,
       podcasts: [] as Array<Podcast>,
-      currentPodcast: (null as any) as Podcast,
+      currentPodcast: null as any as Podcast,
       selectedPodcastId: this.id,
       title: '',
       description: ''
     }
-  },
+  }
 }
 </script>
 <template>
-
-
   <h1 v-if="currentPodcast">Episodes for "{{ currentPodcast.title }}"</h1>
 
   <form class="pure-form pure-form-stacked">
@@ -86,35 +77,34 @@ export default {
 
       <div class="pure-control-group">
         <label>title</label>
-        <input required v-model="title" type="text"/>
+        <input required v-model="title" type="text" />
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast title more pithy and exciting"
-            :text="title"
-            @ai-workshop-completed="title = $event.text"
+          prompt="please help me make the following podcast title more pithy and exciting"
+          :text="title"
+          @ai-workshop-completed="title = $event.text"
         />
       </div>
 
       <div class="pure-control-group">
         <label>description</label>
-        <textarea rows="10" required v-model="description"/>
+        <textarea rows="10" required v-model="description" />
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast description more pithy and exciting"
-            :text="description"
-            @ai-workshop-completed="description = $event.text"
+          prompt="please help me make the following podcast description more pithy and exciting"
+          :text="description"
+          @ai-workshop-completed="description = $event.text"
         />
       </div>
 
       <div class="pure-controls">
         <button
-            @click="createDraft"
-            :disabled="!isValidPodcastDraft()"
-            type="button"
-            class="pure-button pure-button-primary"
+          @click="createDraft"
+          :disabled="!isValidPodcastDraft()"
+          type="button"
+          class="pure-button pure-button-primary"
         >
           continue
         </button>
       </div>
-
     </fieldset>
   </form>
 
@@ -151,6 +141,4 @@ export default {
       </fieldset>
     </form>
    -->
-
-
 </template>
