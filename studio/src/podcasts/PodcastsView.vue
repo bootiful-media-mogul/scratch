@@ -4,19 +4,19 @@
   <form class="pure-form">
     <fieldset>
       <legend>Podcasts</legend>
-      <div class="pure-g podcast-row" v-for="podcast in podcasts" v-bind:key="podcast.id">
+      <div class="pure-g form-row"
+           v-for="podcast in podcasts" v-bind:key="podcast.id">
         <div class="pure-u-1-24">
           <b> {{ podcast.id }}</b>
         </div>
 
         <div class="pure-u-6-24">
-          <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)"> episodes</a>
-
+          <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)">
+            episodes</a>
           |
           <a v-if="podcasts.length > 1" href="#" @click="deletePodcast(podcast.id)"> delete </a>
           <a v-if="podcasts.length == 1" href="#" class="disabled"> delete </a>
         </div>
-
         <div class="pure-u-17-24">
           {{ podcast.title }}
         </div>
@@ -24,7 +24,7 @@
     </fieldset>
   </form>
 
-  <form class="pure-form pure-form-aligned">
+  <form class="pure-form pure-form-stacked">
     <fieldset>
       <legend>New Podcast</legend>
       <div class="pure-control-group">
@@ -51,17 +51,6 @@
     </fieldset>
   </form>
 </template>
-<style>
-.podcast-row {
-  height: calc(2 * var(--gutter-space));
-  vertical-align: bottom;
-}
-
-.podcast-row .pure-button {
-  margin-left: calc(0.5 * var(--gutter-space));
-  right: 0;
-}
-</style>
 <script lang="ts">
 import { Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'

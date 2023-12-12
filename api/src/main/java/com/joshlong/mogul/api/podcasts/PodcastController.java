@@ -11,7 +11,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
-import java.util.UUID;
 
 @Controller
 class PodcastController {
@@ -21,6 +20,11 @@ class PodcastController {
 	private final PodcastService podcastService;
 
 	private final ManagedFileService managedFileService;
+
+	@QueryMapping
+	Collection<Episode> podcastEpisodesByPodcast(@Argument Long podcastId) {
+		return this.podcastService.getEpisodesByPodcast(podcastId);
+	}
 
 	PodcastController(MogulService mogulService, PodcastService podcastService, ManagedFileService managedFileService) {
 		this.mogulService = mogulService;

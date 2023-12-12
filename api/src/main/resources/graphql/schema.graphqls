@@ -1,12 +1,7 @@
 type Mutation {
-
-
-
-    createPodcast (title:String) :Podcast
-
-    createPodcastEpisodeDraft ( podcastId: Float , title :String, description:String   ) : Episode
-
-    deletePodcast(id:ID)  : ID
+    createPodcast(title:String): Podcast
+    createPodcastEpisodeDraft(podcastId: Float, title:String, description:String) : Episode
+    deletePodcast(id:ID): ID
 }
 
 type Mogul {
@@ -18,10 +13,12 @@ type Query {
 
     # ai
     aiChat(prompt:String): String
-    # podcasts first
 
-    podcastById( id:ID): Podcast
-    podcasts : [Podcast]
+    # podcasts first
+    podcastById(id:ID): Podcast
+    podcasts: [Podcast]
+
+    podcastEpisodesByPodcast (podcastId: ID) : [Episode]
 
     # managed files
     managedFileById ( managedFileId : ID) : ManagedFile
@@ -44,7 +41,7 @@ type Episode {
     graphic: ManagedFile
     introduction: ManagedFile
     interview: ManagedFile
-    producedAudio: ManagedFile
+    #    producedAudio: ManagedFile
 }
 
 type Podcast {
@@ -52,46 +49,3 @@ type Podcast {
     episodes : [Episode]
     id: ID
 }
-
-#
-#type Podcast {
-#    created : Float
-#    html :String
-#    title :String
-#    description : String
-#    uid : String
-#    permalinkUri: String
-#    playerUri: String
-#    duration : Int
-#    audioUri: String
-#    photoUri: String
-#    id: ID
-#}
-#
-#type PodcastDraft  {
-#    id : ID
-#    completed: Boolean
-#    uid : String
-#    uploadPath: String
-#    pictureFileName: String
-#    introductionFileName: String
-#    interviewFileName: String
-#    title: String
-#    description: String
-#    created : Float
-#}
-#
-#type Query {
-#    me: Mogul
-#    podcasts: [Podcast]
-#    podcastDrafts: [PodcastDraft]
-#
-#}
-#
-#type Mutation {
-#
-#    deletePodcast (id:  Int ) : Boolean
-#    podcastDrafts : [PodcastDraft ]
-#    createPodcastDraft(uid:String) : PodcastDraft
-#
-#}

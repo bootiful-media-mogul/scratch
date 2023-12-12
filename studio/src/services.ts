@@ -50,6 +50,19 @@ export class Podcast {
 }
 
 class Podcasts {
+  async podcastEpisodes(podcastId: number): Promise<Array<Episode>> {
+    const q = `
+           query GetPodcastEpisodesByPodcast( $podcastId: ID){
+                podcastEpisodesByPodcast ( podcastId : $podcastId) {
+                 id, title, description, interview   { id }, graphic { id }, introduction { id }  
+                }
+        }
+        `
+    const res = await graphqlClient.query(q, { podcastId: podcastId })
+
+    return (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
+  }
+
   async delete(id: number) {
     const mutation = `
          mutation DeletePodcast ($id: ID ){ 
@@ -82,7 +95,7 @@ class Podcasts {
     const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: Float, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
-           id 
+           id , title, description,  graphic { id  }, interview { id }, introduction { id }
           }
          }
         `
@@ -92,7 +105,8 @@ class Podcasts {
       title: title,
       description: description
     })
-    return (await result.data['createPodcastEpisodeDraft']) as Podcast
+
+    return (await result.data['createPodcastEpisodeDraft']) as Episode
   }
 
   async podcastById(podcastId: number): Promise<Podcast> {
@@ -101,7 +115,11 @@ class Podcasts {
             query GetPodcastById( $id: ID){
                 podcastById ( id : $id) { 
                     id,
-                    title
+                    title,
+                    picture 
+                    interview 
+                    introduction
+                    
                 }
             }
         `
@@ -113,7 +131,6 @@ class Podcasts {
 //======
 // managed files
 
-// todo
 export class ManagedFile {
   readonly id: number
   readonly bucket: string
@@ -136,6 +153,31 @@ export class ManagedFile {
     this.filename = filename
     this.written = written
     this.size = size
+  }
+}
+
+export class Episode {
+  readonly id: number
+  readonly title: string
+  readonly description: string
+  readonly graphic: ManagedFile
+  readonly interview: ManagedFile
+  readonly introduction: ManagedFile
+
+  constructor(
+    id: number,
+    title: string,
+    description: string,
+    graphic: ManagedFile,
+    interview: ManagedFile,
+    introduction: ManagedFile
+  ) {
+    this.id = id
+    this.title = title
+    this.description = description
+    this.graphic = graphic
+    this.interview = interview
+    this.introduction = introduction
   }
 }
 
