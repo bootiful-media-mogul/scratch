@@ -55,14 +55,14 @@ class DefaultManagedFileService implements ManagedFileService {
 	}
 
 	@Override
-	public ManagedFile write(Long managedFileId, Resource resource) {
+	public ManagedFile write(Long managedFileId, String filename, Resource resource) {
 		var mf = getManagedFile(managedFileId);
 		var bucket = mf.bucket();
 		var folder = mf.folder();
 		var fn = mf.filename();
 		this.storage.write(bucket, folder + '/' + fn, resource);
-		this.db.sql("update managed_file set written = true , size =? where id=?")
-				.params(contentLength(resource), managedFileId)
+		this.db.sql("update managed_file set filename =?, written = true , size =? where id=?")
+				.params(filename, contentLength(resource), managedFileId)
 				.update();
 		var wroteMf = getManagedFile(managedFileId);
 		log.info("managed file has been written? "  + wroteMf.written());

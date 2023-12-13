@@ -33,15 +33,14 @@ class ManagedFileController {
 
 	@ResponseBody
 	@PostMapping("/managedfiles/{id}")
-	Map<String, Number> write(@PathVariable("id") Long id, @RequestParam("file") MultipartFile file)
-			throws Exception {
+	Map<String, Number> write(@PathVariable("id") Long id, @RequestParam("file") MultipartFile file) {
 		Assert.notNull(id, "the id should not be null");
 		var mogul = this.mogulService.getCurrentMogul();
 		var managedFile = this.managedFileService.getManagedFile(id);
 		Assert.notNull(managedFile, "the managedfile is null for managed file id [" + id + "]");
 		Assert.state(managedFile.mogulId().equals(mogul.id()), "you're trying to write to an invalid file " +
 				"to which you are not authorized!");
-		this.managedFileService.write(managedFile.id(), file.getResource());
+		this.managedFileService.write(managedFile.id(), file.getOriginalFilename(), file.getResource());
 		return Map.of("managedFileId", id);
 	}
 
