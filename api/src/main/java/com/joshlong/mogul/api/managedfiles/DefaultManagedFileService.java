@@ -64,7 +64,9 @@ class DefaultManagedFileService implements ManagedFileService {
 		this.db.sql("update managed_file set written = true , size =? where id=?")
 				.params(contentLength(resource), managedFileId)
 				.update();
-		return getManagedFile(managedFileId);
+		var wroteMf = getManagedFile(managedFileId);
+		log.info("managed file has been written? "  + wroteMf.written());
+		return wroteMf;
 	}
 
 	@Override
@@ -83,7 +85,8 @@ class ManagedFileRowMapper implements RowMapper<ManagedFile> {
 
 	@Override
 	public ManagedFile mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"), rs.getString("bucket"), rs.getString("folder"),
+		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"),
+				rs.getString("bucket"), rs.getString("folder"),
 				rs.getString("filename"), rs.getDate("created"),
 				rs.getBoolean("written") ,
 				rs.getLong("size"));

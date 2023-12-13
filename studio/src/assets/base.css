@@ -19,6 +19,10 @@ a {
     font-size: small;
 }
 
+.pure-button {
+
+}
+
 .pure-form-stacked .pure-button {
     margin-top: .5em;
     background-color: black;

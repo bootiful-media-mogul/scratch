@@ -26,12 +26,6 @@ class ManagedFileController {
 		this.mogulService = mogulService;
 	}
 
-//	@SchemaMapping (typeName = "ManagedFile")
-//	boolean written (ManagedFile managedFile) {
-//		return managedFile.size() > 0 ;
-//	}
-
-
 	@QueryMapping
 	ManagedFile managedFileById(@Argument Long id ) {
 		return this.managedFileService.getManagedFile( id );

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Episode, Podcast, podcasts } from '@/services'
+import {Episode, Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
 
@@ -19,26 +19,29 @@ export default {
   methods: {
     async editEpisode(episode: Episode) {
       console.log('you want to edit ' + JSON.stringify(episode))
+
       this.draftEpisode = episode
       this.title = this.draftEpisode.title
       this.description = this.draftEpisode.description
+
+      // this.interview  = this.draftEpisode.interview
+      // this.graphic  = this.draftEpisode.graphic
+      // this.introduction  = this.draftEpisode.introduction
+
+
     },
     async createDraft() {
       if (this.isEpisodeReadyForFiles()) {
         const episode = await podcasts.createPodcastEpisodeDraft(
-          this.selectedPodcastId,
-          this.title,
-          this.description
+            this.selectedPodcastId,
+            this.title,
+            this.description
         )
-        console.log('creating a draft ' + JSON.stringify(episode))
-        this.draftEpisode = episode
-        await this.refreshRecords()
+
+        await this.editEpisode(episode)
       }
     },
 
-    isEpisodeFromDb() {
-      return this.draftEpisode != null && this.draftEpisode.id != null
-    },
 
     isEpisodeReadyForFiles(): boolean {
       function isEmpty(txt: string): boolean {
@@ -53,12 +56,13 @@ export default {
       const newPodcastId = this.selectedPodcastId
       console.log('podcastId: ' + newPodcastId)
       this.podcasts = await podcasts.podcasts()
+
       this.currentPodcast = this.podcasts.filter((p) => p.id == newPodcastId)[0]
       this.episodes = await podcasts.podcastEpisodes(newPodcastId)
     }
   },
 
-  data(vm) {
+  data() {
     return {
       draftEpisode: null as any as Episode,
       episodes: [] as Array<Episode>,
@@ -66,7 +70,10 @@ export default {
       currentPodcast: null as any as Podcast,
       selectedPodcastId: this.id,
       title: '',
-      description: ''
+      description: '',
+      // graphic: reactive({}),
+      // introduction: reactive({}),
+      // interview: reactive({}),
     }
   }
 }
@@ -79,68 +86,66 @@ export default {
       <legend>Create a New Podcast Episode</legend>
 
 
-        <label for="podcastSelect">podcast</label>
-        <select id="podcastSelect" v-model="selectedPodcastId" @change="refreshRecords">
-          <option v-for="podcast in podcasts" :key="podcast.id" :value="podcast.id">
-            {{ podcast.id }} - {{ podcast.title }}
-          </option>
-        </select>
+      <label for="podcastSelect">podcast</label>
+      <select id="podcastSelect" v-model="selectedPodcastId" @change="refreshRecords">
+        <option v-for="podcast in podcasts" :key="podcast.id" :value="podcast.id">
+          {{ podcast.id }} - {{ podcast.title }}
+        </option>
+      </select>
 
 
-
-        <label for="episodeTitle">
-          title
-           <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast title more pithy and exciting"
-          :text="title"
-          @ai-workshop-completed="title = $event.text"
+      <label for="episodeTitle">
+        title
+        <AiWorkshopItIconComponent
+            prompt="please help me make the following podcast title more pithy and exciting"
+            :text="title"
+            @ai-workshop-completed="title = $event.text"
         />
-        </label>
-        <input id="episodeTitle" required v-model="title" type="text" />
+      </label>
+      <input id="episodeTitle" required v-model="title" type="text"/>
 
 
-        <label for="episodeDescription">
-          description
-           <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast description more pithy and exciting"
-          :text="description"
-          @ai-workshop-completed="description = $event.text"
+      <label for="episodeDescription">
+        description
+        <AiWorkshopItIconComponent
+            prompt="please help me make the following podcast description more pithy and exciting"
+            :text="description"
+            @ai-workshop-completed="description = $event.text"
         />
-        </label>
-        <textarea id="episodeDescription" rows="10" required v-model="description" />
+      </label>
+      <textarea id="episodeDescription" rows="10" required v-model="description"/>
 
+      <div v-if="draftEpisode">
 
-      <div v-if="draftEpisode" >
-        <label>photo</label>
-        <ManagedFileComponent
-          :disabled="isEpisodeFromDb()"
-          v-model:managed-file-id="draftEpisode.graphic.id"
-        />
+        <div v-if="draftEpisode.graphic">
+          <label>photo</label>
+          <ManagedFileComponent
+              v-model:managed-file-id="draftEpisode.graphic.id"
+          />
+        </div>
+        <div v-if="draftEpisode.introduction">
+          <label>introduction</label>
+          <ManagedFileComponent
+              v-model:managed-file-id="draftEpisode.introduction.id"
+          />
+        </div>
+        <div v-if="draftEpisode.interview">
+
+          <label>interview</label>
+          <ManagedFileComponent
+              v-model:managed-file-id="draftEpisode.interview.id"
+          />
+        </div>
       </div>
-      <div v-if="draftEpisode"  >
-        <label>introduction</label>
-        <ManagedFileComponent
-          :disabled="isEpisodeFromDb()"
-          v-model:managed-file-id="draftEpisode.introduction.id"
-        />
-      </div>
-      <div v-if="draftEpisode" >
-        <label>interview</label>
-        <ManagedFileComponent
-          :disabled="isEpisodeFromDb()"
-          v-model:managed-file-id="draftEpisode.interview.id"
-        />
-      </div>
 
-
-        <button
+      <button
           @click="createDraft"
           :disabled="!isEpisodeReadyForFiles()"
           type="submit"
           class="pure-button pure-button-primary"
-        >
-          save
-        </button>
+      >
+        save
+      </button>
 
     </fieldset>
   </form>

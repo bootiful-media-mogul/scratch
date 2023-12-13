@@ -68,7 +68,7 @@ class Podcasts {
     const q = `
            query GetPodcastEpisodesByPodcast( $podcastId: ID){
                 podcastEpisodesByPodcast ( podcastId : $podcastId) {
-                 id, title, description, interview   { id }, graphic { id }, introduction { id }  
+                    id , title, description,  graphic { id  }, interview { id }, introduction { id }
                 }
         }
         `
@@ -196,7 +196,7 @@ export class ManagedFiles {
     const q = `
         query ($id: ID) {
           managedFileById( id : $id )  { 
-          id, bucket, folder, filename, size, written
+            id, bucket, folder, filename, size, written
           }
          }
         `
