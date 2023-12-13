@@ -42,9 +42,9 @@ export default {
   emits: ['update:managedFile'],
   props: ['disabled', 'managedFileId'],
 
-   watch: {
+  watch: {
     async managedFileId(newVal, oldVal) {
-      console.log(`myProp changed from ${oldVal} to ${newVal}`);
+      console.log(`myProp changed from ${oldVal} to ${newVal}`)
       // Perform your logic here
       await this.refreshManagedFile()
     }

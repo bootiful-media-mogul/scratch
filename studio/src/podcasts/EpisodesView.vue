@@ -112,17 +112,18 @@ export default {
       <div v-if="draftEpisode">
         <div v-if="draftEpisode.graphic">
           <label>photo</label>
-          <ManagedFileComponent v-model:managed-file-id="draftEpisode.graphic.id" /> {{draftEpisode.graphic.id}}
+          <ManagedFileComponent v-model:managed-file-id="draftEpisode.graphic.id" />
+          {{ draftEpisode.graphic.id }}
         </div>
         <div v-if="draftEpisode.introduction">
           <label>introduction</label>
           <ManagedFileComponent v-model:managed-file-id="draftEpisode.introduction.id" />
-          {{draftEpisode.introduction.id}}
+          {{ draftEpisode.introduction.id }}
         </div>
         <div v-if="draftEpisode.interview">
           <label>interview</label>
           <ManagedFileComponent v-model:managed-file-id="draftEpisode.interview.id" />
-          {{draftEpisode.interview.id}}
+          {{ draftEpisode.interview.id }}
         </div>
       </div>
 
