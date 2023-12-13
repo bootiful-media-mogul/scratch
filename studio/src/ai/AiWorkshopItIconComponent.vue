@@ -17,6 +17,10 @@
 
 }
 
+.ai-workshop-it-link:hover {
+
+}
+
 label .ai-workshop-it-link {
   position: absolute;
   padding-top: var(--icon-size);

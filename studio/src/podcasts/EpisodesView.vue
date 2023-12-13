@@ -112,21 +112,21 @@ export default {
         <textarea id="episodeDescription" rows="10" required v-model="description" />
 
       </div>
-      <div v-if="draftEpisode" class="pure-control-group">
+      <div v-if="draftEpisode" >
         <label>photo</label>
         <ManagedFileComponent
           :disabled="isEpisodeFromDb()"
           v-model:managed-file-id="draftEpisode.graphic.id"
         />
       </div>
-      <div v-if="draftEpisode" class="pure-control-group">
+      <div v-if="draftEpisode"  >
         <label>introduction</label>
         <ManagedFileComponent
           :disabled="isEpisodeFromDb()"
           v-model:managed-file-id="draftEpisode.introduction.id"
         />
       </div>
-      <div v-if="draftEpisode" class="pure-control-group">
+      <div v-if="draftEpisode" >
         <label>interview</label>
         <ManagedFileComponent
           :disabled="isEpisodeFromDb()"
@@ -134,7 +134,7 @@ export default {
         />
       </div>
 
-      <div class="pure-control-group">
+
         <button
           @click="createDraft"
           :disabled="!isEpisodeReadyForFiles()"
@@ -143,7 +143,7 @@ export default {
         >
           continue
         </button>
-      </div>
+
     </fieldset>
   </form>
 
