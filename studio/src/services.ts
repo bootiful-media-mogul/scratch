@@ -1,130 +1,130 @@
-import { Ai } from '@/ai/ai'
+import {Ai} from '@/ai/ai'
 import Mogul from '@/mogul'
 import mitt from 'mitt'
-import { cacheExchange, Client, fetchExchange } from '@urql/core'
+import {cacheExchange, Client, fetchExchange} from '@urql/core'
 
 export const graphqlClient = new Client({
-  url: '/api/graphql',
-  exchanges: [cacheExchange, fetchExchange]
+    url: '/api/graphql',
+    exchanges: [cacheExchange, fetchExchange]
 })
 
 export enum AiWorkshopReplyEventType {
-  TEXT,
-  IMAGE
+    TEXT,
+    IMAGE
 }
 
 export class AiWorkshopReplyEvent {
-  readonly text: string
-  readonly type: AiWorkshopReplyEventType
+    readonly text: string
+    readonly type: AiWorkshopReplyEventType
 
-  constructor(text: string, type: AiWorkshopReplyEventType) {
-    this.text = text
-    this.type = type
-  }
+    constructor(text: string, type: AiWorkshopReplyEventType) {
+        this.text = text
+        this.type = type
+    }
 }
 
 export class AiWorkshopRequestEvent {
-  readonly text: string
+    readonly text: string
 
-  readonly callback: (arg0: AiWorkshopReplyEvent) => void
+    readonly callback: (arg0: AiWorkshopReplyEvent) => void
 
-  constructor(text: string, callback: (arg0: AiWorkshopReplyEvent) => void) {
-    this.text = text
-    this.callback = callback
-  }
+    constructor(text: string, callback: (arg0: AiWorkshopReplyEvent) => void) {
+        this.text = text
+        this.callback = callback
+    }
 }
 
 export function workshopInAi(callback: (e: AiWorkshopReplyEvent) => void, text: string) {
-  events.emit('ai-workshop-event', new AiWorkshopRequestEvent(text, callback))
+    events.emit('ai-workshop-event', new AiWorkshopRequestEvent(text, callback))
 }
 
 ////
 export class Podcast {
-  readonly title: string
-  readonly id: number
+    readonly title: string
+    readonly id: number
 
-  constructor(id: number, title: string) {
-    this.id = id
-    this.title = title
-  }
+    constructor(id: number, title: string) {
+        this.id = id
+        this.title = title
+    }
 }
 
 class Podcasts {
-  async create(title: String): Promise<Podcast> {
-    const mutation = `
+    async create(title: String): Promise<Podcast> {
+        const mutation = `
          mutation CreatePodcast ($title: String){ 
           createPodcast(title: $title) { 
            id, title
           }
          }
         `
-    const result = await graphqlClient.mutation(mutation, {
-      title: title
-    })
-    return (await result.data['createPodcast']) as Podcast
-  }
+        const result = await graphqlClient.mutation(mutation, {
+            title: title
+        })
+        return (await result.data['createPodcast']) as Podcast
+    }
 
-  async podcastEpisodes(podcastId: number): Promise<Array<Episode>> {
-    const q = `
+    async podcastEpisodes(podcastId: number): Promise<Array<Episode>> {
+        const q = `
            query GetPodcastEpisodesByPodcast( $podcastId: ID){
                 podcastEpisodesByPodcast ( podcastId : $podcastId) {
                     id , title, description,  graphic { id  }, interview { id }, introduction { id }
                 }
         }
         `
-    const res = await graphqlClient.query(q, { podcastId: podcastId })
+        const res = await graphqlClient.query(q, {podcastId: podcastId})
 
-    return (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
-  }
+        return (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
+    }
 
-  async delete(id: number) {
-    const mutation = `
+    async delete(id: number) {
+        const mutation = `
          mutation DeletePodcast ($id: ID ){ 
           deletePodcast(id: $id)  
          }
         `
-    const result = await graphqlClient.mutation(mutation, {
-      id: id
-    })
-    return (await result.data['deletePodcast']) as Number
-  }
+        const result = await graphqlClient.mutation(mutation, {
+            id: id
+        })
+        return (await result.data['deletePodcast']) as Number
+    }
 
-  async podcasts() {
-    const q = `
+    async podcasts() {
+        const q = `
         query {
           podcasts  { 
            id, title
           }
          }
         `
-    const result = await graphqlClient.query(q, {})
-    return (await result.data['podcasts']) as Array<Podcast>
-  }
+        const result = await graphqlClient.query(q, {})
+        return (await result.data['podcasts']) as Array<Podcast>
+    }
 
-  async createPodcastEpisodeDraft(
-    podcastId: number,
-    title: String,
-    description: String
-  ): Promise<Episode> {
-    const mutation = `
+    async createPodcastEpisodeDraft(
+        podcastId: number,
+        title: String,
+        description: String
+    ): Promise<Episode> {
+        const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: Float, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
            id , title, description,  graphic { id  }, interview { id }, introduction { id }
           }
          }
         `
-    console.log(podcastId + ':' + title + ':' + description)
-    const result = await graphqlClient.mutation(mutation, {
-      podcast: podcastId,
-      title: title,
-      description: description
-    })
+        console.log(podcastId + ':' + title + ':' + description)
+        const result = await graphqlClient.mutation(mutation, {
+            podcast: podcastId,
+            title: title,
+            description: description
+        })
 
-    return (await result.data['createPodcastEpisodeDraft']) as Episode
-  }
+        return (await result.data['createPodcastEpisodeDraft']) as Episode
+    }
 
-  async podcastById(podcastId: number): Promise<Podcast> {
-    const q = `
+    async podcastById(podcastId: number): Promise<Podcast> {
+        const q = `
        
             query GetPodcastById( $id: ID){
                 podcastById ( id : $id) { 
@@ -133,76 +133,76 @@ class Podcasts {
                 }
             }
         `
-    const result = await graphqlClient.query(q, { id: podcastId })
-    return (await result.data['podcastById']) as Podcast
-  }
+        const result = await graphqlClient.query(q, {id: podcastId})
+        return (await result.data['podcastById']) as Podcast
+    }
 }
 
 //======
 // managed files
 
 export class ManagedFile {
-  id: number
-  bucket: string
-  folder: string
-  filename: string
-  size: number
-  written: boolean
-
-  constructor(
-    id: number,
-    bucket: string,
-    folder: string,
-    filename: string,
-    size: number,
+    id: number
+    bucket: string
+    folder: string
+    filename: string
+    size: number
     written: boolean
-  ) {
-    this.id = id
-    this.bucket = bucket
-    this.folder = folder
-    this.filename = filename
-    this.written = written
-    this.size = size
-  }
+
+    constructor(
+        id: number,
+        bucket: string,
+        folder: string,
+        filename: string,
+        size: number,
+        written: boolean
+    ) {
+        this.id = id
+        this.bucket = bucket
+        this.folder = folder
+        this.filename = filename
+        this.written = written
+        this.size = size
+    }
 }
 
 export class Episode {
-  readonly id: number
-  readonly title: string
-  readonly description: string
-  readonly graphic: ManagedFile
-  readonly interview: ManagedFile
-  readonly introduction: ManagedFile
-
-  constructor(
-    id: number,
-    title: string,
-    description: string,
-    graphic: ManagedFile,
-    interview: ManagedFile,
+    id: number
+    title: string
+    description: string
+    graphic: ManagedFile
+    interview: ManagedFile
     introduction: ManagedFile
-  ) {
-    this.id = id
-    this.title = title
-    this.description = description
-    this.graphic = graphic
-    this.interview = interview
-    this.introduction = introduction
-  }
+
+    constructor(
+        id: number,
+        title: string,
+        description: string,
+        graphic: ManagedFile,
+        interview: ManagedFile,
+        introduction: ManagedFile
+    ) {
+        this.id = id
+        this.title = title
+        this.description = description
+        this.graphic = graphic
+        this.interview = interview
+        this.introduction = introduction
+    }
 }
 
 export class ManagedFiles {
-  async getManagedFileById(id: number): Promise<ManagedFile> {
-    const q = `
+    async getManagedFileById(id: number): Promise<ManagedFile> {
+        const q = `
         query ($id: ID) {
           managedFileById( id : $id )  { 
             id, bucket, folder, filename, size, written
           }
          }
         `
-    const result = await graphqlClient.query(q, { id: id })
-    return (await result.data['managedFileById']) as ManagedFile
-  }
+        const result = await graphqlClient.query(q, {id: id})
+        return (await result.data['managedFileById']) as ManagedFile
+    }
 }
 
 export const ai = new Ai(graphqlClient)

@@ -26,7 +26,11 @@ export default {
       this.draftEpisode.introduction = episode.introduction
       this.draftEpisode.graphic = episode.graphic
       this.draftEpisode.title = episode.title
-      this.draftEpisode.descriptions = episode.description
+      this.draftEpisode.description  = episode.description
+
+      this.description = this.draftEpisode.description
+      this.title = this.draftEpisode.title
+
     },
     async createDraft() {
       if (this.isEpisodeReadyForFiles()) {
@@ -61,7 +65,7 @@ export default {
 
   data() {
     return {
-      draftEpisode: reactive({}),
+      draftEpisode: reactive({} as Episode),
       episodes: [] as Array<Episode>,
       podcasts: [] as Array<Podcast>,
       currentPodcast: null as any as Podcast,
@@ -82,12 +86,14 @@ export default {
     <fieldset>
       <legend>Create a New Podcast Episode</legend>
 
+<!--
       <label for="podcastSelect">podcast</label>
-      <select id="podcastSelect" v-model="selectedPodcastId" @change="refreshRecords">
+      <select  id="podcastSelect" v-model="selectedPodcastId" @change="refreshRecords">
         <option v-for="podcast in podcasts" :key="podcast.id" :value="podcast.id">
           {{ podcast.id }} - {{ podcast.title }}
         </option>
       </select>
+-->
 
       <label for="episodeTitle">
         title
@@ -113,17 +119,16 @@ export default {
         <div v-if="draftEpisode.graphic">
           <label>photo</label>
           <ManagedFileComponent v-model:managed-file-id="draftEpisode.graphic.id" />
-          {{ draftEpisode.graphic.id }}
+
+
         </div>
         <div v-if="draftEpisode.introduction">
           <label>introduction</label>
           <ManagedFileComponent v-model:managed-file-id="draftEpisode.introduction.id" />
-          {{ draftEpisode.introduction.id }}
         </div>
         <div v-if="draftEpisode.interview">
           <label>interview</label>
           <ManagedFileComponent v-model:managed-file-id="draftEpisode.interview.id" />
-          {{ draftEpisode.interview.id }}
         </div>
       </div>
 

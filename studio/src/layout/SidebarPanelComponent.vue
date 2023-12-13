@@ -29,7 +29,6 @@
   width: 200px;
 
   overflow: hidden;
-  border-radius: var(--gutter-space) 0 0 var(--gutter-space);
   padding: var(--gutter-space);
   background-color: white;
   margin-bottom: var(--gutter-space);
@@ -99,7 +98,7 @@ export default {
   },
   computed: {
     visibilityCss() {
-      return 'sidebar-panel ' + (this.expanded ? 'sidebar-panel-visible' : 'sidebar-panel-hidden')
+      return 'panel sidebar-panel ' + (this.expanded ? 'sidebar-panel-visible' : 'sidebar-panel-hidden')
     }
   }
 }
