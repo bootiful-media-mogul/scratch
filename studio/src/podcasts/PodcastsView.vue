@@ -26,15 +26,15 @@
     <fieldset>
       <legend>New Podcast</legend>
       <div class="pure-control-group">
-        <label for="title"> title
+        <label for="title">
+          title
           <AiWorkshopItIconComponent
-          prompt="please help me take the following podcast title and make it more pithy and exciting"
-          :text="title"
-          @ai-workshop-completed="title = $event.text"
-        /> </label>
+            prompt="please help me take the following podcast title and make it more pithy and exciting"
+            :text="title"
+            @ai-workshop-completed="title = $event.text"
+          />
+        </label>
         <input type="text" required id="title" v-model="title" />
-
-
       </div>
       <div class="pure-controls">
         <button

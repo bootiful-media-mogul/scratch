@@ -22,7 +22,7 @@ todo support workshopping the image for the podcast as well: give it
           value="chat"
           @click="chat"
         >
-        go
+          go
         </button>
         <button :disabled="isPromptEmpty()" class="pure-button" value="ok" @click="finished">
           finish

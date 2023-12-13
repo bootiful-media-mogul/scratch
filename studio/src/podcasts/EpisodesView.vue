@@ -1,8 +1,8 @@
 <script lang="ts">
-import {Episode, Podcast, podcasts} from '@/services'
+import { Episode, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
-import {reactive} from "vue";
+import { reactive } from 'vue'
 
 export default {
   mounted(): void {
@@ -21,34 +21,24 @@ export default {
     async editEpisode(episode: Episode) {
       console.log('you want to edit ' + JSON.stringify(episode))
 
-      this.draftEpisode .id = episode.id
+      this.draftEpisode.id = episode.id
       this.draftEpisode.interview = episode.interview
       this.draftEpisode.introduction = episode.introduction
       this.draftEpisode.graphic = episode.graphic
       this.draftEpisode.title = episode.title
       this.draftEpisode.descriptions = episode.description
-
-      // this.title = this.draftEpisode.title
-      // this.description = this.draftEpisode.description
-
-      // this.interview  = this.draftEpisode.interview
-      // this.graphic  = this.draftEpisode.graphic
-      // this.introduction  = this.draftEpisode.introduction
-
-
     },
     async createDraft() {
       if (this.isEpisodeReadyForFiles()) {
         const episode = await podcasts.createPodcastEpisodeDraft(
-            this.selectedPodcastId,
-            this.title,
-            this.description
+          this.selectedPodcastId,
+          this.title,
+          this.description
         )
 
         await this.editEpisode(episode)
       }
     },
-
 
     isEpisodeReadyForFiles(): boolean {
       function isEmpty(txt: string): boolean {
@@ -77,7 +67,7 @@ export default {
       currentPodcast: null as any as Podcast,
       selectedPodcastId: this.id,
       title: '',
-      description: '',
+      description: ''
       // graphic: reactive({}),
       // introduction: reactive({}),
       // interview: reactive({}),
@@ -92,7 +82,6 @@ export default {
     <fieldset>
       <legend>Create a New Podcast Episode</legend>
 
-
       <label for="podcastSelect">podcast</label>
       <select id="podcastSelect" v-model="selectedPodcastId" @change="refreshRecords">
         <option v-for="podcast in podcasts" :key="podcast.id" :value="podcast.id">
@@ -100,60 +89,51 @@ export default {
         </option>
       </select>
 
-
       <label for="episodeTitle">
         title
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast title more pithy and exciting"
-            :text="title"
-            @ai-workshop-completed="title = $event.text"
+          prompt="please help me make the following podcast title more pithy and exciting"
+          :text="title"
+          @ai-workshop-completed="title = $event.text"
         />
       </label>
-      <input id="episodeTitle" required v-model="title" type="text"/>
-
+      <input id="episodeTitle" required v-model="title" type="text" />
 
       <label for="episodeDescription">
         description
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast description more pithy and exciting"
-            :text="description"
-            @ai-workshop-completed="description = $event.text"
+          prompt="please help me make the following podcast description more pithy and exciting"
+          :text="description"
+          @ai-workshop-completed="description = $event.text"
         />
       </label>
-      <textarea id="episodeDescription" rows="10" required v-model="description"/>
+      <textarea id="episodeDescription" rows="10" required v-model="description" />
 
       <div v-if="draftEpisode">
-
         <div v-if="draftEpisode.graphic">
           <label>photo</label>
-          <ManagedFileComponent
-              v-model:managed-file-id="draftEpisode.graphic.id"
-          />
+          <ManagedFileComponent v-model:managed-file-id="draftEpisode.graphic.id" /> {{draftEpisode.graphic.id}}
         </div>
         <div v-if="draftEpisode.introduction">
           <label>introduction</label>
-          <ManagedFileComponent
-              v-model:managed-file-id="draftEpisode.introduction.id"
-          />
+          <ManagedFileComponent v-model:managed-file-id="draftEpisode.introduction.id" />
+          {{draftEpisode.introduction.id}}
         </div>
         <div v-if="draftEpisode.interview">
-
           <label>interview</label>
-          <ManagedFileComponent
-              v-model:managed-file-id="draftEpisode.interview.id"
-          />
+          <ManagedFileComponent v-model:managed-file-id="draftEpisode.interview.id" />
+          {{draftEpisode.interview.id}}
         </div>
       </div>
 
       <button
-          @click="createDraft"
-          :disabled="!isEpisodeReadyForFiles()"
-          type="submit"
-          class="pure-button pure-button-primary"
+        @click="createDraft"
+        :disabled="!isEpisodeReadyForFiles()"
+        type="submit"
+        class="pure-button pure-button-primary"
       >
         save
       </button>
-
     </fieldset>
   </form>
 

@@ -142,12 +142,12 @@ class Podcasts {
 // managed files
 
 export class ManagedFile {
-  readonly id: number
-  readonly bucket: string
-  readonly folder: string
-  readonly filename: string
-  readonly size: number
-  readonly written: boolean
+  id: number
+  bucket: string
+  folder: string
+  filename: string
+  size: number
+  written: boolean
 
   constructor(
     id: number,
