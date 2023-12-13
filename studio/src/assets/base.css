@@ -1,79 +1,86 @@
 :root {
-  --gutter-space: 20px;
+    --gutter-space: 20px;
 }
 
 fieldset legend {
-  font-weight: bold;
+    font-weight: bold;
 }
 
 a:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 
 a {
-  color: black;
-  text-decoration: none;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-family: 'Arial Black', sans-serif;
-  font-size: small;
+    color: black;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: 'Arial Black', sans-serif;
+    font-size: small;
+}
+
+.pure-form-stacked .pure-button {
+    margin-top: .5em;
+    background-color: black;
+    color: white;
+    margin-right: calc(0.5 * var(--gutter-space))
 }
 
 .form-row {
-  height: calc(2 * var(--gutter-space));
-  vertical-align: bottom;
+    height: calc(2 * var(--gutter-space));
+    vertical-align: bottom;
 }
 
 .pure-form label {
-  text-transform: capitalize;
-  font-size: smaller;
-  margin-top: 1em;
+    text-transform: capitalize;
+    font-size: smaller;
+    margin-top: 1em;
 }
 
 .form-row .pure-button {
-  margin-left: calc(0.5 * var(--gutter-space));
-  right: 0;
+    margin-left: calc(0.5 * var(--gutter-space));
+    right: 0;
 }
 
 a.disabled {
-  color: lightgrey;
-  text-decoration: none;
+    color: lightgrey;
+    text-decoration: none;
 }
 
 body {
-  background-color: cadetblue;
+    background-color: cadetblue;
 }
 
 html {
-  margin-left: calc( 2 * var(--gutter-space));
-  margin-top : var(--gutter-space);
+    margin-left: calc(2 * var(--gutter-space));
+    margin-top: var(--gutter-space);
 }
 
 .page {
-  display: grid;
-  grid-template-areas:
+    display: grid;
+    grid-template-areas:
     'welcome welcome welcome'
     'toolbar toolbar toolbar'
     'main gap sidebar ';
-  grid-template-columns: auto 1em min-content;
+    grid-template-columns: auto  calc(1 * var(--gutter-space)) min-content;
 }
 
 .welcome {
-  grid-area: welcome;
-  padding-bottom: var(--gutter-space);
+    grid-area: welcome;
+    padding-bottom: var(--gutter-space);
 }
 
 .toolbar {
-  grid-area: toolbar;
-  padding-bottom: var(--gutter-space);
+    grid-area: toolbar;
+    padding-bottom: var(--gutter-space);
 }
 
 .view {
-  grid-area: main;
+    grid-area: main;
 }
 
 .sidebar {
-  grid-area: sidebar;
+    grid-area: sidebar;
 }
 
 .sidebar textarea {

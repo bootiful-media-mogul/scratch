@@ -78,16 +78,16 @@ export default {
     <fieldset>
       <legend>Create a New Podcast Episode</legend>
 
-      <div class="pure-control-group">
+
         <label for="podcastSelect">podcast</label>
         <select id="podcastSelect" v-model="selectedPodcastId" @change="refreshRecords">
           <option v-for="podcast in podcasts" :key="podcast.id" :value="podcast.id">
             {{ podcast.id }} - {{ podcast.title }}
           </option>
         </select>
-      </div>
 
-      <div class="pure-control-group">
+
+
         <label for="episodeTitle">
           title
            <AiWorkshopItIconComponent
@@ -98,9 +98,7 @@ export default {
         </label>
         <input id="episodeTitle" required v-model="title" type="text" />
 
-      </div>
 
-      <div class="pure-control-group">
         <label for="episodeDescription">
           description
            <AiWorkshopItIconComponent
@@ -111,7 +109,7 @@ export default {
         </label>
         <textarea id="episodeDescription" rows="10" required v-model="description" />
 
-      </div>
+
       <div v-if="draftEpisode" >
         <label>photo</label>
         <ManagedFileComponent
@@ -138,10 +136,10 @@ export default {
         <button
           @click="createDraft"
           :disabled="!isEpisodeReadyForFiles()"
-          type="button"
+          type="submit"
           class="pure-button pure-button-primary"
         >
-          continue
+          save
         </button>
 
     </fieldset>
