@@ -2,6 +2,7 @@
 import {Episode, Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
+import {reactive} from "vue";
 
 export default {
   mounted(): void {
@@ -20,9 +21,15 @@ export default {
     async editEpisode(episode: Episode) {
       console.log('you want to edit ' + JSON.stringify(episode))
 
-      this.draftEpisode = episode
-      this.title = this.draftEpisode.title
-      this.description = this.draftEpisode.description
+      this.draftEpisode .id = episode.id
+      this.draftEpisode.interview = episode.interview
+      this.draftEpisode.introduction = episode.introduction
+      this.draftEpisode.graphic = episode.graphic
+      this.draftEpisode.title = episode.title
+      this.draftEpisode.descriptions = episode.description
+
+      // this.title = this.draftEpisode.title
+      // this.description = this.draftEpisode.description
 
       // this.interview  = this.draftEpisode.interview
       // this.graphic  = this.draftEpisode.graphic
@@ -64,7 +71,7 @@ export default {
 
   data() {
     return {
-      draftEpisode: null as any as Episode,
+      draftEpisode: reactive({}),
       episodes: [] as Array<Episode>,
       podcasts: [] as Array<Podcast>,
       currentPodcast: null as any as Podcast,
