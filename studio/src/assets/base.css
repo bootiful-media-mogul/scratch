@@ -45,8 +45,8 @@ body {
 }
 
 html {
-  margin-left: var(--gutter-space);
-  margin-top: var(--gutter-space);
+  margin-left: calc( 2 * var(--gutter-space));
+  margin-top : var(--gutter-space);
 }
 
 .page {

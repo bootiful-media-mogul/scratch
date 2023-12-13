@@ -1,43 +1,34 @@
 <template>
-  <input type="file" @change="uploadFile($event)"/>
+  <input type="file" @change="uploadFile($event)" />
   <span v-if="written">✅</span>
-  <span v-if="uploading">
-    🕒 ss
-  </span>
+  <span v-if="uploading"> 🕒 ss </span>
 </template>
 
 <script lang="ts">
 import axios from 'axios'
-import {ManagedFile, managedFiles} from '@/services'
+import { ManagedFile, managedFiles } from '@/services'
 
 export default {
-
-
   async mounted() {
     await this.refreshManagedFile()
   },
 
   emits: ['update:managedFile'],
-  props: [
-    'disabled',
-    'managedFileId'
-  ],
+  props: ['disabled', 'managedFileId'],
   data(vm) {
     return {
-      managedFile: (null as any) as ManagedFile,
+      managedFile: null as any as ManagedFile,
       written: false,
       uploading: false
     }
   },
   methods: {
-
-
     async refreshManagedFile() {
       this.managedFile = await managedFiles.getManagedFileById(parseInt(this.managedFileId))
       this.written = this.managedFile.written
       console.log('written? ' + JSON.stringify(this.managedFile))
-
     },
+
     async uploadFile(event: any) {
       event.preventDefault()
 
@@ -54,8 +45,8 @@ export default {
         }
       })
       console.assert(
-          response.status >= 200 && response.status <= 300,
-          'the http post to upload the archive did not succeed.'
+        response.status >= 200 && response.status <= 300,
+        'the http post to upload the archive did not succeed.'
       )
 
       await this.refreshManagedFile()

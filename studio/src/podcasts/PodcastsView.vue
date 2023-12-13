@@ -26,14 +26,15 @@
     <fieldset>
       <legend>New Podcast</legend>
       <div class="pure-control-group">
-        <label for="title"> title </label>
-        <input type="text" required id="title" v-model="title" />
-
-        <AiWorkshopItIconComponent
+        <label for="title"> title
+          <AiWorkshopItIconComponent
           prompt="please help me take the following podcast title and make it more pithy and exciting"
           :text="title"
           @ai-workshop-completed="title = $event.text"
-        />
+        /> </label>
+        <input type="text" required id="title" v-model="title" />
+
+
       </div>
       <div class="pure-controls">
         <button
@@ -84,7 +85,7 @@ export default {
       console.log('creating podcast episode')
       this.$router.push({
         name: 'podcast-episodes',
-        params: {  id : podcastId }
+        params: { id: podcastId }
       })
     },
     async createPodcast(e: Event) {
