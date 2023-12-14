@@ -5,12 +5,14 @@ import com.joshlong.mogul.api.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -88,25 +90,25 @@ class DefaultManagedFileService implements ManagedFileService {
 	}
 
 	@Override
-	public void write(Long managedFileId, String filename, Resource resource) {
+	public void write(Long managedFileId, String filename, MediaType mediaType, Resource resource) {
 		var managedFile = getManagedFile(managedFileId);
 		var bucket = managedFile.bucket();
 		var folder = managedFile.folder();
-		this.storage
-				.write(bucket, folder + '/' + filename, resource);
+		this.storage.write(bucket, folder + '/' + filename, resource);
+		var clientMediaType = mediaType == null ? CommonMediaTypes.BINARY : mediaType;
 		this.db
-				.sql("update managed_file set filename =?, written = true , size =? where id=?")
-				.params(filename, contentLength(resource), managedFileId)
+				.sql("update managed_file set filename =?, content_type =? , written = true , size =? where id=?")
+				.params(filename, clientMediaType.toString(),
+						contentLength(resource), managedFileId)
 				.update();
-		var wroteMf = getManagedFile(managedFileId);
-		log.info("managed file has been written? "  + wroteMf.written());
+		log.info("managed file has been written? " + getManagedFile(managedFileId).written());
 	}
 
 	@Override
-	public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size) {
+	public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size, MediaType mediaType) {
 		var kh = new GeneratedKeyHolder();
-		this.db.sql("insert into managed_file(mogul_id,   bucket, folder, filename, size ) VALUES ( ?, ?, ?, ?, ? )")
-			.params(mogulId, bucket, folder, fileName, size)
+		this.db.sql("insert into managed_file(mogul_id,   bucket, folder, filename, size   ,content_type) VALUES (? , ?, ?, ?, ?, ? )")
+				.params(mogulId, bucket, folder, fileName, size, mediaType.toString())
 			.update(kh);
 		log.info("the bucket is [" + bucket + "]");
 		return getManagedFile(((Number) kh.getKeys().get("id")).longValue());
@@ -133,11 +135,14 @@ class ManagedFileRowMapper implements RowMapper<ManagedFile> {
 
 	@Override
 	public ManagedFile mapRow(ResultSet rs, int rowNum) throws SQLException {
+		var ct = rs.getString("content_type");
+		var mt = StringUtils.hasText(ct) ? MediaType.parseMediaType(ct) : null;
 		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"),
 				rs.getString("bucket"), rs.getString("folder"),
 				rs.getString("filename"), rs.getDate("created"),
 				rs.getBoolean("written") ,
-				rs.getLong("size"));
+				rs.getLong("size"),
+				mt);
 	}
 
 }

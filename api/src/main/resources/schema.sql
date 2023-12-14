@@ -31,6 +31,7 @@ create table if not exists managed_file
     folder   text               not null,
     filename text               not null,
     size     bigint             not null,
+    content_type text not null,
     written  bool               not null default false
 );
 

@@ -12,6 +12,12 @@ a:hover {
 
 }
 
+input[type=text] {
+    width: 100%;
+}
+textarea {
+    width: 100%;
+}
 
 a {
     color: black;
@@ -63,6 +69,10 @@ html {
     margin-top: var(--gutter-space);
 }
 
+.form-prompt {
+    font-size: small;
+    opacity: 70%;
+}
 .page {
     display: grid;
     grid-template-areas:
@@ -70,7 +80,7 @@ html {
     'toolbar toolbar toolbar'
     'main gap sidebar';
     grid-template-columns:
-            auto calc(1 * var(--gutter-space)) min-content;
+            auto calc(3 * var(--gutter-space)) min-content;
 }
 
 .welcome {

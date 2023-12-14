@@ -5,6 +5,8 @@ import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
 import {reactive} from 'vue'
 
 export default {
+
+
   mounted(): void {
     this.loadPodcast()
   },
@@ -35,15 +37,23 @@ export default {
 
       this.description = this.draftEpisode.description
       this.title = this.draftEpisode.title
+      this.dirtyKey = this.computeDirtyKey()
       await this.loadPodcast()
     },
-    async cancelChanges(e: Event) {
+
+    async save(e: Event) {
       e.preventDefault()
 
-    },
-    async createDraft(e: Event) {
-      e.preventDefault()
-      if (this.isEpisodeReadyForFiles()) {
+      if (this.draftEpisode.id) {
+        console.log('updating ' + this.draftEpisode.id + ' ' + this.draftEpisode.title)
+
+        // we're editing a record, so update it
+        const episode = await podcasts.updatePodcastEpisode(
+            this.draftEpisode.id, this.title, this.description
+        )
+        await this.loadEpisode(episode)
+      } else {
+        console.log('creating ' + this.draftEpisode.id + ' ' + this.draftEpisode.title)
         const episode = await podcasts.createPodcastEpisodeDraft(
             this.selectedPodcastId,
             this.title,
@@ -51,17 +61,24 @@ export default {
         )
         await this.loadEpisode(episode)
       }
+
     },
 
-    isEpisodeReadyForFiles(): boolean {
+    changed(): boolean {
       function isEmpty(txt: string): boolean {
         return txt == null || txt.trim().length == 0
       }
 
       const empty = (isEmpty(this.title) || isEmpty(this.description)) as boolean
-      return !empty
+      const dirty = this.computeDirtyKey() != this.dirtyKey
+
+      return (!empty && dirty) as boolean
     },
 
+    computeDirtyKey() {
+      return '' + this.description + ':' + this.title
+
+    }
 
   },
 
@@ -73,7 +90,8 @@ export default {
       currentPodcast: null as any as Podcast,
       selectedPodcastId: this.id,
       title: '',
-      description: ''
+      description: '',
+      dirtyKey: ''
     }
   }
 }
@@ -84,7 +102,7 @@ export default {
   <form class="pure-form pure-form-stacked">
     <fieldset>
       <legend>
-        <span v-if="draftEpisode.title">Editing "{{ draftEpisode.title }}"</span>
+        <span v-if=" title">Editing "{{ title }}"</span>
         <span v-else>
           Create a New Podcast Episode
         </span>
@@ -137,23 +155,15 @@ export default {
       </div>
 
       <button
-          @click="createDraft"
-          :disabled="!isEpisodeReadyForFiles()"
+          @click="save"
+          :disabled="!changed()"
           type="submit"
           class="pure-button pure-button-primary"
       >
         save
       </button>
-      <!--
-      <button
-          @click="cancelChanges"
-          :disabled="!draftEpisode.id "
-          type="submit"
-          class="pure-button"
-      >
-        cancel
-      </button>
-      -->
+
+
     </fieldset>
   </form>
 

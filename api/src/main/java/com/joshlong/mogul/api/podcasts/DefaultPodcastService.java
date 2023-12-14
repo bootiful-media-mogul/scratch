@@ -2,7 +2,9 @@ package com.joshlong.mogul.api.podcasts;
 
 import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.MogulCreatedEvent;
+import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
+import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import com.joshlong.mogul.api.utils.JdbcUtils;
 import org.slf4j.Logger;
@@ -35,9 +37,12 @@ class DefaultPodcastService implements PodcastService {
 	private final EpisodeRowMapper episodeRowMapper;
 
 	private final ManagedFileService managedFileService;
+	private final MogulService mogulService;
 
-	DefaultPodcastService(JdbcClient db, ManagedFileService managedFileService) {
+
+	DefaultPodcastService(MogulService mogulService, JdbcClient db, ManagedFileService managedFileService) {
 		this.db = db;
+		this.mogulService = mogulService;
 		this.managedFileService = managedFileService;
 		this.episodeRowMapper = new EpisodeRowMapper(this::getPodcastById, managedFileService::getManagedFile);
 	}
@@ -136,13 +141,24 @@ class DefaultPodcastService implements PodcastService {
 		var podcast = getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast is null!");
 		var bucket = PodcastService.PODCAST_EPISODES_BUCKET;
-		var image = managedFileService.createManagedFile(currentMogulId, bucket, uid, "image.jpg", 0);
-		var intro = managedFileService.createManagedFile(currentMogulId, bucket, uid, "intro.mp3", 0);
-		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "interview.mp3", 0);
+		var image = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
+		var intro = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
+		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
 		Assert.notNull(image, "the image managedFile is null");
 		Assert.notNull(intro, "the intro managedFile is null");
 		Assert.notNull(interview, "the interview managedFile is null");
 		return createPodcastEpisode(podcastId, title, description, image, intro, interview);
+	}
+
+	@Override
+	public Episode updatePodcastEpisodeDraft(Long episodeId, String title, String description) {
+		Assert.notNull(episodeId, "the episode is null");
+		Assert.hasText(title, "the title is null");
+		Assert.hasText(description, "the description is null");
+		var ep = getEpisodeById(episodeId);
+		mogulService.assertAuthorizedMogul(ep.podcast().mogulId());
+		db.sql("update podcast_episode set title =? , description =? where  id = ?").params(title, description, episodeId).update();
+		return getEpisodeById(episodeId);
 	}
 
 }

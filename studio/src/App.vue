@@ -45,6 +45,8 @@ export default {
       </SidebarPanelComponent>
 
       <SidebarPanelComponent title="Notes"> </SidebarPanelComponent>
+      <SidebarPanelComponent title="Media Preview">
+      </SidebarPanelComponent>
     </div>
   </div>
 </template>

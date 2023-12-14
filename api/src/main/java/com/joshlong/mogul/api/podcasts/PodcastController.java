@@ -26,8 +26,13 @@ class PodcastController {
 		return this.podcastService.getEpisodesByPodcast(podcastId);
 	}
 
+	@MutationMapping
+	Episode updatePodcastEpisode(@Argument Long episodeId, @Argument String title, @Argument String description) {
+		return this.podcastService.updatePodcastEpisodeDraft(episodeId, title, description);
+	}
+
 	@QueryMapping
-	Episode podcastEpisodeById (@Argument  Long  id ) {
+	Episode podcastEpisodeById (@Argument Long id ) {
 		return this.podcastService.getEpisodeById(id);
 	}
 

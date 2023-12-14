@@ -52,6 +52,29 @@ export class Podcast {
 class Podcasts {
 
 
+    async updatePodcastEpisode(
+        episodeId: number,
+        title: String,
+        description: String
+    ): Promise<Episode> {
+        const mutation = `
+         mutation UpdatePodcastEpisode  ($episode: ID, $title: String, $description: String ){ 
+          updatePodcastEpisode ( episodeId: $episode, title: $title, description: $description) { 
+           id , title, description,  graphic { id  }, interview { id }, introduction { id }
+          }
+         }
+        `
+        console.log(episodeId + ':' + title + ':' + description)
+        const result = await graphqlClient.mutation(mutation, {
+            episode : episodeId,
+            title: title,
+            description: description
+        })
+
+        return (await result.data['updatePodcastEpisode']) as Episode
+    }
+
+
     async podcastEpisodeById(id: number): Promise<Episode> {
         const q = `
            query GetPodcastEpisode ( $id: ID){

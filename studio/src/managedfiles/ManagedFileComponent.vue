@@ -8,7 +8,13 @@
 
   <div class="managed-file-row pure-g">
 
-    <span class="written pure-u-1-24">
+
+
+    <a class="choose pure-u-1-24" href="#" @click="launchFileUpload">
+      <img alt="select a file" width="20" src="../assets/images/folder.png"/>
+    </a>
+
+     <span class="written pure-u-1-24">
       <span v-if="uploading">🕒</span>
       <span v-else>
        <span v-if="written">
@@ -17,11 +23,14 @@
       </span>
     </span>
 
-    <a class="choose pure-u-1-24" href="#" @click="launchFileUpload">
 
-      <img alt="select a file" width="20" src="../assets/images/folder.png"/>
-    </a>
-    <span class="filename pure-u-21-24">{{ filename }} </span>
+    <span class="filename pure-u-21-24">
+    <span v-if="filename">  {{ filename }} </span>
+    <span class="form-prompt" v-else>
+     (please upload a file)
+    </span>
+
+    </span>
 
   </div>
 </template>
