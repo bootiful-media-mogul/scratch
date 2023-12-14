@@ -1,5 +1,6 @@
 :root {
     --gutter-space: 20px;
+    --small-gutter-space :calc(.5 * var(--gutter-space)) ;
     --icon-width: 20px;
     --bg-color: cadetblue;
 }

@@ -1,11 +1,7 @@
 <script lang="ts">
-import { ref } from 'vue'
-
 export default {
   setup() {
-    return {
-      photoManagedId: ref(-1)
-    }
+    return {}
   }
 }
 </script>

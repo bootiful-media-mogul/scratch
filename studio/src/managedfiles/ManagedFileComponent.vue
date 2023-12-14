@@ -7,12 +7,13 @@
       @change="uploadFile($event)"
   />
 
-  <div class="managed-file-row pure-g">
-    <a class="choose pure-u-2-24" href="#" @click="launchFileUpload">
+  <div class="managed-file-row ">
+
+    <a class="choose" href="#" @click="launchFileUpload">
       <span class="folder-icon"></span>
     </a>
 
-    <span class="written pure-u-2-24">
+    <span class="written ">
       <span v-if="uploading">🕒</span>
       <span v-else>
        <span v-if="written">
@@ -22,14 +23,15 @@
     </span>
 
 
-    <span class="filename pure-u-4-24">
-      <span v-if="contentType">  <code style="font-size: smaller">{{ contentType }}</code> </span>
-
+    <span class="contentType">
+      <span v-if="contentType">
+        <code style="font-size: smaller">{{ contentType }}</code>
+      </span>
     </span>
 
 
-    <span class="filename pure-u-16-24">
-      <span v-if="filename">  {{ filename }} </span>
+    <span class="filename">
+      <span v-if="filename">{{ filename }} </span>
       <span class="form-prompt" v-else>
        (please upload a file)
       </span>
@@ -39,9 +41,33 @@
 </template>
 <style>
 
-.managed-file-row {
-  height: calc(var(--gutter-space) * 1);
 
+.managed-file-row {
+
+  height: calc(var(--gutter-space) * 1);
+  grid-template-areas:
+    'choose . written . contentType . filename';
+  grid-template-columns: min-content var(--small-gutter-space)  min-content var(--gutter-space)  5em var(--gutter-space) auto;
+
+  display: grid;
+
+}
+
+.managed-file-row .filename {
+  grid-area: filename;
+}
+
+.managed-file-row .contentType {
+  grid-area: contentType;
+}
+
+.managed-file-row .written {
+  grid-area: written;
+}
+
+.managed-file-row .choose {
+  /*choose written contentType filename */
+  grid-area: choose;
 }
 
 .managed-file-row a:hover {
@@ -69,7 +95,7 @@ export default {
   },
 
   emits: ['update:managedFile'],
-  props: ['disabled', 'accept' , 'managedFileId'],
+  props: ['disabled', 'accept', 'managedFileId'],
 
   watch: {
     async managedFileId(newVal: number, oldVal: number) {
