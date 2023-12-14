@@ -8,9 +8,19 @@ create table if not exists mogul
     unique (client_id, username)
 ) ;
 
---
--- public record ManagedFile (Long mogulId, Long id, String bucket, String folder, String filename , Date created, long size) {
--- }
+
+
+create table if not exists managed_file_deletion_request
+(
+
+    id       serial primary key not null,
+    mogul_id bigint             not null references mogul (id),
+    bucket   text               not null,
+    folder   text               not null,
+    filename text               not null,
+    deleted  bool               not null default false,
+    created  timestamp          not null default now()
+);
 
 create table if not exists managed_file
 (

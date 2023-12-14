@@ -18,7 +18,10 @@ import org.springframework.util.Assert;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Transactional
@@ -102,8 +105,22 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public void deletePodcast(Long podcastId) {
-		var eps = this.getEpisodesByPodcast(podcastId);
-		Assert.state(eps.isEmpty(), "can't delete a podcast for which there are episodes");
+		var func = (BiConsumer<ManagedFile, Set<Long>>) (mf, ids) -> {
+			if (mf != null)
+				ids.add(mf.id());
+		};
+		for (var episode : getEpisodesByPodcast(podcastId)) {
+			var ids = new HashSet<Long>();
+			func.accept(episode.graphic(), ids);
+			func.accept(episode.introduction(), ids);
+			func.accept(episode.interview(), ids);
+			func.accept(episode.producedAudio(), ids);
+
+			db.sql("delete from podcast_episode where id= ?").param(episode.id()).update();
+
+			for (var mfId : ids)
+				managedFileService.deleteManagedFile(mfId);
+		}
 		db.sql("delete from podcast where id= ?").param(podcastId).update();
 
 	}
@@ -134,7 +151,12 @@ class PodcastRowMapper implements RowMapper<Podcast> {
 
 	@Override
 	public Podcast mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new Podcast(rs.getLong("mogul_id"), rs.getLong("id"), rs.getString("title"), rs.getDate("created"));
+		return new Podcast(
+				rs.getLong("mogul_id"),
+				rs.getLong("id"),
+				rs.getString("title"),
+				rs.getDate("created")
+		);
 	}
 
 }

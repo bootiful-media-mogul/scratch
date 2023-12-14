@@ -17,7 +17,7 @@ type Query {
     # podcasts first
     podcastById(id:ID): Podcast
     podcasts: [Podcast]
-
+    podcastEpisodeById(id:ID): Episode
     podcastEpisodesByPodcast (podcastId: ID) : [Episode]
 
     # managed files

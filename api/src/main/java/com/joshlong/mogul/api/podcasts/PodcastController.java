@@ -26,6 +26,11 @@ class PodcastController {
 		return this.podcastService.getEpisodesByPodcast(podcastId);
 	}
 
+	@QueryMapping
+	Episode podcastEpisodeById (@Argument  Long  id ) {
+		return this.podcastService.getEpisodeById(id);
+	}
+
 	PodcastController(MogulService mogulService, PodcastService podcastService, ManagedFileService managedFileService) {
 		this.mogulService = mogulService;
 		this.podcastService = podcastService;

@@ -10,9 +10,11 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 
 @Service
 @Transactional
@@ -27,6 +29,37 @@ class DefaultManagedFileService implements ManagedFileService {
 	DefaultManagedFileService(JdbcClient db, Storage storage) {
 		this.db = db;
 		this.storage = storage;
+	}
+
+	@Override
+	public ManagedFileDeletionRequest getManagedFileDeletionRequest(Long managedFileDeletionRequestId) {
+		return db.sql("select * from managed_file_deletion_request where id =? ").param(managedFileDeletionRequestId).query(new ManagedFileDeletionRequestRowMapper()).single();
+	}
+
+	@Override
+	public Collection<ManagedFileDeletionRequest> getOutstandingManagedFileDeletionRequests() {
+		return this.db.sql("select * from managed_file_deletion_request where deleted = false").query(new ManagedFileDeletionRequestRowMapper()).list();
+	}
+
+	@Override
+	public void complete(Long managedFileDeletionRequestId) {
+		var mfRequest = getManagedFileDeletionRequest(managedFileDeletionRequestId);
+		storage.remove(mfRequest.bucket(), mfRequest.folder() + '/' + mfRequest.filename());
+		Assert.notNull(mfRequest, "the managed file deletion request should not be null");
+		this.db.sql(" update  managed_file_deletion_request  set deleted = true where id = ? ")
+				.param(managedFileDeletionRequestId)
+				.update();
+		var mfdr = getManagedFileDeletionRequest(managedFileDeletionRequestId);
+		log.debug("completed [" + mfdr + "]");
+	}
+
+	@Override
+	public void deleteManagedFile(Long managedFileId) {
+		var mf = getManagedFile(managedFileId);
+		db.sql("delete from managed_file where id =?").param(managedFileId).update();
+		db.sql("insert into managed_file_deletion_request ( mogul_id, bucket, folder, filename) values(?,? ,?,?)")
+				.params(mf.mogulId(), mf.bucket(), mf.folder(), mf.filename())
+				.update();
 	}
 
 	@Override
@@ -81,6 +114,21 @@ class DefaultManagedFileService implements ManagedFileService {
 
 }
 
+class ManagedFileDeletionRequestRowMapper implements RowMapper<ManagedFileDeletionRequest> {
+
+	@Override
+	public ManagedFileDeletionRequest mapRow(ResultSet rs, int rowNum) throws SQLException {
+		return new ManagedFileDeletionRequest(
+				rs.getLong("id"),
+				rs.getLong("mogul_id"),
+				rs.getString("bucket"),
+				rs.getString("folder"),
+				rs.getString("filename"),
+				rs.getBoolean("deleted"),
+				rs.getDate("created")
+		);
+	}
+}
 class ManagedFileRowMapper implements RowMapper<ManagedFile> {
 
 	@Override

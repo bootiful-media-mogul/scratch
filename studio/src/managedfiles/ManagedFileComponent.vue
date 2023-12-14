@@ -11,12 +11,13 @@
     <span class="written pure-u-1-24">
       <span v-if="uploading">🕒</span>
       <span v-else>
-       <span v-if="managedFile.written">✅</span>
+       <span v-if="managedFile.written">  <img alt="select a file" width="20" src="../assets/images/checkbox.png"/>
+</span>
       </span>
     </span>
 
     <a class="choose pure-u-1-24" href="#" @click="launchFileUpload">
-      📁
+  <img alt="select a file" width="20" src="../assets/images/folder.png"/>
     </a>
 
     <span class="filename pure-u-21-24">
