@@ -110,24 +110,33 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public void deletePodcast(Long podcastId) {
+
+		for (var episode : getEpisodesByPodcast(podcastId)) {
+			deletePodcastEpisode(episode.id());
+		}
+		db.sql("delete from podcast where id= ?").param(podcastId).update();
+
+	}
+
+	@Override
+	public void deletePodcastEpisode(Long episodeId) {
 		var func = (BiConsumer<ManagedFile, Set<Long>>) (mf, ids) -> {
 			if (mf != null)
 				ids.add(mf.id());
 		};
-		for (var episode : getEpisodesByPodcast(podcastId)) {
-			var ids = new HashSet<Long>();
-			func.accept(episode.graphic(), ids);
-			func.accept(episode.introduction(), ids);
-			func.accept(episode.interview(), ids);
-			func.accept(episode.producedAudio(), ids);
 
-			db.sql("delete from podcast_episode where id= ?").param(episode.id()).update();
+		var episode = getEpisodeById(episodeId);
 
-			for (var mfId : ids)
-				managedFileService.deleteManagedFile(mfId);
-		}
-		db.sql("delete from podcast where id= ?").param(podcastId).update();
+		var ids = new HashSet<Long>();
+		func.accept(episode.graphic(), ids);
+		func.accept(episode.introduction(), ids);
+		func.accept(episode.interview(), ids);
+		func.accept(episode.producedAudio(), ids);
 
+		this.db.sql("delete from podcast_episode where id= ?").param(episode.id()).update();
+
+		for (var mfId : ids)
+			 this.managedFileService.deleteManagedFile(mfId);
 	}
 
 	@Override

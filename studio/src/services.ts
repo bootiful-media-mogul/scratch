@@ -120,6 +120,18 @@ class Podcasts {
         return (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
     }
 
+    async deleteEpisode(id: number) {
+        const mutation = `
+         mutation DeletePodcastEpisode ($id: ID ){ 
+          deletePodcastEpisode(id: $id)  
+         }
+        `
+        const result = await graphqlClient.mutation(mutation, {
+            id: id
+        })
+        return (await result.data['deletePodcastEpisode']) as Number
+    }
+
     async delete(id: number) {
         const mutation = `
          mutation DeletePodcast ($id: ID ){ 

@@ -59,6 +59,14 @@ class PodcastController {
 	}
 
 	@MutationMapping
+	Long deletePodcastEpisode(@Argument Long id) {
+		var ep = podcastService.getEpisodeById(id);
+		this.mogulService.assertAuthorizedMogul(ep.podcast().mogulId());
+		podcastService.deletePodcastEpisode(id);
+		return id;
+	}
+
+	@MutationMapping
 	Long deletePodcast(@Argument Long id) {
 		var podcast = this.podcastService.getPodcastById(id);
 		Assert.notNull(podcast, "the podcast is null");

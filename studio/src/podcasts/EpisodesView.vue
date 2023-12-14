@@ -26,6 +26,10 @@ export default {
       this.episodes = await podcasts.podcastEpisodes(newPodcastId)
     },
 
+    async deleteEpisode(episode: Episode) {
+      await podcasts.deleteEpisode(episode.id)
+      await this.loadPodcast()
+    },
     async loadEpisode(episode: Episode) {
 
       this.draftEpisode.id = episode.id
@@ -96,14 +100,16 @@ export default {
 </script>
 <style>
 
-  .episode-managed-file-row {
-    height: calc(var(--gutter-space) * 1);
-    margin-bottom : var(--gutter-space);
-    margin-top:  var(--gutter-space);
-  }
-  .episode-managed-file-row label {
-    padding:  0; margin:  0;
-  }
+.episode-managed-file-row {
+  height: calc(var(--gutter-space) * 1);
+  margin-bottom: var(--gutter-space);
+  margin-top: var(--gutter-space);
+}
+
+.episode-managed-file-row label {
+  padding: 0;
+  margin: 0;
+}
 </style>
 <template>
   <h1 v-if="currentPodcast">Episodes for "{{ currentPodcast.title }}"</h1>
@@ -137,7 +143,7 @@ export default {
       </label>
       <textarea id="episodeDescription" rows="10" required v-model="description"/>
 
-      <div v-if="draftEpisode" >
+      <div v-if="draftEpisode">
         <div v-if="draftEpisode.graphic" class="pure-g  episode-managed-file-row ">
           <div class="pure-u-4-24"><label>graphic</label></div>
           <div class="pure-u-20-24">
@@ -154,7 +160,7 @@ export default {
                 v-model:managed-file-id="draftEpisode.introduction.id"/>
           </div>
         </div>
-        <div v-if="draftEpisode.interview" class="pure-g  episode-managed-file-row" >
+        <div v-if="draftEpisode.interview" class="pure-g  episode-managed-file-row">
           <div class="pure-u-4-24"><label>interview</label></div>
           <div class="pure-u-20-24">
             <ManagedFileComponent v-model:managed-file-id="draftEpisode.interview.id"
@@ -185,11 +191,13 @@ export default {
         <div class="pure-u-1-24">
           <b> {{ episode.id }}</b>
         </div>
-
+        <div class="pure-u-3-24">
+          <a href="#" @click="deleteEpisode(episode)">delete</a>
+        </div>
         <div class="pure-u-3-24">
           <a href="#" @click="loadEpisode(episode)">edit</a>
         </div>
-        <div class="pure-u-20-24">{{ episode.title }}</div>
+        <div class="pure-u-17-24">{{ episode.title }}</div>
       </div>
     </fieldset>
   </form>

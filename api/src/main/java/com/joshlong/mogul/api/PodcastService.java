@@ -25,6 +25,8 @@ public interface PodcastService {
 
 	void deletePodcast(Long podcastId);
 
+	void deletePodcastEpisode(Long episodeId);
+
 	Episode createPodcastEpisodeDraft(Long currentMogulId, Long podcastId, String title, String description);
 
 	Episode updatePodcastEpisodeDraft(Long episodeId, String title, String description);
