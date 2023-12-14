@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
@@ -14,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
-import java.util.UUID;
 
 @Controller
 class ManagedFileController {
@@ -44,9 +44,10 @@ class ManagedFileController {
 		var mf = managedFileService.getManagedFile(id);
 		Assert.notNull(mf, "the managed file does not exist [" + id + "]");
 		var read = managedFileService.read(id);
+		var contentType = mf.contentType();
 		return ResponseEntity.ok()
 				.contentLength(read.contentLength())
-				.contentType(mf.contentType())
+				.contentType(MediaType.parseMediaType(contentType))
 				.body(read);
 
 	}

@@ -10,26 +10,34 @@
 
 
 
-    <a class="choose pure-u-1-24" href="#" @click="launchFileUpload">
-      <img alt="select a file" width="20" src="../assets/images/folder.png"/>
+    <a class="choose pure-u-2-24" href="#" @click="launchFileUpload">
+<!--      <img alt="select a file" class="folder-icon" width="20" src="../assets/images/folder.png"/>-->
+      <span class="folder-icon" ></span>
     </a>
 
-     <span class="written pure-u-1-24">
+     <span class="written pure-u-2-24">
       <span v-if="uploading">🕒</span>
       <span v-else>
        <span v-if="written">
-         <img alt="select a file" width="20" src="../assets/images/checkbox.png"/>
+         <span class="icon checkbox-icon" ></span>
        </span>
       </span>
     </span>
 
 
-    <span class="filename pure-u-21-24">
-    <span v-if="filename">  {{ filename }} </span>
-    <span class="form-prompt" v-else>
-     (please upload a file)
+
+    <span class="filename pure-u-4-24">
+      <span v-if="contentType">  <code style="font-size: smaller">{{ contentType }}</code> </span>
+
     </span>
 
+
+
+    <span class="filename pure-u-16-24">
+      <span v-if="filename">  {{ filename }} </span>
+      <span class="form-prompt" v-else>
+       (please upload a file)
+      </span>
     </span>
 
   </div>
@@ -76,6 +84,7 @@ export default {
   data() {
     return {
       filename: ref(''),
+      contentType: ref(''),
       size: ref(0),
       uploading: ref(false),
       written: ref(false),
@@ -93,6 +102,7 @@ export default {
       const managedFile = await managedFiles.getManagedFileById(parseInt(this.managedFileId))
       this.filename = managedFile.filename
       this.written = managedFile.written
+      this.contentType = managedFile.contentType
       this.size = managedFile.size
     },
 

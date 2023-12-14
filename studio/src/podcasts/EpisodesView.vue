@@ -45,15 +45,13 @@ export default {
       e.preventDefault()
 
       if (this.draftEpisode.id) {
-        console.log('updating ' + this.draftEpisode.id + ' ' + this.draftEpisode.title)
-
         // we're editing a record, so update it
         const episode = await podcasts.updatePodcastEpisode(
             this.draftEpisode.id, this.title, this.description
         )
         await this.loadEpisode(episode)
-      } else {
-        console.log('creating ' + this.draftEpisode.id + ' ' + this.draftEpisode.title)
+      }//
+      else {
         const episode = await podcasts.createPodcastEpisodeDraft(
             this.selectedPodcastId,
             this.title,

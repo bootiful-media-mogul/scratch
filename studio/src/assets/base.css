@@ -1,5 +1,6 @@
 :root {
     --gutter-space: 20px;
+    --icon-width: 20px;
 }
 
 
@@ -15,6 +16,7 @@ a:hover {
 input[type=text] {
     width: 100%;
 }
+
 textarea {
     width: 100%;
 }
@@ -73,6 +75,33 @@ html {
     font-size: small;
     opacity: 70%;
 }
+
+.checkbox-icon {
+    background: url("../assets/images/checkbox.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+
+.folder-icon {
+    background: url("../assets/images/folder.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.folder-icon:hover {
+    background: url("../assets/images/folder-highlight.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+
+}
+
 .page {
     display: grid;
     grid-template-areas:
@@ -107,14 +136,14 @@ html {
 .pure-form legend {
     box-sizing: unset;
     display: inline-block;
-    border-radius: 10px 10px 10px 10px ;
+    border-radius: 10px 10px 10px 10px;
     font-weight: bold;
-    background-color:white ;
-    color: black ;
+    background-color: white;
+    color: black;
     border-width: 0;
-    left : calc(-4 * var(--gutter-space)) ;
-    padding-left:  calc( 4 * var(--gutter-space)) ;
+    left: calc(-4 * var(--gutter-space));
+    padding-left: calc(4 * var(--gutter-space));
     position: relative;
-    right :0 ;
+    right: 0;
 
 }

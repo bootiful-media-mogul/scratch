@@ -1,11 +1,11 @@
 import {Ai} from '@/ai/ai'
 import Mogul from '@/mogul'
 import mitt from 'mitt'
-import {cacheExchange, Client, fetchExchange} from '@urql/core'
+import {Client, fetchExchange} from '@urql/core'
 
 export const graphqlClient = new Client({
     url: '/api/graphql',
-    exchanges: [  fetchExchange]
+    exchanges: [fetchExchange]
 })
 
 export enum AiWorkshopReplyEventType {
@@ -66,7 +66,7 @@ class Podcasts {
         `
         console.log(episodeId + ':' + title + ':' + description)
         const result = await graphqlClient.mutation(mutation, {
-            episode : episodeId,
+            episode: episodeId,
             title: title,
             description: description
         })
@@ -186,6 +186,7 @@ export class ManagedFile {
     filename: string
     size: number
     written: boolean
+    contentType: string
 
     constructor(
         id: number,
@@ -193,7 +194,8 @@ export class ManagedFile {
         folder: string,
         filename: string,
         size: number,
-        written: boolean
+        written: boolean,
+        contentType: string
     ) {
         this.id = id
         this.bucket = bucket
@@ -201,6 +203,7 @@ export class ManagedFile {
         this.filename = filename
         this.written = written
         this.size = size
+        this.contentType = contentType
     }
 }
 
@@ -234,13 +237,13 @@ export class ManagedFiles {
         const q = `
         query ($id: ID) {
           managedFileById( id : $id )  { 
-            id, bucket, folder, filename, size, written
+            id, bucket, folder, filename, size, written ,contentType
           }
          }
         `
         const result = await graphqlClient.query(q, {id: id})
         const mfid = await result.data['managedFileById']
-        return  mfid as ManagedFile
+        return mfid as ManagedFile
     }
 }
 

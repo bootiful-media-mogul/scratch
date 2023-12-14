@@ -135,14 +135,12 @@ class ManagedFileRowMapper implements RowMapper<ManagedFile> {
 
 	@Override
 	public ManagedFile mapRow(ResultSet rs, int rowNum) throws SQLException {
-		var ct = rs.getString("content_type");
-		var mt = StringUtils.hasText(ct) ? MediaType.parseMediaType(ct) : null;
 		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"),
 				rs.getString("bucket"), rs.getString("folder"),
 				rs.getString("filename"), rs.getDate("created"),
 				rs.getBoolean("written") ,
 				rs.getLong("size"),
-				mt);
+				rs.getString("content_type"));
 	}
 
 }
