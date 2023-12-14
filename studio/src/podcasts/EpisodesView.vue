@@ -20,13 +20,11 @@ export default {
 
     async loadPodcast() {
       const newPodcastId = this.selectedPodcastId
-      // this.podcasts = await podcasts.podcasts()
       this.currentPodcast = await podcasts.podcastById(newPodcastId)
       this.episodes = await podcasts.podcastEpisodes(newPodcastId)
     },
 
     async loadEpisode(episode: Episode) {
-      console.log('you want to edit ' + JSON.stringify(episode))
 
       this.draftEpisode.id = episode.id
       this.draftEpisode.interview = episode.interview

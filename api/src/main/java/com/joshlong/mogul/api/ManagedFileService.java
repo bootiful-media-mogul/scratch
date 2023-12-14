@@ -24,7 +24,7 @@ public interface ManagedFileService {
 
 	Resource read(Long managedFileId);
 
-	ManagedFile write(Long managedFileId, String filename,  Resource resource);
+	void write(Long managedFileId, String filename, Resource resource);
 
 	ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size);
 

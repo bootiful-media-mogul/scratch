@@ -49,7 +49,7 @@ public class Storage {
 
 	public void write(String bucket, String objectName, Resource resource) {
 
-		log.info("started executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread ["
+		log.debug( "started executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread ["
 				+ Thread.currentThread() + "]");
 
 		ensureBucketExists(bucket);
@@ -59,9 +59,10 @@ public class Storage {
 			s3.putObject(putOb, RequestBody.fromInputStream(inputStream, resource.contentLength()));
 		}
 		catch (IOException e) {
-			throw new RuntimeException("got an exception writing to [" + bucket + "] for file [" + objectName + "]");
+			throw new RuntimeException(
+				"got an exception writing to [" + bucket + "] for file [" + objectName + "]");
 		}
-		log.info("finished executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread ["
+		log.debug("finished executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread ["
 				+ Thread.currentThread() + "]");
 
 	}

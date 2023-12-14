@@ -5,7 +5,7 @@ import {cacheExchange, Client, fetchExchange} from '@urql/core'
 
 export const graphqlClient = new Client({
     url: '/api/graphql',
-    exchanges: [cacheExchange, fetchExchange]
+    exchanges: [  fetchExchange]
 })
 
 export enum AiWorkshopReplyEventType {
@@ -216,7 +216,8 @@ export class ManagedFiles {
          }
         `
         const result = await graphqlClient.query(q, {id: id})
-        return (await result.data['managedFileById']) as ManagedFile
+        const mfid = await result.data['managedFileById']
+        return  mfid as ManagedFile
     }
 }
 

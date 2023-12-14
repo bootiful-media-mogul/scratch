@@ -11,18 +11,17 @@
     <span class="written pure-u-1-24">
       <span v-if="uploading">🕒</span>
       <span v-else>
-       <span v-if="managedFile.written">  <img alt="select a file" width="20" src="../assets/images/checkbox.png"/>
-</span>
+       <span v-if="written">
+         <img alt="select a file" width="20" src="../assets/images/checkbox.png"/>
+       </span>
       </span>
     </span>
 
     <a class="choose pure-u-1-24" href="#" @click="launchFileUpload">
-  <img alt="select a file" width="20" src="../assets/images/folder.png"/>
-    </a>
 
-    <span class="filename pure-u-21-24">
-      {{ managedFile.filename }}
-    </span>
+      <img alt="select a file" width="20" src="../assets/images/folder.png"/>
+    </a>
+    <span class="filename pure-u-21-24">{{ filename }} </span>
 
   </div>
 </template>
@@ -37,10 +36,6 @@
   text-decoration: none;
 }
 
-.managed-file-row .choose {
-}
-
-
 .managed-file-file-upload {
   border: 1px solid red;
   display: none;
@@ -53,12 +48,12 @@
 </style>
 <script lang="ts">
 import axios from 'axios'
-import {ManagedFile, managedFiles} from '@/services'
-import {reactive, ref} from 'vue'
+import {managedFiles} from '@/services'
+import {ref} from 'vue'
 
 export default {
   async mounted() {
-    await this.refreshManagedFile()
+    await this.loadManagedFileIntoEditor()
   },
 
   emits: ['update:managedFile'],
@@ -66,15 +61,18 @@ export default {
 
   watch: {
     async managedFileId(newVal: number, oldVal: number) {
-      await this.refreshManagedFile()
+      await this.loadManagedFileIntoEditor()
     }
   },
   data() {
     return {
-      managedFile: reactive({} as ManagedFile),
-      uploading: ref(false)
+      filename: ref(''),
+      size: ref(0),
+      uploading: ref(false),
+      written: ref(false),
     }
   },
+
 
   methods: {
     launchFileUpload() {
@@ -82,21 +80,16 @@ export default {
       realFileUploadInputField.click()
     },
 
-    async refreshManagedFile() {
-      console.log( 'getting the managed file for id ' + this.managedFileId)
-      const nMF = await managedFiles.getManagedFileById(parseInt(this.managedFileId))
-      console.log( JSON.stringify(nMF))
-      this.managedFile.id = nMF.id
-      this.managedFile.size = nMF.size
-      this.managedFile.written = nMF.written
-      this.managedFile.folder = nMF.folder
-      this.managedFile.filename = nMF.filename
-      console.log('written? ' + JSON.stringify(this.managedFile))
+    async loadManagedFileIntoEditor() {
+      const managedFile = await managedFiles.getManagedFileById(parseInt(this.managedFileId))
+      this.filename = managedFile.filename
+      this.written = managedFile.written
+      this.size = managedFile.size
     },
 
     async uploadFile(event: any) {
       event.preventDefault()
-      console.log('the managed file : ' + this.managedFileId)
+
       const data = new FormData()
       const file = event.target.files[0] as File
       data.set('file', file)
@@ -111,10 +104,10 @@ export default {
           response.status >= 200 && response.status <= 300,
           'the http post to upload the archive did not succeed.'
       )
+
+      this.written = true
       this.uploading = false
-      this.$emit('update:managedFile', this.managedFile)
-      await this.refreshManagedFile()
-      this.$forceUpdate()
+      await this.loadManagedFileIntoEditor()
     }
   }
 }
