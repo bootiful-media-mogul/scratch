@@ -94,6 +94,17 @@ export default {
   }
 }
 </script>
+<style>
+
+  .episode-managed-file-row {
+    height: calc(var(--gutter-space) * 1);
+    margin-bottom : var(--gutter-space);
+    margin-top:  var(--gutter-space);
+  }
+  .episode-managed-file-row label {
+    padding:  0; margin:  0;
+  }
+</style>
 <template>
   <h1 v-if="currentPodcast">Episodes for "{{ currentPodcast.title }}"</h1>
 
@@ -126,24 +137,30 @@ export default {
       </label>
       <textarea id="episodeDescription" rows="10" required v-model="description"/>
 
-      <div v-if="draftEpisode">
-        <div v-if="draftEpisode.graphic">
-          <label>photo</label>
-          <ManagedFileComponent
-              accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
-              v-model:managed-file-id="draftEpisode.graphic.id"/>
+      <div v-if="draftEpisode" >
+        <div v-if="draftEpisode.graphic" class="pure-g  episode-managed-file-row ">
+          <div class="pure-u-4-24"><label>graphic</label></div>
+          <div class="pure-u-20-24">
+            <ManagedFileComponent
+                accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
+                v-model:managed-file-id="draftEpisode.graphic.id"/>
+          </div>
         </div>
-        <div v-if="draftEpisode.introduction">
-          <label>introduction</label>
-          <ManagedFileComponent
-              accept=".mp3,audio/mpeg"
-              v-model:managed-file-id="draftEpisode.introduction.id"/>
+        <div v-if="draftEpisode.introduction" class="pure-g  episode-managed-file-row">
+          <div class="pure-u-4-24"><label>introduction</label></div>
+          <div class="pure-u-20-24">
+            <ManagedFileComponent
+                accept=".mp3,audio/mpeg"
+                v-model:managed-file-id="draftEpisode.introduction.id"/>
+          </div>
         </div>
-        <div v-if="draftEpisode.interview">
-          <label>interview</label>
-          <ManagedFileComponent v-model:managed-file-id="draftEpisode.interview.id"
-          accept=".mp3,audio/mpeg"
-          />
+        <div v-if="draftEpisode.interview" class="pure-g  episode-managed-file-row" >
+          <div class="pure-u-4-24"><label>interview</label></div>
+          <div class="pure-u-20-24">
+            <ManagedFileComponent v-model:managed-file-id="draftEpisode.interview.id"
+                                  accept=".mp3,audio/mpeg"
+            />
+          </div>
         </div>
       </div>
 

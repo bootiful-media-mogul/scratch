@@ -150,7 +150,7 @@ class Podcasts {
         description: String
     ): Promise<Episode> {
         const mutation = `
-         mutation CreatePodcastEpisodeDraft ($podcast: Float, $title: String, $description: String ){ 
+         mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
            id , title, description,  graphic { id  }, interview { id }, introduction { id }
           }

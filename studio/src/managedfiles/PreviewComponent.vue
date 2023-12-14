@@ -9,6 +9,12 @@
       <div>
         <img v-if="isImage" class="managed-file-preview-image" :alt="'a preview for managed file '+managedFileId "
              :src="url"/>
+
+
+        <audio :src="url" v-if="isAudio" class ="managed-file-preview-audio" controls>
+
+        </audio>
+
       </div>
       <div>
         <div><b>{{ filename }}</b></div>
@@ -32,7 +38,7 @@
 </style>
 <script lang="ts">
 import {events, managedFiles} from '@/services'
-import {prettyPrintBytes, prettyPrintInBytes} from '@/managedfiles/files'
+import {prettyPrintInBytes} from '@/managedfiles/files'
 import {ref} from 'vue'
 
 export default {
@@ -75,8 +81,10 @@ export default {
       const ext = managedFile.contentType.toLowerCase();
       console.log('the content type is ' + ext)
       this.isImage = ext.endsWith('jpg') || ext.endsWith('jpeg') || ext.endsWith('png') || ext.endsWith('gif')
+      this.isAudio = ext.endsWith('mp3') || ext.endsWith('wav') || ext.endsWith('mpeg')
+      console.log('isAudio? ' + this.isAudio)
       this.contentType = ext
-      this.size = prettyPrintBytes(managedFile.size)
+      this.size = prettyPrintInBytes(managedFile.size)
       this.filename = managedFile.filename
 
 

@@ -13,7 +13,7 @@
       <span class="folder-icon"></span>
     </a>
 
-    <span class="written ">
+    <span class="written">
       <span v-if="uploading">🕒</span>
       <span v-else>
        <span v-if="written">
@@ -24,7 +24,7 @@
 
     </span>
     <span class="preview ">
-          <a href="#" class="preview-icon" v-if="managedFileId" @click="preview">
+          <a href="#" class="preview-icon" v-if="written" @click="preview">
           </a>
     </span>
 
@@ -46,10 +46,16 @@
 </template>
 <style>
 .managed-file-row {
-  height: calc(var(--gutter-space) * 1);
+  --managed-file-row-icon-column: calc(var(--gutter-space) * 1.5);
+
   grid-template-areas:
-    'choose . written . preview . contentType . filename';
-  grid-template-columns: min-content var(--small-gutter-space)  min-content var(--gutter-space)  min-content var(--gutter-space)  5em var(--gutter-space) auto;
+    'choose   written  preview   contentType   filename';
+  grid-template-columns:
+      var(--managed-file-row-icon-column)
+      var(--managed-file-row-icon-column)
+      var(--managed-file-row-icon-column)
+      15em
+      auto;
   display: grid;
 }
 
@@ -59,6 +65,7 @@
 
 .managed-file-row .contentType {
   grid-area: contentType;
+  text-align: center;
 }
 
 .managed-file-row .written {
@@ -70,7 +77,6 @@
 }
 
 .managed-file-row .choose {
-  /*choose written contentType filename */
   grid-area: choose;
 }
 
@@ -78,8 +84,12 @@
   text-decoration: none;
 }
 
+/*
+  hide the file upload off screen so it doesn't ruin the ui.
+  (display: none doesn't work)
+*/
 .managed-file-file-upload {
-  border: 1px solid red;
+
   display: none;
   z-index: -1;
   opacity: 10;

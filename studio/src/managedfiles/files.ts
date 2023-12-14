@@ -1,4 +1,4 @@
-export function prettyPrintBytes(bytes : number) : string  {
+export function prettyPrintInBytes(bytes : number) : string  {
     const units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
     let unitIndex = 0;
     let value = bytes;
