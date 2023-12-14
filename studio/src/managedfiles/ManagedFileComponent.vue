@@ -20,8 +20,13 @@
          <span class="icon checkbox-icon"></span>
        </span>
       </span>
-    </span>
 
+
+    </span>
+    <span class="preview ">
+          <a href="#" class="preview-icon" v-if="managedFileId" @click="preview">
+          </a>
+    </span>
 
     <span class="contentType">
       <span v-if="contentType">
@@ -40,17 +45,12 @@
   </div>
 </template>
 <style>
-
-
 .managed-file-row {
-
   height: calc(var(--gutter-space) * 1);
   grid-template-areas:
-    'choose . written . contentType . filename';
-  grid-template-columns: min-content var(--small-gutter-space)  min-content var(--gutter-space)  5em var(--gutter-space) auto;
-
+    'choose . written . preview . contentType . filename';
+  grid-template-columns: min-content var(--small-gutter-space)  min-content var(--gutter-space)  min-content var(--gutter-space)  5em var(--gutter-space) auto;
   display: grid;
-
 }
 
 .managed-file-row .filename {
@@ -63,6 +63,10 @@
 
 .managed-file-row .written {
   grid-area: written;
+}
+
+.managed-file-row .preview {
+  grid-area: preview;
 }
 
 .managed-file-row .choose {
@@ -86,7 +90,7 @@
 </style>
 <script lang="ts">
 import axios from 'axios'
-import {managedFiles} from '@/services'
+import {previewManagedFile, managedFiles} from '@/services'
 import {ref} from 'vue'
 
 export default {
@@ -114,6 +118,10 @@ export default {
 
 
   methods: {
+
+    async preview() {
+      previewManagedFile(this.managedFileId)
+    },
 
     launchFileUpload() {
       const realFileUploadInputField = this.$refs.realFileUploadInputField as HTMLElement

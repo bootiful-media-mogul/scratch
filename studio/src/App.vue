@@ -6,9 +6,10 @@ import AiChatComponent from '@/ai/AiChatComponent.vue'
 
 import {mogul} from '@/services'
 import SidebarPanelComponent from '@/layout/SidebarPanelComponent.vue'
+import PreviewComponent from '@/managedfiles/PreviewComponent.vue'
 
 export default {
-  components: {AiChatComponent, SidebarPanelComponent},
+  components: {AiChatComponent, PreviewComponent, SidebarPanelComponent},
 
   methods: {},
   data() {
@@ -22,32 +23,49 @@ export default {
   }
 }
 </script>
+<style>
 
+
+
+</style>
 <template>
-  <div class="page">
-    <div class="welcome">
-      hello, <span style="font-weight: bold"> {{ mogul }} </span>!
+  <div class="frame">
+    <div class="page">
+      <div class="welcome">
+        hello, <span style="font-weight: bold"> {{ mogul }} </span>!
+      </div>
+
+      <div class="toolbar">
+        <router-link to="/">home</router-link>
+        |
+        <router-link to="/podcasts">podcasts</router-link>
+      </div>
+
+      <div class="view">
+        <router-view></router-view>
+      </div>
+
+
+      <div class="sidebar">
+
+        <SidebarPanelComponent title="A.I.">
+          <AiChatComponent/>
+        </SidebarPanelComponent>
+
+        <SidebarPanelComponent title="Notes"></SidebarPanelComponent>
+
+        <SidebarPanelComponent title="Media Preview">
+          <PreviewComponent/>
+
+        </SidebarPanelComponent>
+      </div>
+
+
     </div>
-
-    <div class="toolbar">
-      <router-link to="/">home</router-link>
-      |
-      <router-link to="/podcasts">podcasts</router-link>
-    </div>
-
-    <div class="view">
-      <router-view></router-view>
-    </div>
-
-    <div class="sidebar">
-
-      <SidebarPanelComponent title="A.I.">
-        <AiChatComponent/>
-      </SidebarPanelComponent>
-
-      <SidebarPanelComponent title="Notes"></SidebarPanelComponent>
-
-      <SidebarPanelComponent title="Media Preview"></SidebarPanelComponent>
+    <div class="footer">
+      Mogul, made with love by
+      <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and Spring 🍃)
     </div>
   </div>
+
 </template>

@@ -45,8 +45,9 @@ class ManagedFileController {
 		Assert.notNull(mf, "the managed file does not exist [" + id + "]");
 		var read = managedFileService.read(id);
 		var contentType = mf.contentType();
+		log.debug("content-type: " + contentType);
 		return ResponseEntity.ok()
-				.contentLength(read.contentLength())
+				.contentLength( mf.size())
 				.contentType(MediaType.parseMediaType(contentType))
 				.body(read);
 

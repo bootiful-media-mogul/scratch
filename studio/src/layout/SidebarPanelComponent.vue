@@ -14,6 +14,12 @@
 </template>
 
 <style>
+
+
+.sidebar-panel-hidden .sidebar-panel-content {
+  display: none;
+}
+
 .visibility-controls {
   text-transform: uppercase;
   font-weight: bold;

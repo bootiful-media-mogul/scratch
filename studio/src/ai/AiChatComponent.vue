@@ -40,10 +40,6 @@ todo support workshopping the image for the podcast as well: give it
   width: 50px;
 }
 
-.sidebar-panel-hidden .ai-workshop-panel {
-  display: none;
-}
-
 .ai-workshop-panel fieldset legend {
   background-image: url('../assets/images/clippy.png');
   background-size: contain;

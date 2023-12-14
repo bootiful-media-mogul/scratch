@@ -1,10 +1,13 @@
 :root {
     --gutter-space: 20px;
-    --small-gutter-space :calc(.5 * var(--gutter-space)) ;
+    --small-gutter-space: calc(.5 * var(--gutter-space));
     --icon-width: 20px;
     --bg-color: cadetblue;
 }
 
+.managed-file-preview-image {
+    max-width: 100%;
+}
 
 a:hover {
     text-decoration: underline;
@@ -12,7 +15,6 @@ a:hover {
 
 .panel {
     border-radius: var(--gutter-space) 0 0 var(--gutter-space);
-
 }
 
 input[type=text] {
@@ -77,6 +79,22 @@ html {
     opacity: 70%;
 }
 
+.preview-icon {
+    background: url("../assets/images/preview-highlight.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.preview-icon:hover {
+    background: url("../assets/images/preview.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
 .checkbox-icon {
     background: url("../assets/images/checkbox.png");
     height: var(--icon-width);
@@ -84,7 +102,6 @@ html {
     width: var(--icon-width);
     background-size: var(--icon-width) var(--icon-width);
 }
-
 
 .folder-icon {
     background: url("../assets/images/folder-highlight.png");
@@ -114,6 +131,7 @@ html {
             auto calc(3 * var(--gutter-space)) min-content;
 }
 
+
 .welcome {
     grid-area: welcome;
     padding-bottom: var(--gutter-space);
@@ -126,7 +144,9 @@ html {
 
 .view {
     grid-area: main;
+
 }
+
 
 .sidebar {
     grid-area: sidebar;
@@ -136,16 +156,46 @@ html {
 }
 
 .pure-form legend {
+    /*display: block;*/
+    /*top: var(--gutter-space);*/
+    height: calc( var(--gutter-space) * 1 );
+}
+
+.sidebar .pure-form legend {
+    color: black;
+    background-color: white;
+}
+
+.pure-form legend {
     box-sizing: unset;
     display: inline-block;
     border-radius: 10px 10px 10px 10px;
     font-weight: bold;
-    background-color: white;
-    color: black;
+    background-color: black;
+    color: white;
     border-width: 0;
     left: calc(-4 * var(--gutter-space));
     padding-left: calc(4 * var(--gutter-space));
     position: relative;
     right: 0;
 
+}
+
+
+.footer {
+    bottom: 0;
+    position: fixed;
+    width: 100%;
+    background-color: black;
+    color: white;
+    text-align: center;
+
+    height: calc(var(--gutter-space) * 1.5);
+    margin-left: calc(-2 * var(--gutter-space));
+    padding-left: calc(2 * var(--gutter-space));
+    padding-top: calc(var(--gutter-space) / 2);
+}
+
+.footer a {
+    color: white
 }

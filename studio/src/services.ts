@@ -34,6 +34,11 @@ export class AiWorkshopRequestEvent {
     }
 }
 
+export function previewManagedFile(managedFileId: number) {
+    console.log('launching previewManagedFile for ' + managedFileId)
+    events.emit('preview-managed-file-event', managedFileId)
+}
+
 export function workshopInAi(callback: (e: AiWorkshopReplyEvent) => void, text: string) {
     events.emit('ai-workshop-event', new AiWorkshopRequestEvent(text, callback))
 }

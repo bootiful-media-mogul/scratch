@@ -102,18 +102,9 @@ export default {
       <legend>
         <span v-if=" title">Editing "{{ title }}"</span>
         <span v-else>
-          Create a New Podcast Episode
+           New   Episode
         </span>
       </legend>
-
-      <!--
-            <label for="podcastSelect">podcast</label>
-            <select  id="podcastSelect" v-model="selectedPodcastId" @change="refreshRecords">
-              <option v-for="podcast in podcasts" :key="podcast.id" :value="podcast.id">
-                {{ podcast.id }} - {{ podcast.title }}
-              </option>
-            </select>
-      -->
 
       <label for="episodeTitle">
         title
@@ -171,7 +162,7 @@ export default {
 
   <form class="pure-form">
     <fieldset>
-      <legend>Past Episodes</legend>
+      <legend>Episodes</legend>
 
       <div class="pure-g form-row" v-bind:key="episode.id" v-for="episode in episodes">
         <div class="pure-u-1-24">
