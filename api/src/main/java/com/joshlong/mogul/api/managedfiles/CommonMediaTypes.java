@@ -22,19 +22,7 @@ public abstract class CommonMediaTypes {
         return StringUtils.hasText(ct) ?  MediaType.parseMediaType( ct ) : CommonMediaTypes.BINARY ;
     }
 
-    /*public static MediaType tikaGuess(Resource input) {
-        try {
-            var is = input.getInputStream();
-            log.info("is mark supported for Resource? " + is.markSupported());
-            var guess = new Tika().detect(is);
-            return StringUtils.hasText(guess) ?
-                    MediaType.parseMediaType(guess) :
-                    CommonMediaTypes.BINARY;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-*/
+
     public static final MediaType BINARY = MediaType.APPLICATION_OCTET_STREAM;
 
     // images

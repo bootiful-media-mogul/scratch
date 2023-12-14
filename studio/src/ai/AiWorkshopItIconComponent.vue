@@ -5,16 +5,19 @@
 <style>
 .ai-workshop-it-link {
   --icon-size: 3em;
+  background: url('../assets/images/ai-icon-highlight.png');
   height: var(--icon-size);
   width: var(--icon-size);
-  background: url('../assets/images/ai-icon.png');
+
   background-size: var(--icon-size) var(--icon-size);
   background-repeat: no-repeat;
   background-position: left;
+
 }
 
 .ai-workshop-it-link:hover {
-  background: url('../assets/images/ai-icon-highlight.png');
+
+  background: url('../assets/images/ai-icon.png');
   background-size: var(--icon-size) var(--icon-size);
   background-repeat: no-repeat;
   background-position: left;

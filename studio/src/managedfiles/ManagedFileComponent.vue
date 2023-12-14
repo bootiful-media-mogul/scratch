@@ -3,34 +3,29 @@
       class="managed-file-file-upload"
       ref="realFileUploadInputField"
       type="file"
+      :accept=" accept ? accept : '*/*' "
       @change="uploadFile($event)"
   />
 
   <div class="managed-file-row pure-g">
-
-
-
     <a class="choose pure-u-2-24" href="#" @click="launchFileUpload">
-<!--      <img alt="select a file" class="folder-icon" width="20" src="../assets/images/folder.png"/>-->
-      <span class="folder-icon" ></span>
+      <span class="folder-icon"></span>
     </a>
 
-     <span class="written pure-u-2-24">
+    <span class="written pure-u-2-24">
       <span v-if="uploading">🕒</span>
       <span v-else>
        <span v-if="written">
-         <span class="icon checkbox-icon" ></span>
+         <span class="icon checkbox-icon"></span>
        </span>
       </span>
     </span>
-
 
 
     <span class="filename pure-u-4-24">
       <span v-if="contentType">  <code style="font-size: smaller">{{ contentType }}</code> </span>
 
     </span>
-
 
 
     <span class="filename pure-u-16-24">
@@ -74,7 +69,7 @@ export default {
   },
 
   emits: ['update:managedFile'],
-  props: ['disabled', 'managedFileId'],
+  props: ['disabled', 'accept' , 'managedFileId'],
 
   watch: {
     async managedFileId(newVal: number, oldVal: number) {
@@ -93,6 +88,7 @@ export default {
 
 
   methods: {
+
     launchFileUpload() {
       const realFileUploadInputField = this.$refs.realFileUploadInputField as HTMLElement
       realFileUploadInputField.click()

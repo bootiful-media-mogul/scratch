@@ -1,6 +1,7 @@
 :root {
     --gutter-space: 20px;
     --icon-width: 20px;
+    --bg-color: cadetblue;
 }
 
 
@@ -62,11 +63,10 @@ a.disabled {
     text-decoration: none;
 }
 
-body {
-    background-color: cadetblue;
-}
 
 html {
+
+    background-color: var(--bg-color);
     margin-left: calc(2 * var(--gutter-space));
     margin-top: var(--gutter-space);
 }
@@ -86,7 +86,8 @@ html {
 
 
 .folder-icon {
-    background: url("../assets/images/folder.png");
+    background: url("../assets/images/folder-highlight.png");
+
     height: var(--icon-width);
     display: inline-block;
     width: var(--icon-width);
@@ -94,7 +95,7 @@ html {
 }
 
 .folder-icon:hover {
-    background: url("../assets/images/folder-highlight.png");
+    background: url("../assets/images/folder.png");
     height: var(--icon-width);
     display: inline-block;
     width: var(--icon-width);
