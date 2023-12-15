@@ -17,11 +17,6 @@ public class ApiApplication {
 		SpringApplication.run(ApiApplication.class, args);
 	}
 
-	// @Bean
-	// DataSourceTransactionManager dataSourceTransactionManager (DataSource dataSource) {
-	// return new DataSourceTransactionManager(dataSource) ;
-	// }
-
 	@Bean
 	DateTimeFormatter dateTimeFormatter() {
 		return DateTimeFormatter.BASIC_ISO_DATE;
