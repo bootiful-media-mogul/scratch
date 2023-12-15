@@ -1,43 +1,201 @@
 :root {
-  --gutter-space: 20px;
+    --gutter-space: 20px;
+    --small-gutter-space: calc(.5 * var(--gutter-space));
+    --icon-width: 20px;
+    --bg-color: cadetblue;
 }
 
-body {
-  background-color: cadetblue;
+.managed-file-preview-image {
+    max-width: 100%;
 }
+
+a:hover {
+    text-decoration: underline;
+}
+
+.panel {
+    border-radius: var(--gutter-space) 0 0 var(--gutter-space);
+}
+
+input[type=text] {
+    width: 100%;
+}
+
+textarea {
+    width: 100%;
+}
+
+a {
+    color: black;
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-family: 'Arial Black', sans-serif;
+    font-size: small;
+}
+
+.pure-button {
+    border-radius: calc(var(--gutter-space) / 3);
+}
+
+.pure-form-stacked .pure-button {
+    margin-top: 0.5em;
+    background-color: black;
+    color: white;
+    margin-right: calc(0.5 * var(--gutter-space));
+}
+
+.form-row {
+    height: calc(2 * var(--gutter-space));
+    vertical-align: bottom;
+}
+
+.pure-form label {
+    text-transform: capitalize;
+    font-size: smaller;
+    margin-top: 1em;
+}
+
+.form-row .pure-button {
+    margin-left: calc(0.5 * var(--gutter-space));
+    right: 0;
+}
+
+a.disabled {
+    color: lightgrey;
+    text-decoration: none;
+}
+
 
 html {
-  margin-left: var(--gutter-space);
-  margin-top: var(--gutter-space);
+
+    background-color: var(--bg-color);
+    margin-left: calc(2 * var(--gutter-space));
+    margin-top: var(--gutter-space);
+}
+
+.form-prompt {
+    font-size: small;
+    opacity: 70%;
+}
+
+.preview-icon {
+    background: url("../assets/images/preview-highlight.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.preview-icon:hover {
+    background: url("../assets/images/preview.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.checkbox-icon {
+    background: url("../assets/images/checkbox.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.folder-icon {
+    background: url("../assets/images/folder-highlight.png");
+
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.folder-icon:hover {
+    background: url("../assets/images/folder.png");
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+
 }
 
 .page {
-  display: grid;
-  grid-template-areas:
-    'welcome welcome'
-    'toolbar toolbar'
-    'main sidebar ';
-  grid-template-columns: auto 300px;
+    display: grid;
+    grid-template-areas:
+    'welcome welcome welcome'
+    'toolbar toolbar toolbar'
+    'main gap sidebar';
+    grid-template-columns:
+            auto calc(3 * var(--gutter-space)) min-content;
 }
 
+
 .welcome {
-  grid-area: welcome;
-  padding-bottom: var(--gutter-space);
+    grid-area: welcome;
+    padding-bottom: var(--gutter-space);
 }
 
 .toolbar {
-  grid-area: toolbar;
-  padding-bottom: var(--gutter-space);
+    grid-area: toolbar;
+    padding-bottom: var(--gutter-space);
 }
 
 .view {
-  grid-area: main;
+    grid-area: main;
+
 }
 
+
 .sidebar {
-  grid-area: sidebar;
+    grid-area: sidebar;
 }
 
 .sidebar textarea {
-  width: 100%;
+}
+
+.pure-form legend {
+    /*display: block;*/
+    /*top: var(--gutter-space);*/
+    height: calc( var(--gutter-space) * 1 );
+}
+
+.sidebar .pure-form legend {
+    color: black;
+    background-color: white;
+}
+
+.pure-form legend {
+    box-sizing: unset;
+    display: inline-block;
+    border-radius: 10px 10px 10px 10px;
+    font-weight: bold;
+    background-color: black;
+    color: white;
+    border-width: 0;
+    left: calc(-4 * var(--gutter-space));
+    padding-left: calc(4 * var(--gutter-space));
+    position: relative;
+    right: 0;
+
+}
+
+
+.footer {
+    bottom: 0;
+    position: fixed;
+    width: 100%;
+    background-color: black;
+    color: white;
+    text-align: center;
+
+    height: calc(var(--gutter-space) * 1.5);
+    margin-left: calc(-2 * var(--gutter-space));
+    padding-left: calc(2 * var(--gutter-space));
+    padding-top: calc(var(--gutter-space) / 2);
+}
+
+.footer a {
+    color: white
 }

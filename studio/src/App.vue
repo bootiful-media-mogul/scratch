@@ -2,17 +2,20 @@
  renders a list of all the existing podcasts
 -->
 <script lang="ts">
-import AiChat from '@/components/AiChatComponent.vue'
+import AiChatComponent from '@/ai/AiChatComponent.vue'
 
-import { mogul } from '@/services'
+import {mogul} from '@/services'
+import SidebarPanelComponent from '@/layout/SidebarPanelComponent.vue'
+import PreviewComponent from '@/managedfiles/PreviewComponent.vue'
 
 export default {
-  components: { AiChat },
+  components: {AiChatComponent, PreviewComponent, SidebarPanelComponent},
 
   methods: {},
   data() {
+    const mogul = ''
     return {
-      mogul: ''
+      mogul
     }
   },
   async created() {
@@ -20,41 +23,49 @@ export default {
   }
 }
 </script>
+<style>
 
+
+
+</style>
 <template>
-  <div class="page">
-    <div class="welcome">
-      hello,
-      <span style="font-weight: bold"> {{ mogul }} </span>!
-    </div>
-    <div class="toolbar">
-      <div>
-        <router-link to="/"> home</router-link>
+  <div class="frame">
+    <div class="page">
+      <div class="welcome">
+        hello, <span style="font-weight: bold"> {{ mogul }} </span>!
       </div>
-      <div>
-        <b>podcasts</b>&nbsp;
-        <router-link to="/list-podcasts">search</router-link>&nbsp;<router-link to="/create-podcast"
-          >create </router-link
-        >&nbsp;
-      </div>
-      <div>
-        <b>blogs</b>&nbsp;
-        <a href="">create</a>
-      </div>
-      <div>
-        <b>videos </b>&nbsp;
-        <a href="">create</a>
-      </div>
-    </div>
 
-    <div class="view">
-      <router-view></router-view>
-    </div>
+      <div class="toolbar">
+        <router-link to="/">home</router-link>
+        |
+        <router-link to="/podcasts">podcasts</router-link>
+      </div>
 
-    <div class="sidebar">
-      <AiChat />
+      <div class="view">
+        <router-view></router-view>
+      </div>
+
+
+      <div class="sidebar">
+
+        <SidebarPanelComponent title="A.I.">
+          <AiChatComponent/>
+        </SidebarPanelComponent>
+
+        <SidebarPanelComponent title="Notes"></SidebarPanelComponent>
+
+        <SidebarPanelComponent title="Media Preview">
+          <PreviewComponent/>
+
+        </SidebarPanelComponent>
+      </div>
+
+
+    </div>
+    <div class="footer">
+      Mogul, made with love by
+      <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and Spring 🍃)
     </div>
   </div>
-</template>
 
-<style scoped></style>
+</template>

@@ -1,47 +1,55 @@
+type Mutation {
+
+    updatePodcastEpisode( episodeId: ID , title : String, description: String ) : Episode
+    createPodcast(title:String): Podcast
+    createPodcastEpisodeDraft(podcastId: ID , title:String, description:String) : Episode
+    deletePodcast(id:ID): ID
+    deletePodcastEpisode(id:ID): ID
+}
 
 type Mogul {
  name :String
 }
 
-
-type Podcast {
-    created : Float
-    html :String
-    title :String
-    description : String
-    uid : String
-    permalinkUri: String
-    playerUri: String
-    duration : Int
-    audioUri: String
-    photoUri: String
-    id: ID
-}
-
-type PodcastDraft  {
-    id : ID
-    completed: Boolean
-    uid : String
-    uploadPath: String
-    pictureFileName: String
-    introductionFileName: String
-    interviewFileName: String
-    title: String
-    description: String
-    created : Float
-}
-
 type Query {
     me: Mogul
+
+    # ai
+    aiChat(prompt:String): String
+
+    # podcasts first
+    podcastById(id:ID): Podcast
     podcasts: [Podcast]
-    podcastDrafts: [PodcastDraft]
-    aiChat  (prompt:String): String
+    podcastEpisodeById(id:ID): Episode
+    podcastEpisodesByPodcast (podcastId: ID) : [Episode]
+
+    # managed files
+    managedFileById ( id : ID) : ManagedFile
+
+}
+type ManagedFile {
+    id: ID
+    bucket: String
+    folder: String
+    filename: String
+    contentType: String
+    size: Float
+    written : Boolean
+
+}
+type Episode {
+    id : ID
+    title: String
+    description: String
+    valid: Boolean
+    graphic: ManagedFile
+    introduction: ManagedFile
+    interview: ManagedFile
+    #    producedAudio: ManagedFile
 }
 
-type Mutation {
-
-    deletePodcast (id:  Int ) : Boolean
-    podcastDrafts : [PodcastDraft ]
-    createPodcastDraft(uid:String) : PodcastDraft
-
+type Podcast {
+    title: String
+    episodes : [Episode]
+    id: ID
 }
