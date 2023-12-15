@@ -14,8 +14,6 @@
 </template>
 
 <style>
-
-
 .sidebar-panel-hidden .sidebar-panel-content {
   display: none;
 }
@@ -32,7 +30,7 @@
 }
 
 .sidebar-panel {
-  width: 200px;
+  width: 100% ;
 
   overflow: hidden;
   padding: var(--gutter-space);
@@ -104,7 +102,9 @@ export default {
   },
   computed: {
     visibilityCss() {
-      return 'panel sidebar-panel ' + (this.expanded ? 'sidebar-panel-visible' : 'sidebar-panel-hidden')
+      return (
+        'panel sidebar-panel ' + (this.expanded ? 'sidebar-panel-visible' : 'sidebar-panel-hidden')
+      )
     }
   }
 }

@@ -1,14 +1,13 @@
 <template>
   <input
-      class="managed-file-file-upload"
-      ref="realFileUploadInputField"
-      type="file"
-      :accept=" accept ? accept : '*/*' "
-      @change="uploadFile($event)"
+    class="managed-file-file-upload"
+    ref="realFileUploadInputField"
+    type="file"
+    :accept="accept ? accept : '*/*'"
+    @change="uploadFile($event)"
   />
 
-  <div class="managed-file-row ">
-
+  <div class="managed-file-row">
     <a class="choose" href="#" @click="launchFileUpload">
       <span class="folder-icon"></span>
     </a>
@@ -16,16 +15,13 @@
     <span class="written">
       <span v-if="uploading">🕒</span>
       <span v-else>
-       <span v-if="written">
-         <span class="icon checkbox-icon"></span>
-       </span>
+        <span v-if="written">
+          <span class="icon checkbox-icon"></span>
+        </span>
       </span>
-
-
     </span>
-    <span class="preview ">
-          <a href="#" class="preview-icon" v-if="written" @click="preview">
-          </a>
+    <span class="preview">
+      <a href="#" class="preview-icon" v-if="written" @click="preview"> </a>
     </span>
 
     <span class="contentType">
@@ -34,28 +30,22 @@
       </span>
     </span>
 
-
     <span class="filename">
       <span v-if="filename">{{ filename }} </span>
-      <span class="form-prompt" v-else>
-       (please upload a file)
-      </span>
+      <span class="form-prompt" v-else> (please upload a file) </span>
     </span>
-
   </div>
 </template>
 <style>
 .managed-file-row {
   --managed-file-row-icon-column: calc(var(--gutter-space) * 1.5);
-
-  grid-template-areas:
-    'choose   written  preview   contentType   filename';
+  grid-template-areas: 'choose   written  preview   contentType   filename';
   grid-template-columns:
-      var(--managed-file-row-icon-column)
-      var(--managed-file-row-icon-column)
-      var(--managed-file-row-icon-column)
-      15em
-      auto;
+    var(--managed-file-row-icon-column)
+    var(--managed-file-row-icon-column)
+    var(--managed-file-row-icon-column)
+    10em
+    auto;
   display: grid;
 }
 
@@ -65,7 +55,6 @@
 
 .managed-file-row .contentType {
   grid-area: contentType;
-  text-align: center;
 }
 
 .managed-file-row .written {
@@ -89,7 +78,6 @@
   (display: none doesn't work)
 */
 .managed-file-file-upload {
-
   display: none;
   z-index: -1;
   opacity: 10;
@@ -100,8 +88,8 @@
 </style>
 <script lang="ts">
 import axios from 'axios'
-import {previewManagedFile, managedFiles} from '@/services'
-import {ref} from 'vue'
+import { previewManagedFile, managedFiles } from '@/services'
+import { ref } from 'vue'
 
 export default {
   async mounted() {
@@ -122,13 +110,11 @@ export default {
       contentType: ref(''),
       size: ref(0),
       uploading: ref(false),
-      written: ref(false),
+      written: ref(false)
     }
   },
 
-
   methods: {
-
     async preview() {
       previewManagedFile(this.managedFileId)
     },
@@ -160,8 +146,8 @@ export default {
         }
       })
       console.assert(
-          response.status >= 200 && response.status <= 300,
-          'the http post to upload the archive did not succeed.'
+        response.status >= 200 && response.status <= 300,
+        'the http post to upload the archive did not succeed.'
       )
 
       this.written = true

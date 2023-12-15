@@ -4,12 +4,12 @@
 <script lang="ts">
 import AiChatComponent from '@/ai/AiChatComponent.vue'
 
-import {mogul} from '@/services'
+import { mogul } from '@/services'
 import SidebarPanelComponent from '@/layout/SidebarPanelComponent.vue'
 import PreviewComponent from '@/managedfiles/PreviewComponent.vue'
 
 export default {
-  components: {AiChatComponent, PreviewComponent, SidebarPanelComponent},
+  components: { AiChatComponent, PreviewComponent, SidebarPanelComponent },
 
   methods: {},
   data() {
@@ -23,11 +23,7 @@ export default {
   }
 }
 </script>
-<style>
-
-
-
-</style>
+<style></style>
 <template>
   <div class="frame">
     <div class="page">
@@ -45,27 +41,21 @@ export default {
         <router-view></router-view>
       </div>
 
-
       <div class="sidebar">
-
         <SidebarPanelComponent title="A.I.">
-          <AiChatComponent/>
+          <AiChatComponent />
         </SidebarPanelComponent>
 
         <SidebarPanelComponent title="Notes"></SidebarPanelComponent>
 
         <SidebarPanelComponent title="Media Preview">
-          <PreviewComponent/>
-
+          <PreviewComponent />
         </SidebarPanelComponent>
       </div>
-
-
     </div>
     <div class="footer">
       Mogul, made with love by
       <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and Spring 🍃)
     </div>
   </div>
-
 </template>

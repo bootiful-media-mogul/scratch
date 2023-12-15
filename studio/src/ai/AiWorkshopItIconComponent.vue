@@ -12,11 +12,9 @@
   background-size: var(--icon-size) var(--icon-size);
   background-repeat: no-repeat;
   background-position: left;
-
 }
 
 .ai-workshop-it-link:hover {
-
   background: url('../assets/images/ai-icon.png');
   background-size: var(--icon-size) var(--icon-size);
   background-repeat: no-repeat;

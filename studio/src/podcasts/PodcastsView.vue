@@ -47,8 +47,6 @@
       </div>
     </fieldset>
   </form>
-
-
 </template>
 <script lang="ts">
 import { Podcast, podcasts } from '@/services'

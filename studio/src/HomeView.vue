@@ -1,7 +1,6 @@
 <script lang="ts">
-
 export default {
-  components:  {} ,
+  components: {},
   setup() {
     return {}
   }
@@ -10,10 +9,4 @@ export default {
 
 <template>
   <h1>Home</h1>
-
-
-
-
-
-
 </template>
