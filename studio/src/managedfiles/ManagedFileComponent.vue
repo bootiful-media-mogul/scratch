@@ -1,10 +1,10 @@
 <template>
   <input
-    class="managed-file-file-upload"
-    ref="realFileUploadInputField"
-    type="file"
-    :accept="accept ? accept : '*/*'"
-    @change="uploadFile($event)"
+      class="managed-file-file-upload"
+      ref="realFileUploadInputField"
+      type="file"
+      :accept="accept ? accept : '*/*'"
+      @change="uploadFile($event)"
   />
 
   <div class="managed-file-row">
@@ -15,13 +15,13 @@
     <span class="written">
       <span v-if="uploading">🕒</span>
       <span v-else>
-        <span v-if="written">
-          <span class="icon checkbox-icon"></span>
-        </span>
+          <span :class="'mogul-icon checkbox-icon ' + (written?'':' disabled')"></span>
       </span>
     </span>
     <span class="preview">
-      <a href="#" class="preview-icon" v-if="written" @click="preview"> </a>
+      <a href="#" :class="'mogul-icon preview-icon ' + (written?'':' disabled')"
+         @click="preview">
+      </a>
     </span>
 
     <span class="contentType">
@@ -38,13 +38,13 @@
 </template>
 <style>
 .managed-file-row {
-  --managed-file-row-icon-column: calc(var(--gutter-space) * 1.5);
+
   grid-template-areas: 'choose   written  preview   contentType   filename';
   grid-template-columns:
-    var(--managed-file-row-icon-column)
-    var(--managed-file-row-icon-column)
-    var(--managed-file-row-icon-column)
-    10em
+    var(--icon-column)
+    var(--icon-column)
+    var(--icon-column)
+    15em
     auto;
   display: grid;
 }
@@ -64,6 +64,7 @@
 .managed-file-row .preview {
   grid-area: preview;
 }
+
 
 .managed-file-row .choose {
   grid-area: choose;
@@ -88,8 +89,8 @@
 </style>
 <script lang="ts">
 import axios from 'axios'
-import { previewManagedFile, managedFiles } from '@/services'
-import { ref } from 'vue'
+import {previewManagedFile, managedFiles} from '@/services'
+import {ref} from 'vue'
 
 export default {
   async mounted() {
@@ -116,7 +117,9 @@ export default {
 
   methods: {
     async preview() {
-      previewManagedFile(this.managedFileId)
+      if (this.written) {
+        previewManagedFile(this.managedFileId)
+      }
     },
 
     launchFileUpload() {
@@ -146,8 +149,8 @@ export default {
         }
       })
       console.assert(
-        response.status >= 200 && response.status <= 300,
-        'the http post to upload the archive did not succeed.'
+          response.status >= 200 && response.status <= 300,
+          'the http post to upload the archive did not succeed.'
       )
 
       this.written = true

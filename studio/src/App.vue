@@ -55,7 +55,7 @@ export default {
     </div>
     <div class="footer">
       Mogul, made with love by
-      <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and Spring 🍃)
+      <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with  Spring 🍃)
     </div>
   </div>
 </template>

@@ -1,8 +1,8 @@
 <script lang="ts">
-import { Episode, Podcast, podcasts } from '@/services'
+import {Episode, Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
-import { reactive } from 'vue'
+import {getCurrentInstance, reactive} from 'vue'
 
 export default {
   mounted(): void {
@@ -47,17 +47,17 @@ export default {
       if (this.draftEpisode.id) {
         // we're editing a record, so update it
         const episode = await podcasts.updatePodcastEpisode(
-          this.draftEpisode.id,
-          this.title,
-          this.description
+            this.draftEpisode.id,
+            this.title,
+            this.description
         )
         await this.loadEpisode(episode)
       } //
       else {
         const episode = await podcasts.createPodcastEpisodeDraft(
-          this.selectedPodcastId,
-          this.title,
-          this.description
+            this.selectedPodcastId,
+            this.title,
+            this.description
         )
         await this.loadEpisode(episode)
       }
@@ -76,14 +76,23 @@ export default {
 
     computeDirtyKey() {
       return '' + this.description + ':' + this.title
+    },
+
+    async cancel(e: Event) {
+      e.preventDefault()
+      this.draftEpisode = reactive({} as Episode)
+      this.title = ''
+      this.description = ''
+      this.dirtyKey = ''
+      await this.loadPodcast()
     }
   },
+
 
   data() {
     return {
       draftEpisode: reactive({} as Episode),
       episodes: [] as Array<Episode>,
-      podcasts: [] as Array<Podcast>,
       currentPodcast: null as any as Podcast,
       selectedPodcastId: this.id,
       title: '',
@@ -93,18 +102,7 @@ export default {
   }
 }
 </script>
-<style>
-.episode-managed-file-row {
-  height: calc(var(--gutter-space) * 1);
-  margin-bottom: var(--gutter-space);
-  margin-top: var(--gutter-space);
-}
 
-.episode-managed-file-row label {
-  padding: 0;
-  margin: 0;
-}
-</style>
 <template>
   <h1 v-if="currentPodcast">Episodes for "{{ currentPodcast.title }}"</h1>
 
@@ -118,61 +116,71 @@ export default {
       <label for="episodeTitle">
         title
         <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast title more pithy and exciting"
-          :text="title"
-          @ai-workshop-completed="title = $event.text"
+            prompt="please help me make the following podcast title more pithy and exciting"
+            :text="title"
+            @ai-workshop-completed="title = $event.text"
         />
       </label>
-      <input id="episodeTitle" required v-model="title" type="text" />
+      <input id="episodeTitle" required v-model="title" type="text"/>
 
       <label for="episodeDescription">
         description
         <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast description more pithy and exciting"
-          :text="description"
-          @ai-workshop-completed="description = $event.text"
+            prompt="please help me make the following podcast description more pithy and exciting"
+            :text="description"
+            @ai-workshop-completed="description = $event.text"
         />
       </label>
-      <textarea id="episodeDescription" rows="10" required v-model="description" />
+      <textarea id="episodeDescription" rows="10" required v-model="description"/>
 
       <div v-if="draftEpisode">
         <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
-          <div class="pure-u-2-24"><label>graphic</label></div>
-          <div class="pure-u-22-24">
+          <div class="pure-u-3-24"><label>graphic</label></div>
+          <div class="pure-u-21-24">
             <ManagedFileComponent
-              accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
-              v-model:managed-file-id="draftEpisode.graphic.id"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
+                v-model:managed-file-id="draftEpisode.graphic.id"
             />
           </div>
         </div>
         <div v-if="draftEpisode.introduction" class="pure-g episode-managed-file-row">
-          <div class="pure-u-2-24"><label>introduction</label></div>
-          <div class="pure-u-22-24">
+          <div class="pure-u-3-24"><label>introduction</label></div>
+          <div class="pure-u-21-24">
             <ManagedFileComponent
-              accept=".mp3,audio/mpeg"
-              v-model:managed-file-id="draftEpisode.introduction.id"
+                accept=".mp3,audio/mpeg"
+                v-model:managed-file-id="draftEpisode.introduction.id"
             />
           </div>
         </div>
         <div v-if="draftEpisode.interview" class="pure-g episode-managed-file-row">
-          <div class="pure-u-2-24"><label>interview</label></div>
-          <div class="pure-u-22-24">
+          <div class="pure-u-3-24"><label>interview</label></div>
+          <div class="pure-u-21-24">
             <ManagedFileComponent
-              v-model:managed-file-id="draftEpisode.interview.id"
-              accept=".mp3,audio/mpeg"
+                v-model:managed-file-id="draftEpisode.interview.id"
+                accept=".mp3,audio/mpeg"
             />
           </div>
         </div>
       </div>
 
       <button
-        @click="save"
-        :disabled="!changed()"
-        type="submit"
-        class="pure-button pure-button-primary"
+          @click="save"
+          :disabled="!changed()"
+          type="submit"
+          class="pure-button pure-button-primary"
       >
         save
       </button>
+
+      <button
+          @click="cancel"
+          type="submit"
+          class="pure-button pure-button-primary"
+      >
+        cancel
+      </button>
+
+
     </fieldset>
   </form>
 
@@ -180,17 +188,42 @@ export default {
     <fieldset>
       <legend>Episodes</legend>
 
-      <div class="pure-g form-row" v-bind:key="episode.id" v-for="episode in episodes">
-        <div class="pure-u-1-24">
-          <b> {{ episode.id }}</b>
-        </div>
-        <div class="pure-u-3-24">
-          <a href="#" @click="deleteEpisode(episode)">delete</a>
-         |
-          <a href="#" @click="loadEpisode(episode)">edit</a>
-        </div>
-        <div class="pure-u-20-24">{{ episode.title }}</div>
+      <div class="pure-g form-row episodes-row" v-bind:key="episode.id" v-for="episode in episodes">
+        <div class="id"> {{ episode.id }}</div>
+        <div class="edit"><a href="#"  @click="loadEpisode(episode)" class=" edit-icon"> </a></div>
+        <div class="delete"><a href="#" @click="deleteEpisode(episode)" class="delete-icon"></a></div>
+        <div class="title">{{ episode.title }}</div>
       </div>
     </fieldset>
   </form>
 </template>
+
+
+<style>
+
+
+.episodes-row {
+
+  grid-template-areas: 'id edit delete  title';
+  grid-template-columns:
+    var(--icon-column)
+    var(--icon-column)
+    var(--icon-column)
+    auto;
+  display: grid;
+}
+
+
+.episode-managed-file-row {
+  height: calc(var(--gutter-space) * 1);
+  margin-bottom: var(--gutter-space);
+  margin-top: var(--gutter-space);
+}
+
+.episode-managed-file-row label {
+  padding: 0;
+  margin: 0;
+  text-align: right;
+  margin-right: var(--gutter-space);
+}
+</style>

@@ -72,13 +72,10 @@ export default {
     async doLoad(mfid: any) {
       const managedFile = await managedFiles.getManagedFileById(parseInt(mfid))
       this.url = '/api/managedfiles/' + managedFile.id
-      console.log('the preview url is ' + this.url)
       const ext = managedFile.contentType.toLowerCase()
-      console.log('the content type is ' + ext)
       this.isImage =
         ext.endsWith('jpg') || ext.endsWith('jpeg') || ext.endsWith('png') || ext.endsWith('gif')
       this.isAudio = ext.endsWith('mp3') || ext.endsWith('wav') || ext.endsWith('mpeg')
-      console.log('isAudio? ' + this.isAudio)
       this.contentType = ext
       this.size = prettyPrintInBytes(managedFile.size)
       this.filename = managedFile.filename

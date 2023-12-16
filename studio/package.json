@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@urql/core": "^4.2.2",
     "@urql/vue": "^1.1.2",
     "axios": "^1.6.2",
     "graphql": "^16.8.1",
