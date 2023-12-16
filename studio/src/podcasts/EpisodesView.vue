@@ -2,7 +2,7 @@
 import {Episode, Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
-import {getCurrentInstance, reactive} from 'vue'
+import {reactive} from 'vue'
 
 export default {
   mounted(): void {
@@ -63,19 +63,16 @@ export default {
       }
     },
 
-    changed(): boolean {
-      function isEmpty(txt: string): boolean {
-        return txt == null || txt.trim().length == 0
-      }
+    notChanged (){
+      return this.title == '' && this.description == '' && !this.draftEpisode.id
+    } ,
 
-      const empty = (isEmpty(this.title) || isEmpty(this.description)) as boolean
-      const dirty = this.computeDirtyKey() != this.dirtyKey
 
-      return (!empty && dirty) as boolean
-    },
 
-    computeDirtyKey() {
-      return '' + this.description + ':' + this.title
+    computeDirtyKey()  : string {
+      const k = '' + (this.draftEpisode.id ? this.draftEpisode.id : '') + this.description + ':' + this.title
+      console.log('the key is ' + k )
+      return k
     },
 
     async cancel(e: Event) {
@@ -165,7 +162,7 @@ export default {
 
       <button
           @click="save"
-          :disabled="!changed()"
+          :disabled="notChanged()"
           type="submit"
           class="pure-button pure-button-primary"
       >
@@ -174,6 +171,7 @@ export default {
 
       <button
           @click="cancel"
+          :disabled="notChanged()"
           type="submit"
           class="pure-button pure-button-primary"
       >
@@ -190,7 +188,7 @@ export default {
 
       <div class="pure-g form-row episodes-row" v-bind:key="episode.id" v-for="episode in episodes">
         <div class="id"> {{ episode.id }}</div>
-        <div class="edit"><a href="#"  @click="loadEpisode(episode)" class=" edit-icon"> </a></div>
+        <div class="edit"><a href="#" @click="loadEpisode(episode)" class=" edit-icon"> </a></div>
         <div class="delete"><a href="#" @click="deleteEpisode(episode)" class="delete-icon"></a></div>
         <div class="title">{{ episode.title }}</div>
       </div>
