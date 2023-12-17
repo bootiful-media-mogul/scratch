@@ -7,6 +7,8 @@ import org.springframework.util.Assert;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Settings {
 
@@ -24,7 +26,7 @@ public class Settings {
 		this.rowMapper = new SettingsRowMapper(encryptor);
 	}
 
-	private record Setting(String category, String key, String value) {
+	public static record Setting(String category, String key, String value) {
 	}
 
 	private static class SettingsRowMapper implements RowMapper<Setting> {
@@ -43,6 +45,21 @@ public class Settings {
 
 	}
 
+	public Map<String, Setting> getByCategory(Long mogulId, String category) {
+
+		var settings = this.db//
+				.sql("select * from settings where mogul_id = ? and category =?   ")
+				.params(mogulId, category)
+				.query(this.rowMapper)
+				.list();
+
+		var map = new HashMap<String, Setting>();
+
+		for (var s : settings)
+			map.put(s.category(), s);
+
+		return map;
+	}
 	private Setting get(Long mogulId, String category, String key) {
 		var settings = this.db//
 			.sql("select * from settings where mogul_id = ? and category =? and key = ? ")
@@ -59,6 +76,7 @@ public class Settings {
 			return v.value();
 		return null;
 	}
+
 
 	public String getString(Long mogulId, String category, String key) {
 		return getValue(mogulId, category, key);
