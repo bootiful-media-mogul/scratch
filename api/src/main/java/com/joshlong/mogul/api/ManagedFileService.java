@@ -17,7 +17,7 @@ public interface ManagedFileService {
 
 	ManagedFileDeletionRequest getManagedFileDeletionRequest(Long managedFileDeletionRequestId);
 
-	void complete(Long managedFileDeletionRequestId);
+	void completeManagedFileDeletion(Long managedFileDeletionRequestId);
 
 	void deleteManagedFile(Long managedFileId);
 

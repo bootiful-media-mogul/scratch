@@ -17,6 +17,12 @@ export default {
   props: ['id'],
 
   methods: {
+
+
+    async publish (){
+      console.log('going to publish episode , but with which plugin?')
+    } ,
+
     async loadPodcast() {
       const newPodcastId = this.selectedPodcastId
       this.currentPodcast = await podcasts.podcastById(newPodcastId)
@@ -34,6 +40,7 @@ export default {
       this.draftEpisode.graphic = episode.graphic
       this.draftEpisode.title = episode.title
       this.draftEpisode.description = episode.description
+      this.draftEpisode.complete = episode.complete
 
       this.description = this.draftEpisode.description
       this.title = this.draftEpisode.title
@@ -63,16 +70,26 @@ export default {
       }
     },
 
-    notChanged (){
-      return this.title == '' && this.description == '' && !this.draftEpisode.id
-    } ,
 
+    /**
+     * returns true if the buttons should be disabled because there's no change in the data in the form.
+     */
+    buttonsDisabled() {
+      let changed = false
+      if (!this.draftEpisode.id) {
+        const hasData: boolean = this.description.trim() != '' && this.title.trim() != ''
+        if (hasData) {
+          changed = true
+        }
+      } else {
+        changed = this.dirtyKey != this.computeDirtyKey()
+      }
 
+      return !changed
+    },
 
-    computeDirtyKey()  : string {
-      const k = '' + (this.draftEpisode.id ? this.draftEpisode.id : '') + this.description + ':' + this.title
-      console.log('the key is ' + k )
-      return k
+    computeDirtyKey(): string {
+      return '' + (this.draftEpisode.id ? this.draftEpisode.id : '') + this.description + ':' + this.title
     },
 
     async cancel(e: Event) {
@@ -80,11 +97,19 @@ export default {
       this.draftEpisode = reactive({} as Episode)
       this.title = ''
       this.description = ''
-      this.dirtyKey = ''
       await this.loadPodcast()
     }
   },
 
+  created() {
+    this.dirtyKey = this.computeDirtyKey()
+    console.log('the dirty key is ' + this.dirtyKey)
+  },
+
+  setup() {
+    console.log('setup called')
+    return {}
+  },
 
   data() {
     return {
@@ -101,6 +126,7 @@ export default {
 </script>
 
 <template>
+
   <h1 v-if="currentPodcast">Episodes for "{{ currentPodcast.title }}"</h1>
 
   <form class="pure-form pure-form-stacked">
@@ -162,7 +188,7 @@ export default {
 
       <button
           @click="save"
-          :disabled="notChanged()"
+          :disabled="buttonsDisabled()"
           type="submit"
           class="pure-button pure-button-primary"
       >
@@ -171,14 +197,21 @@ export default {
 
       <button
           @click="cancel"
-          :disabled="notChanged()"
           type="submit"
+          :disabled=" description ==  ''  && title ==  ''  "
           class="pure-button pure-button-primary"
       >
         cancel
       </button>
-
-
+      <button
+          :disabled="!draftEpisode.complete "
+          @click="publish"
+          type="submit"
+          class="pure-button pure-button-primary"
+      >
+        publish
+      </button>
+      
     </fieldset>
   </form>
 

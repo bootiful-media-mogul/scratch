@@ -43,6 +43,7 @@ type Episode {
     description: String
     valid: Boolean
     graphic: ManagedFile
+    complete: Boolean
     introduction: ManagedFile
     interview: ManagedFile
     #    producedAudio: ManagedFile

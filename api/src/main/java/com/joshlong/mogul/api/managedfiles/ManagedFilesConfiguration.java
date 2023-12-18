@@ -1,7 +1,6 @@
 package com.joshlong.mogul.api.managedfiles;
 
 import com.joshlong.mogul.api.ManagedFileService;
-import graphql.schema.PropertyFetchingImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.core.MessageSource;
@@ -27,7 +26,7 @@ class ManagedFilesConfiguration {
                 .split( )
                 // this does the dirty work of deleting the bits from s3.
                 .handle(ManagedFileDeletionRequest.class, (payload, headers) -> {
-                    mfs.complete(payload.id()) ;
+                    mfs.completeManagedFileDeletion(payload.id()) ;
                     return null ;
                 })
                 .get();

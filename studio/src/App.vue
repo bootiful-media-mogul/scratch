@@ -46,11 +46,14 @@ export default {
           <AiChatComponent />
         </SidebarPanelComponent>
 
-        <SidebarPanelComponent title="Notes"></SidebarPanelComponent>
-
         <SidebarPanelComponent title="Media Preview">
           <PreviewComponent />
         </SidebarPanelComponent>
+
+        <SidebarPanelComponent title="Notes"></SidebarPanelComponent>
+
+        <SidebarPanelComponent title="Transcription"></SidebarPanelComponent>
+
       </div>
     </div>
     <div class="footer">

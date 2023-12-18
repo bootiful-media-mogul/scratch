@@ -77,7 +77,7 @@ class Podcasts {
         const mutation = `
          mutation UpdatePodcastEpisode  ($episode: ID, $title: String, $description: String ){ 
           updatePodcastEpisode ( episodeId: $episode, title: $title, description: $description) { 
-           id , title, description,  graphic { id  }, interview { id }, introduction { id }
+           id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
           }
          }
         `
@@ -95,7 +95,7 @@ class Podcasts {
         const q = `
            query GetPodcastEpisode ( $id: ID){
                 podcastEpisodeById ( id : $id) {
-                    id , title, description,  graphic { id  }, interview { id }, introduction { id }
+                    id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
                 }
         }
         `
@@ -122,7 +122,7 @@ class Podcasts {
         const q = `
            query GetPodcastEpisodesByPodcast( $podcastId: ID){
                 podcastEpisodesByPodcast ( podcastId : $podcastId) {
-                    id , title, description,  graphic { id  }, interview { id }, introduction { id }
+                    id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
                 }
         }
         `
@@ -175,7 +175,7 @@ class Podcasts {
         const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
-           id , title, description,  graphic { id  }, interview { id }, introduction { id }
+           id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
           }
          }
         `
@@ -242,6 +242,7 @@ export class Episode {
     graphic: ManagedFile
     interview: ManagedFile
     introduction: ManagedFile
+    complete: boolean = false
 
     constructor(
         id: number,
@@ -249,7 +250,8 @@ export class Episode {
         description: string,
         graphic: ManagedFile,
         interview: ManagedFile,
-        introduction: ManagedFile
+        introduction: ManagedFile,
+        complete: boolean
     ) {
         this.id = id
         this.title = title
@@ -257,6 +259,7 @@ export class Episode {
         this.graphic = graphic
         this.interview = interview
         this.introduction = introduction
+        this.complete = complete
     }
 }
 
@@ -270,8 +273,8 @@ export class ManagedFiles {
          }
         `
         const result = await graphqlClient.query(q, {id: id})
-        const mfid = await result.data['managedFileById']
-        return mfid as ManagedFile
+        const managedFileId = await result.data['managedFileById']
+        return managedFileId as ManagedFile
     }
 }
 
