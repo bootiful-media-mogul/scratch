@@ -1,5 +1,5 @@
 type Mutation {
-
+    publishPodcastEpisode (episodeId:ID , pluginName:String ) : Boolean
     updatePodcastEpisode( episodeId: ID , title : String, description: String ) : Episode
     createPodcast(title:String): Podcast
     createPodcastEpisodeDraft(podcastId: ID , title:String, description:String) : Episode
@@ -35,9 +35,10 @@ type ManagedFile {
     contentType: String
     size: Float
     written : Boolean
-
 }
+
 type Episode {
+    availablePlugins :[String]
     id : ID
     title: String
     description: String
@@ -46,7 +47,7 @@ type Episode {
     complete: Boolean
     introduction: ManagedFile
     interview: ManagedFile
-    #    producedAudio: ManagedFile
+    created: Float
 }
 
 type Podcast {

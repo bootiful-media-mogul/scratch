@@ -31,8 +31,8 @@
     <fieldset>
       <legend>Podcasts</legend>
       <div class="pure-g form-row" v-for="podcast in podcasts" v-bind:key="podcast.id">
-        <div class="pure-u-1-24">
-          <b> {{ podcast.id }}</b>
+        <div class="pure-u-1-24 id-column">
+          #<b>{{ podcast.id }}</b>
         </div>
 
         <div class="pure-u-6-24">

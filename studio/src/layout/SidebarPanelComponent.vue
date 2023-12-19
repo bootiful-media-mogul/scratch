@@ -30,7 +30,7 @@
 }
 
 .sidebar-panel {
-  width: 100% ;
+  width: 100%;
 
   overflow: hidden;
   padding: var(--gutter-space);

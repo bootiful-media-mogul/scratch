@@ -2,6 +2,7 @@ package com.joshlong.mogul.api.publications;
 
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.Settings;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +19,9 @@ class DefaultPublicationService
     private final JdbcClient db;
     private final Settings settings;
     private final MogulService mogulService;
-    private final Map<String, PublisherPlugin > plugins;
+    private final Map<String, PublisherPlugin<?>> plugins;
 
-    DefaultPublicationService(JdbcClient db, Settings settings, MogulService mogulService, Map<String, PublisherPlugin > plugins) {
+    DefaultPublicationService(JdbcClient db, Settings settings, MogulService mogulService, Map<String, PublisherPlugin<?>> plugins) {
         this.db = db;
         this.settings = settings;
         this.mogulService = mogulService;
@@ -32,23 +33,13 @@ class DefaultPublicationService
     }
 
 
+
     @Override
     public <T> void publish(Long mogulId, String payload, Map<String, String> contextAndSettings,
                             PublisherPlugin  plugin) {
         Assert.notNull(plugin, "the plugin must not be null");
         Assert.notNull(payload, "your payload must not be null");
-        var mogul = this.mogulService.getMogulById(mogulId);
-        Assert.notNull(mogul, "the mogul should not be null");
-
-        var settings = this.settings.getByCategory(mogulId, plugin.name());
-
-        var finalMapOfConfig = new HashMap<String, String>();
-        for (var c : contextAndSettings.keySet())
-            finalMapOfConfig.put(c, contextAndSettings.get(c));
-        for (var c : settings.keySet())
-            finalMapOfConfig.put(c, settings.get(c).value());
-
-        var publication = Publication.of(mogul, plugin.name(), finalMapOfConfig, payload);
+       // var publication = createPublication(mogulId, payload, contextAndSettings, plugin);
 
         // todo write this publication to the db
         // and in a separate thread have spring integration pull down
@@ -69,6 +60,22 @@ class DefaultPublicationService
         // in effect, graying out the `publish` button.
         // maybe each client could have a server sent event stream telling it when a podcast has been produced in the background, and thus
         // ungreying the publish button for folks?
-        plugin.publish(publication);
+        // plugin.publish(publication);
+    }
+
+    @NotNull
+    private Publication createPublication(Long mogulId, String payload, Map<String, String> contextAndSettings, PublisherPlugin plugin) {
+        var mogul = this.mogulService.getMogulById(mogulId);
+        Assert.notNull(mogul, "the mogul should not be null");
+
+        var settings = this.settings.getAllSettingsByCategory(mogulId, plugin.name());
+
+        var finalMapOfConfig = new HashMap<String, String>();
+        for (var c : contextAndSettings.keySet())
+            finalMapOfConfig.put(c, contextAndSettings.get(c));
+        for (var c : settings.keySet())
+            finalMapOfConfig.put(c, settings.get(c).value());
+
+        return Publication.of(mogul, plugin.name(), finalMapOfConfig, payload);
     }
 }

@@ -2,23 +2,21 @@ import {Ai} from '@/ai/ai'
 import Mogul from '@/mogul'
 import mitt from 'mitt'
 import {Client, errorExchange, fetchExchange} from '@urql/core'
-import router from "@/index";
+import router from '@/index'
 
 export const graphqlClient = new Client({
     url: '/api/graphql',
     exchanges: [
         fetchExchange,
-        errorExchange(
-            {
-                onError: async (error) => {
-                    if (error) {
-                        console.error('got an error! ' + JSON.stringify(error))
-                        events.emit('unauthorized', error)
-                        await router.replace('/')
-                    }
+        errorExchange({
+            onError: async (error) => {
+                if (error) {
+                    console.error('got an error! ' + JSON.stringify(error))
+                    events.emit('unauthorized', error)
+                    await router.replace('/')
                 }
             }
-        )
+        })
     ]
 })
 
@@ -69,6 +67,21 @@ export class Podcast {
 }
 
 class Podcasts {
+
+
+    async publishPodcastEpisode(episodeId: number, pluginName: string): Promise<boolean> {
+        const mutation = ` 
+          mutation PublishPodcastEpisode  ($episode: ID, $pluginName: String ){ 
+            publishPodcastEpisode ( episodeId: $episode,  pluginName: $pluginName ) 
+          }
+        `
+        await graphqlClient.mutation(mutation, {
+            episode: episodeId,
+            pluginName: pluginName,
+        })
+        return true
+    }
+
     async updatePodcastEpisode(
         episodeId: number,
         title: String,
@@ -77,7 +90,7 @@ class Podcasts {
         const mutation = `
          mutation UpdatePodcastEpisode  ($episode: ID, $title: String, $description: String ){ 
           updatePodcastEpisode ( episodeId: $episode, title: $title, description: $description) { 
-           id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
+           availablePlugins,   created, id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
           }
          }
         `
@@ -95,7 +108,7 @@ class Podcasts {
         const q = `
            query GetPodcastEpisode ( $id: ID){
                 podcastEpisodeById ( id : $id) {
-                    id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
+                availablePlugins,     created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
                 }
         }
         `
@@ -122,7 +135,7 @@ class Podcasts {
         const q = `
            query GetPodcastEpisodesByPodcast( $podcastId: ID){
                 podcastEpisodesByPodcast ( podcastId : $podcastId) {
-                    id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
+                 availablePlugins,  created, id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
                 }
         }
         `
@@ -175,7 +188,7 @@ class Podcasts {
         const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
-           id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
+            availablePlugins,    created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
           }
          }
         `
@@ -236,6 +249,7 @@ export class ManagedFile {
 }
 
 export class Episode {
+    availablePlugins: Array<string>
     id: number
     title: string
     description: string
@@ -243,6 +257,7 @@ export class Episode {
     interview: ManagedFile
     introduction: ManagedFile
     complete: boolean = false
+    created: number = 0
 
     constructor(
         id: number,
@@ -251,8 +266,11 @@ export class Episode {
         graphic: ManagedFile,
         interview: ManagedFile,
         introduction: ManagedFile,
-        complete: boolean
+        complete: boolean,
+        created: number,
+        availablePlugins: Array<string>
     ) {
+        this.availablePlugins = availablePlugins
         this.id = id
         this.title = title
         this.description = description
@@ -260,6 +278,7 @@ export class Episode {
         this.interview = interview
         this.introduction = introduction
         this.complete = complete
+        this.created = created
     }
 }
 

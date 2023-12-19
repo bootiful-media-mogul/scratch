@@ -1,10 +1,10 @@
 <template>
   <input
-      class="managed-file-file-upload"
-      ref="realFileUploadInputField"
-      type="file"
-      :accept="accept ? accept : '*/*'"
-      @change="uploadFile($event)"
+    class="managed-file-file-upload"
+    ref="realFileUploadInputField"
+    type="file"
+    :accept="accept ? accept : '*/*'"
+    @change="uploadFile($event)"
   />
 
   <div class="managed-file-row">
@@ -15,12 +15,15 @@
     <span class="written">
       <span v-if="uploading">🕒</span>
       <span v-else>
-          <span :class="'mogul-icon checkbox-icon ' + (written?'':' disabled')"></span>
+        <span :class="'mogul-icon checkbox-icon ' + (written ? '' : ' disabled')"></span>
       </span>
     </span>
     <span class="preview">
-      <a href="#" :class="'mogul-icon preview-icon ' + (written?'':' disabled')"
-         @click="preview">
+      <a
+        href="#"
+        :class="'mogul-icon preview-icon ' + (written ? '' : ' disabled')"
+        @click="preview"
+      >
       </a>
     </span>
 
@@ -38,7 +41,6 @@
 </template>
 <style>
 .managed-file-row {
-
   grid-template-areas: 'choose   written  preview   contentType   filename';
   grid-template-columns:
     var(--icon-column)
@@ -65,7 +67,6 @@
   grid-area: preview;
 }
 
-
 .managed-file-row .choose {
   grid-area: choose;
 }
@@ -89,8 +90,8 @@
 </style>
 <script lang="ts">
 import axios from 'axios'
-import {previewManagedFile, managedFiles} from '@/services'
-import {ref} from 'vue'
+import { previewManagedFile, managedFiles } from '@/services'
+import { ref } from 'vue'
 
 export default {
   async mounted() {
@@ -149,8 +150,8 @@ export default {
         }
       })
       console.assert(
-          response.status >= 200 && response.status <= 300,
-          'the http post to upload the archive did not succeed.'
+        response.status >= 200 && response.status <= 300,
+        'the http post to upload the archive did not succeed.'
       )
 
       this.written = true

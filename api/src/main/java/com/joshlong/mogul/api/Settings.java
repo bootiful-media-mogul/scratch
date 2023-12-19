@@ -45,7 +45,14 @@ public class Settings {
 
 	}
 
-	public Map<String, Setting> getByCategory(Long mogulId, String category) {
+	public Map<String, String> getAllValuesByCategory(Long mogulId, String category) {
+		var all = getAllSettingsByCategory(mogulId, category);
+		var res = new HashMap<String, String>();
+		for (var a : all.keySet()) res.put(a, all.get(a).value());
+		return res;
+	}
+
+	public Map<String, Setting> getAllSettingsByCategory(Long mogulId, String category) {
 
 		var settings = this.db//
 				.sql("select * from settings where mogul_id = ? and category =?   ")
@@ -56,7 +63,7 @@ public class Settings {
 		var map = new HashMap<String, Setting>();
 
 		for (var s : settings)
-			map.put(s.category(), s);
+			map.put(s.key(), s);
 
 		return map;
 	}

@@ -3,6 +3,7 @@ import {Episode, Podcast, podcasts} from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
 import {reactive} from 'vue'
+import {dateTimeFormatter} from '../dates'
 
 export default {
   mounted(): void {
@@ -17,11 +18,9 @@ export default {
   props: ['id'],
 
   methods: {
-
-
-    async publish (){
-      console.log('going to publish episode , but with which plugin?')
-    } ,
+    dateTimeFormatter() {
+      return dateTimeFormatter
+    },
 
     async loadPodcast() {
       const newPodcastId = this.selectedPodcastId
@@ -33,6 +32,7 @@ export default {
       await podcasts.deleteEpisode(episode.id)
       await this.loadPodcast()
     },
+
     async loadEpisode(episode: Episode) {
       this.draftEpisode.id = episode.id
       this.draftEpisode.interview = episode.interview
@@ -41,10 +41,16 @@ export default {
       this.draftEpisode.title = episode.title
       this.draftEpisode.description = episode.description
       this.draftEpisode.complete = episode.complete
-
+      this.draftEpisode.created = episode.created
+      this.draftEpisode.availablePlugins = episode.availablePlugins
       this.description = this.draftEpisode.description
       this.title = this.draftEpisode.title
+      this.created = this.draftEpisode.created
       this.dirtyKey = this.computeDirtyKey()
+
+      const plugins = episode.availablePlugins
+      if (plugins && plugins.length == 1 )
+       this.selectedPlugin = plugins [0]
       await this.loadPodcast()
     },
 
@@ -70,6 +76,17 @@ export default {
       }
     },
 
+    async publish (e:Event) {
+      e.preventDefault()
+      await podcasts.publishPodcastEpisode ( this.draftEpisode.id , this.selectedPlugin)
+    }  ,
+    pluginSelected (e:Event ){
+      e.preventDefault()
+      console.log('so you selected a plugin, didja ? it is ' + JSON.stringify(
+          this.selectedPlugin
+      ))
+
+    } ,
 
     /**
      * returns true if the buttons should be disabled because there's no change in the data in the form.
@@ -89,7 +106,13 @@ export default {
     },
 
     computeDirtyKey(): string {
-      return '' + (this.draftEpisode.id ? this.draftEpisode.id : '') + this.description + ':' + this.title
+      return (
+          '' +
+          (this.draftEpisode.id ? this.draftEpisode.id : '') +
+          this.description +
+          ':' +
+          this.title
+      )
     },
 
     async cancel(e: Event) {
@@ -113,6 +136,8 @@ export default {
 
   data() {
     return {
+      selectedPlugin: '',
+      created:  -1 ,
       draftEpisode: reactive({} as Episode),
       episodes: [] as Array<Episode>,
       currentPodcast: null as any as Podcast,
@@ -126,7 +151,6 @@ export default {
 </script>
 
 <template>
-
   <h1 v-if="currentPodcast">Episodes for "{{ currentPodcast.title }}"</h1>
 
   <form class="pure-form pure-form-stacked">
@@ -185,33 +209,53 @@ export default {
           </div>
         </div>
       </div>
+      <div class="podcast-episode-controls-row">
+        <span class="save">
+          <button
+              @click="save"
+              :disabled="buttonsDisabled()"
+              type="submit"
+              class="pure-button pure-button-primary"
+          >
+            save
+          </button>
+        </span>
+        <span class="cancel">
+          <button
+              @click="cancel"
+              type="submit"
+              :disabled="description == '' && title == ''"
+              class="pure-button pure-button-primary"
+          >
+            cancel
+          </button>
+        </span>
 
-      <button
-          @click="save"
-          :disabled="buttonsDisabled()"
-          type="submit"
-          class="pure-button pure-button-primary"
-      >
-        save
-      </button>
+        <div class="publish-menu">
+          <select v-model="selectedPlugin" @change="pluginSelected"
+                  :disabled="!draftEpisode.complete">
 
-      <button
-          @click="cancel"
-          type="submit"
-          :disabled=" description ==  ''  && title ==  ''  "
-          class="pure-button pure-button-primary"
-      >
-        cancel
-      </button>
-      <button
-          :disabled="!draftEpisode.complete "
-          @click="publish"
-          type="submit"
-          class="pure-button pure-button-primary"
-      >
-        publish
-      </button>
-      
+            <option disabled value="">Please select a plugin</option>
+
+            <option
+                v-for="(option, index) in draftEpisode.availablePlugins"
+                :key="index"
+                :value="option"
+            >
+              {{ option }}
+            </option>
+          </select>
+
+          <button
+              :disabled="!draftEpisode.complete"
+              @click="publish"
+              type="submit"
+              class="pure-button pure-button-primary publish-button"
+          >
+            publish
+          </button>
+        </div>
+      </div>
     </fieldset>
   </form>
 
@@ -220,30 +264,65 @@ export default {
       <legend>Episodes</legend>
 
       <div class="pure-g form-row episodes-row" v-bind:key="episode.id" v-for="episode in episodes">
-        <div class="id"> {{ episode.id }}</div>
-        <div class="edit"><a href="#" @click="loadEpisode(episode)" class=" edit-icon"> </a></div>
-        <div class="delete"><a href="#" @click="deleteEpisode(episode)" class="delete-icon"></a></div>
+        <div class="id id-column">
+          #<b>{{ episode.id }}</b>
+        </div>
+        <div class="created">{{ dateTimeFormatter().format(new Date(episode.created)) }}</div>
+        <div class="edit"><a href="#" @click="loadEpisode(episode)" class="edit-icon"> </a></div>
+        <div class="delete">
+          <a href="#" @click="deleteEpisode(episode)" class="delete-icon"></a>
+        </div>
         <div class="title">{{ episode.title }}</div>
       </div>
     </fieldset>
   </form>
 </template>
 
-
 <style>
+.podcast-episode-controls-row {
+  display: grid;
+  grid-template-areas: 'save . cancel . publish';
+  grid-template-columns: min-content var(--form-buttons-gutter-space) min-content  auto min-content ;
+}
 
+.podcast-episode-controls-row .save {
+  grid-area: save;
+}
+
+.podcast-episode-controls-row .cancel {
+  grid-area: cancel;
+}
+
+.podcast-episode-controls-row .publish-button {
+  grid-area: publish-button;
+}
+
+.podcast-episode-controls-row .publish-menu {
+
+  display: grid;
+  grid-area: publish ;
+  grid-template-columns: min-content var(--form-buttons-gutter-space) min-content;
+  grid-template-areas: '  publish-select  . publish-button';
+}
+
+ .publish-menu button {
+  grid-area: publish-button;
+}
+
+ .publish-menu select {
+  grid-area: publish-select;
+}
 
 .episodes-row {
-
-  grid-template-areas: 'id edit delete  title';
+  grid-template-areas: 'id created edit delete  title';
   grid-template-columns:
     var(--icon-column)
+    10em
     var(--icon-column)
     var(--icon-column)
     auto;
   display: grid;
 }
-
 
 .episode-managed-file-row {
   height: calc(var(--gutter-space) * 1);
@@ -253,8 +332,7 @@ export default {
 
 .episode-managed-file-row label {
   padding: 0;
-  margin: 0;
   text-align: right;
-  margin-right: var(--gutter-space);
+  margin: 0 var(--gutter-space) 0 0;
 }
 </style>

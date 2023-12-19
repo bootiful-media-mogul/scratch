@@ -53,12 +53,11 @@ export default {
         <SidebarPanelComponent title="Notes"></SidebarPanelComponent>
 
         <SidebarPanelComponent title="Transcription"></SidebarPanelComponent>
-
       </div>
     </div>
     <div class="footer">
       Mogul, made with love by
-      <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with  Spring 🍃)
+      <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with Spring 🍃)
     </div>
   </div>
 </template>

@@ -1,12 +1,16 @@
 package com.joshlong.mogul.api.publications;
 
-public interface PublisherPlugin {
+import java.util.Map;
+
+public interface PublisherPlugin <T> {
 
     String name();
 
-    boolean supports(Publication publication);
+    boolean supports(Map<String, String> context, T payload);
 
-    void publish(Publication publication);
+    void publish(Map<String, String> context, T payload);
 
-    PublicationStatus status(Publication publication);
+    void unpublish(Map<String, String> context, T payload);
+
+//    PublicationStatus status(Publication publication);
 }

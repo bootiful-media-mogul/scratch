@@ -1,8 +1,10 @@
 package com.joshlong.mogul.api.podcasts;
 
-import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
+import com.joshlong.mogul.api.Settings;
+import com.joshlong.mogul.api.podcasts.publication.PodcastEpisodePublisherPlugin;
+import com.joshlong.mogul.api.publications.PublicationService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
@@ -11,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
 
 @Controller
 class PodcastController {
@@ -19,7 +23,11 @@ class PodcastController {
 
 	private final PodcastService podcastService;
 
-	private final ManagedFileService managedFileService;
+	private final Map<String, PodcastEpisodePublisherPlugin> plugins;
+
+	private final PublicationService publicationService;
+
+	private final Settings settings;
 
 	@QueryMapping
 	Collection<Episode> podcastEpisodesByPodcast(@Argument Long podcastId) {
@@ -36,10 +44,33 @@ class PodcastController {
 		return this.podcastService.getEpisodeById(id);
 	}
 
-	PodcastController(MogulService mogulService, PodcastService podcastService, ManagedFileService managedFileService) {
+	PodcastController(MogulService mogulService, PodcastService podcastService, Map<String, PodcastEpisodePublisherPlugin> plugins, PublicationService publicationService, Settings settings) {
 		this.mogulService = mogulService;
 		this.podcastService = podcastService;
-		this.managedFileService = managedFileService;
+		this.plugins = plugins;
+		this.publicationService = publicationService;
+		this.settings = settings;
+	}
+
+
+	@SchemaMapping
+	Collection<String> availablePlugins(Episode episode) {
+		var mogul = mogulService.getCurrentMogul();
+		var plugins = new HashSet<String>();
+		for (var pluginName : this.plugins.keySet()) {
+			var configuration = settings.getAllValuesByCategory(mogul.id(), pluginName);
+			var plugin = this.plugins.get(pluginName);
+			if (plugin.supports(configuration, episode)) {
+				plugins.add(plugin.name());
+			}
+		}
+		return plugins;
+	}
+
+
+	@SchemaMapping
+	long created(Episode episode) {
+		return episode.created().getTime();
 	}
 
 	@QueryMapping
@@ -77,6 +108,18 @@ class PodcastController {
 				"you must have at least one active, non-deleted podcast");
 		this.podcastService.deletePodcast(podcast.id());
 		return id;
+	}
+
+	@MutationMapping
+	boolean publishPodcastEpisode(@Argument Long episodeId, @Argument String pluginName) {
+		var episode = this.podcastService.getEpisodeById(episodeId);
+		Assert.notNull(episode, "the episode should not be null");
+		Assert.state(this.plugins.containsKey(pluginName), "the plugin [" + pluginName + "] does not exist or is not applicable for [" + episode + "]");
+		var plugin = this.plugins.get(pluginName);
+		var configuration = this.settings.getAllValuesByCategory(this.mogulService.getCurrentMogul().id(), pluginName);
+		plugin.publish(configuration, episode);
+		return false;
+
 	}
 
 	@MutationMapping
