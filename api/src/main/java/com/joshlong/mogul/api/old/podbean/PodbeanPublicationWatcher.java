@@ -64,14 +64,14 @@ class PodbeanPublicationWatcher {
 		 * e.getId().equalsIgnoreCase(podcast.podbean().id()); var published =
 		 * StringUtils.hasText(e.getStatus()) &&
 		 * e.getStatus().equalsIgnoreCase(EpisodeStatus.PUBLISH.name()); if (matches &&
-		 * published) { return new PodbeanEpisodePublishedEvent(podcast, e); } } return
+		 * published) { return new PodbeanEpisodeCompletedEvent(podcast, e); } } return
 		 * null; })) // .handle(episodeSyncApplicationEventPublishingMessageHandler)//
 		 * .get();
 		 *
 		 * var registration = this.context.registration(integrationFlow).register();
 		 * this.watchers.put(podcastId, registration); return registration; }
 		 *
-		 * @EventListener void complete(PodbeanEpisodePublishedEvent evt) { var podcastId
+		 * @EventListener void complete(PodbeanEpisodeCompletedEvent evt) { var podcastId
 		 * = evt.podcast().id(); stop(podcastId); }
 		 *
 		 * private void stop(Long podcastId) { log.info("stopping " + getClass().getName()

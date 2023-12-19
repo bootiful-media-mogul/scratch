@@ -38,7 +38,7 @@ class PodbeanPublicationWatcherConfiguration {
 	 * @Bean ApplicationEventListeningMessageProducer
 	 * podbeanEpisodePublishedEventApplicationEventListeningMessageProducer() { var
 	 * producer = new ApplicationEventListeningMessageProducer();
-	 * producer.setEventTypes(PodbeanEpisodePublishedEvent.class); return producer; }
+	 * producer.setEventTypes(PodbeanEpisodeCompletedEvent.class); return producer; }
 	 *
 	 * @Bean IntegrationFlow episodePublishedIntegrationFlow(
 	 * ApplicationEventListeningMessageProducer
@@ -47,7 +47,7 @@ class PodbeanPublicationWatcherConfiguration {
 	 *
 	 * return IntegrationFlow//
 	 * .from(podbeanEpisodePublishedEventApplicationEventListeningMessageProducer)
-	 * .handle((GenericHandler<PodbeanEpisodePublishedEvent>) (payload, headers) -> { var
+	 * .handle((GenericHandler<PodbeanEpisodeCompletedEvent>) (payload, headers) -> { var
 	 * episode = payload.episode();
 	 * mogulService.confirmPodbeanPublication(payload.podcast(),
 	 * episode.getPermalinkUrl(), episode.getDuration()); return null; }) .get(); }

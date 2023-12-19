@@ -72,7 +72,7 @@ class SearchController {
 	 * this.luceneTemplate.search(queryStr, maxResults, document -> document.get("uid"));
 	 * }
 	 *
-	 * @EventListener({ PodbeanEpisodePublishedEvent.class, ApplicationReadyEvent.class,
+	 * @EventListener({ PodbeanEpisodeCompletedEvent.class, ApplicationReadyEvent.class,
 	 * SearchIndexInvalidatedEvent.class }) public void newPodcast() { this.refresh(); }
 	 *
 	 * private void refresh() {

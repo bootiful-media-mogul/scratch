@@ -13,11 +13,15 @@ public abstract class FileUtils {
 		return file;
 	}
 
-	public static File createRelativeTempFile(File in) {
+	public static File createRelativeTempFile(File in, String ext) {
 		Assert.notNull(in, "the file must not be null");
+		return new File(in.getParentFile(), UUID.randomUUID() + ext);
+	}
+
+	public static File createRelativeTempFile(File in) {
 		var path = in.getAbsolutePath();
 		var ext = path.substring(path.lastIndexOf("."));
-		return new File(in.getParentFile(), UUID.randomUUID() + ext);
+		return createRelativeTempFile(in, ext);
 	}
 
 }

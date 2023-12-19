@@ -1,4 +1,4 @@
-package com.joshlong.mogul.api;
+package com.joshlong.mogul.api.old;
 
 import java.net.URI;
 import java.util.Date;

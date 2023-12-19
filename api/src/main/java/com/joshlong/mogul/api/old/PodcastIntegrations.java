@@ -22,14 +22,9 @@ public class PodcastIntegrations {
 
 	public static final String HEADER_RESOURCE_TYPE = "resource-type";
 
-	public static final String IMAGE_NORMALIZATION_FLOW = "image-normalization-integration-flow";
-
-	public static final String AUDIO_NORMALIZATION_FLOW = "audio-normalization-integration-flow";
-
 	/**
 	 * the integration flow allowing us to normalize images
 	 */
-	public static final String FLOW_MEDIA_NORMALIZATION = "media-normalization-integration-flow";
 
 	public static final String FLOW_PROCESSOR = "processor-integration-flow";
 
@@ -84,40 +79,6 @@ public class PodcastIntegrations {
 	@Qualifier(CHANNEL_PIPELINE_REQUESTS)
 	MessageChannelSpec<DirectChannelSpec, DirectChannel> pipelineRequestsMessageChannel() {
 		return MessageChannels.direct();
-	}
-
-	public static GenericHandler<Object> terminatingDebugHandler() {
-		return terminatingDebugHandler(null);
-	}
-
-	public static GenericHandler<Object> terminatingDebugHandler(String header) {
-		var log = LoggerFactory.getLogger(PodcastIntegrations.class);
-		return (payload, headers) -> {
-			var message = new StringBuilder();
-			if (StringUtils.hasText(header))
-				message.append(header.toUpperCase(Locale.ROOT));
-			message.append(System.lineSeparator());
-			message.append("---------------");
-			message.append(System.lineSeparator());
-			message.append(payload.toString());
-			message.append(System.lineSeparator());
-			headers
-				.forEach((k, v) -> message.append("\t").append(k).append('=').append(v).append(System.lineSeparator()));
-			message.append(System.lineSeparator());
-			log.debug(message.toString());
-			return null;
-		};
-	}
-
-	public static GenericHandler<Object> debugHandler() {
-		return debugHandler(null);
-	}
-
-	public static GenericHandler<Object> debugHandler(String header) {
-		return (payload, headers) -> {
-			terminatingDebugHandler(header).handle(payload, headers);
-			return payload;
-		};
 	}
 
 }

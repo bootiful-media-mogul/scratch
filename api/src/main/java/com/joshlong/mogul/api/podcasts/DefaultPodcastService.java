@@ -7,6 +7,7 @@ import com.joshlong.mogul.api.PodcastService;
 import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import com.joshlong.mogul.api.managedfiles.ManagedFileUpdatedEvent;
+import com.joshlong.mogul.api.podcasts.production.MediaNormalizer;
 import com.joshlong.mogul.api.utils.JdbcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 @Service
@@ -29,6 +27,8 @@ import java.util.function.BiConsumer;
 class DefaultPodcastService implements PodcastService {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
+
+	private final MediaNormalizer mediaNormalizer;
 
 	private final JdbcClient db;
 
@@ -40,47 +40,69 @@ class DefaultPodcastService implements PodcastService {
 
 	private final ApplicationEventPublisher publisher;
 
-	DefaultPodcastService(MogulService mogulService, JdbcClient db, ManagedFileService managedFileService,
-			ApplicationEventPublisher publisher) {
+	DefaultPodcastService(MediaNormalizer mediaNormalizer, MogulService mogulService, JdbcClient db,
+			ManagedFileService managedFileService, ApplicationEventPublisher publisher) {
+
 		this.db = db;
+		this.mediaNormalizer = mediaNormalizer;
 		this.mogulService = mogulService;
 		this.managedFileService = managedFileService;
-		this.episodeRowMapper = new EpisodeRowMapper(this::getPodcastById, managedFileService::getManagedFile);
+		this.episodeRowMapper = new EpisodeRowMapper(this::getPodcastById, id -> {
+			if (id == null || id <= 0)
+				return null;
+			return managedFileService.getManagedFile(id);
+		});
 		this.publisher = publisher;
 	}
 
 	@ApplicationModuleListener
-	void managedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
-		// ok so some MF was updated; check to see if it's one of the MFs attached to one
-		// of our episodes and if it is
-		// let's emit the EpisodeUpdatedEvent so that we can update the Episode's produced
-		// == true bit
-
+	void podcastEpisodeManagedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
 		var id = managedFileUpdatedEvent.managedFile().id();
-		var all = this.db//
+		var allEpisodes = this.db//
 			.sql("select  * from podcast_episode where interview =  ? or introduction = ?  or graphic = ?")//
 			.params(id, id, id)//
 			.query(this.episodeRowMapper)//
 			.list();
-		// is it really true that this should be a list? as the system
-		// is built, there should never be the same managed file assigned to
-		// more than one podcast...
-		for (var e : all) {
+		for (var episode : allEpisodes) {
 			var complete = true;
-			// now we update the episode to reflect the fact
-			for (var mf : Set.of(e.introduction(), e.interview(), e.graphic())) {
+			for (var mf : Set.of(episode.introduction(), episode.interview(), episode.graphic())) {
 				if (!mf.written())
 					complete = false;
 			}
-			var presentlyProduced = e.complete();
-			if (presentlyProduced != complete) {
-				this.db.sql("update podcast_episode set complete = ? where id =? ")//
-					.params(complete, e.id())//
-					.update();
-				log.debug("setting [" + e + "] as produced = [" + complete + "]");
-				//
-				publisher.publishEvent(new PodcastEpisodeUpdatedEvent(getEpisodeById(e.id())));
+			this.db.sql("update podcast_episode set complete = ? where id =? ")//
+				.params(complete, episode.id())//
+				.update();
+			log.debug("setting [" + episode + "] as produced = [" + complete + "]");
+			var mappings = Map.of("produced_interview", episode.interview(), "produced_graphic", episode.graphic(),
+					"produced_introduction", episode.introduction());
+			for (var colName : mappings.keySet()) {
+				var mf = mappings.get(colName);
+				if (mf.id().equals(id)) {
+					var normalized = mediaNormalizer.normalize(mf);
+					log.info("you just changed the " + colName + ", going to normalize it. "
+							+ "the new normalized managed file is " + normalized.id() + " for podcast episode "
+							+ episode.id());
+					var existingValue = db.sql("select " + colName + " from podcast_episode where id =? ")
+						.params(episode.id())
+						.query((rs, rowNum) -> rs.getLong(colName))
+						.single();
+
+					db.sql("update podcast_episode set " + colName + " = ? where id =?")
+						.params(normalized.id(), episode.id())
+						.update();
+					if (existingValue != 0) {
+						managedFileService.deleteManagedFile(existingValue);
+					}
+				}
 			}
+			publisher.publishEvent(new PodcastEpisodeUpdatedEvent(getEpisodeById(episode.id())));
+		}
+	}
+
+	@ApplicationModuleListener
+	void podcastEpisodeUpdated(PodcastEpisodeUpdatedEvent updatedEvent) {
+		if (updatedEvent.episode().complete()) {
+			publisher.publishEvent(new PodcastEpisodeCompletedEvent(updatedEvent.episode()));
 		}
 	}
 
@@ -221,6 +243,16 @@ class DefaultPodcastService implements PodcastService {
 		Assert.notNull(episodeById, "the result should not be null");
 		publisher.publishEvent(new PodcastEpisodeUpdatedEvent(episodeById));
 		return episodeById;
+	}
+
+	@Override
+	public Episode updatePodcastEpisodeProducedManagedFiles(Long episodeId, ManagedFile producedGraphic,
+			ManagedFile producedIntroduction, ManagedFile producedInterview) {
+		this.db.sql(
+				"update podcast_episode set produced_introduction =?, produced_interview =?, produced_graphic =? where id =? ")
+			.params(producedIntroduction.id(), producedInterview.id(), producedGraphic.id())
+			.update();
+		return getEpisodeById(episodeId);
 	}
 
 	// todo publish the right events for {podcast|episode} {creation|update}

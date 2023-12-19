@@ -5,6 +5,7 @@ import com.joshlong.mogul.api.Storage;
 import com.joshlong.mogul.api.old.PodcastIntegrations;
 import com.joshlong.mogul.api.old.PodcastArchive;
 import com.joshlong.mogul.api.old.archives.ArchiveResourceType;
+import com.joshlong.mogul.api.utils.IntegrationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -152,7 +153,7 @@ class ProcessorIntegrationFlowConfiguration {
 				.routingKey(q)//
 				.exchangeName(q)//
 			)
-			.handle(PodcastIntegrations.debugHandler("outbound processor AMQP message"))
+			.handle(IntegrationUtils.debugHandler("outbound processor AMQP message"))
 			.channel(inbound)
 			.get();
 	}

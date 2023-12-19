@@ -64,9 +64,16 @@ create table if not exists podcast_episode
     description    text               not null,
 
     graphic        bigint             not null references managed_file (id),
+    produced_graphic      bigint null references managed_file (id),
+
     interview      bigint             not null references managed_file (id),
+    produced_interview    bigint null references managed_file (id),
+
     introduction   bigint             not null references managed_file (id),
+    produced_introduction bigint null references managed_file (id),
+
     produced_audio bigint             null references managed_file (id),
+
     complete bool not null default false,
 
     id             serial primary key not null,

@@ -31,4 +31,7 @@ public interface PodcastService {
 
 	Episode updatePodcastEpisodeDraft(Long episodeId, String title, String description);
 
+	Episode updatePodcastEpisodeProducedManagedFiles(Long episodeId, ManagedFile producedGraphic,
+			ManagedFile producedIntroduction, ManagedFile producedInterview);
+
 }

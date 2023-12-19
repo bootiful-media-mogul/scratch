@@ -1,30 +1,5 @@
 package com.joshlong.mogul.api.old;
 
-import com.joshlong.mogul.api.MogulSecurityContexts;
-import com.joshlong.mogul.api.MogulService;
-import com.joshlong.mogul.api.Podcast;
-import com.joshlong.mogul.api.Storage;
-import com.joshlong.podbean.EpisodeStatus;
-import com.joshlong.podbean.EpisodeType;
-import com.joshlong.podbean.PodbeanClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.integration.core.GenericHandler;
-import org.springframework.integration.core.MessageSource;
-import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.dsl.PollerFactory;
-import org.springframework.integration.splitter.AbstractMessageSplitter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.Assert;
-
-import java.net.URI;
-import java.time.Duration;
-import java.util.Collection;
-import java.util.HashSet;
-
 //@Configuration
 class PodcastDeletionIntegrationFlowConfiguration {
 
