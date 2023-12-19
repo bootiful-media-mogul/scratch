@@ -2,8 +2,15 @@ package com.joshlong.mogul.api.publications;
 
 import java.util.Map;
 
+/**
+ * handles preparing context, launching the {@link PublisherPlugin}, and noting the
+ * publication in the DB.
+ */
 public interface PublicationService {
 
-	<T> void publish(Long mogulId, String payload, Map<String, String> context, PublisherPlugin plugin);
+	Publication getPublicationById(Long id);
+
+	<T extends Publishable> Publication publish(Long mogulId, T payload, Map<String, String> contextAndSettings,
+			PublisherPlugin<T> plugin);
 
 }

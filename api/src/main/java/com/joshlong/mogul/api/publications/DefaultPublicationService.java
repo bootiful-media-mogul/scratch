@@ -1,19 +1,33 @@
 package com.joshlong.mogul.api.publications;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.Settings;
-import org.jetbrains.annotations.NotNull;
+import com.joshlong.mogul.api.utils.JdbcUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @Transactional
 class DefaultPublicationService implements PublicationService {
+
+	private final Map<String, PublisherPlugin<?>> plugins = new ConcurrentHashMap<>();
 
 	private final JdbcClient db;
 
@@ -21,76 +35,114 @@ class DefaultPublicationService implements PublicationService {
 
 	private final MogulService mogulService;
 
-	private final Map<String, PublisherPlugin<?>> plugins;
+	private final ObjectMapper om;
 
-	DefaultPublicationService(JdbcClient db, Settings settings, MogulService mogulService,
-			Map<String, PublisherPlugin<?>> plugins) {
+	private final RowMapper<Publication> publicationRowMapper;
+
+	private final TextEncryptor textEncryptor;
+
+	DefaultPublicationService(JdbcClient db, Settings settings, MogulService mogulService, TextEncryptor textEncryptor,
+			Map<String, PublisherPlugin<?>> plugins, ObjectMapper om) {
 		this.db = db;
 		this.settings = settings;
 		this.mogulService = mogulService;
-		this.plugins = plugins;
+		this.textEncryptor = textEncryptor;
+		this.plugins.putAll(plugins);
+		this.om = om;
 		Assert.notNull(this.db, "the JdbcClient must not be null");
 		Assert.notNull(this.mogulService, "the mogulService must not be null");
+		Assert.notNull(this.textEncryptor, "the textEncryptor must not be null");
 		Assert.notNull(this.settings, "the settings must not be null");
 		Assert.state(!this.plugins.isEmpty(), "there are no plugins for publication");
+		this.publicationRowMapper = new PublicationRowMapper(om, textEncryptor);
+	}
+
+	private String json(Object o) {
+		try {
+			return this.om.writeValueAsString(o);
+		} //
+		catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public <T> void publish(Long mogulId, String payload, Map<String, String> contextAndSettings,
-			PublisherPlugin plugin) {
+	public <T extends Publishable> Publication publish(Long mogulId, T payload, Map<String, String> contextAndSettings,
+			PublisherPlugin<T> plugin) {
+		var mogul = mogulService.getMogulById(mogulId);
 		Assert.notNull(plugin, "the plugin must not be null");
-		Assert.notNull(payload, "your payload must not be null");
-		// var publication = createPublication(mogulId, payload, contextAndSettings,
-		// plugin);
-
-		// todo write this publication to the db
-		// and in a separate thread have spring integration pull down
-		// the publications that havent completed yet and try to fulfill them, making sure
-		// to serialize
-		// the configuration using Jackson
-		// and then encrypting the serialized blob!
-		// the spring integration thread should pull down the work, lock the record (need
-		// a new flag), and then
-		// call plugin.publish. the plugin itself could use the spring integration pattern
-		// to hide a whole series of
-		// steps like producing audio, reducing thumbnail size, and then uplaoding the
-		// files to podbean itself.
-		// once its published, once `publish` returns it should return information in a
-		// PublicationStatus (Map<String,String>)
-		//
-		// wwe need to decouple produced audio from the publishing event.
-		// so lets say every time we update a podcast, we save a dirty bit to the db
-		// saying the produced audio for this file needs updatiung)
-		// t hen we publish an epplication event that then kicks off a to two places at
-		// once: one to produce a minimal thumbnail
-		// and another to produce an audio file. once both of those finisxh, theyll
-		// publish an event that then updates the row further
-		// with the appropriate produced_audio_file and produced_thumbnail_file and maybe
-		// one day the produced transcripts
-		// it should be that when you save new photos and audio, it nulls out the relevant
-		// fields in the podcast table and deletes the underlying managed file,s
-		// in effect, graying out the `publish` button.
-		// maybe each client could have a server sent event stream telling it when a
-		// podcast has been produced in the background, and thus
-		// ungreying the publish button for folks?
-		// plugin.publish(publication);
+		Assert.notNull(payload, "the payload must not be null");
+		Assert.notNull(mogul, "the mogul should not be null");
+		var configuration = this.settings.getAllValuesByCategory(this.mogulService.getCurrentMogul().id(),
+				plugin.name());
+		var context = new HashMap<String, String>();
+		context.putAll(configuration);
+		context.putAll(contextAndSettings);
+		plugin.publish(context, payload);
+		var contextJson = textEncryptor.encrypt(json(context));
+		var publicationData = textEncryptor.encrypt(json(payload.publicationKey()));
+		var entityClazz = payload.getClass().getName();
+		var kh = new GeneratedKeyHolder();
+		this.db.sql(
+				"insert into publication(mogul_id, plugin, created, published, context, payload , payload_class) VALUES (?,?,?,?,?,?,?)")
+			.params(mogulId, plugin.name(), new Date(), null, contextJson, publicationData, entityClazz)
+			.update(kh);
+		return this.getPublicationById(JdbcUtils.getIdFromKeyHolder(kh).longValue());
 	}
 
-	@NotNull
-	private Publication createPublication(Long mogulId, String payload, Map<String, String> contextAndSettings,
-			PublisherPlugin plugin) {
-		var mogul = this.mogulService.getMogulById(mogulId);
-		Assert.notNull(mogul, "the mogul should not be null");
+	@Override
+	public Publication getPublicationById(Long publicationId) {
+		return db.sql("select * from publication where id =? ")
+			.params(publicationId)
+			.query(this.publicationRowMapper)
+			.single();
+	}
 
-		var settings = this.settings.getAllSettingsByCategory(mogulId, plugin.name());
+}
 
-		var finalMapOfConfig = new HashMap<String, String>();
-		for (var c : contextAndSettings.keySet())
-			finalMapOfConfig.put(c, contextAndSettings.get(c));
-		for (var c : settings.keySet())
-			finalMapOfConfig.put(c, settings.get(c).value());
+class PublicationRowMapper implements RowMapper<Publication> {
 
-		return Publication.of(mogul, plugin.name(), finalMapOfConfig, payload);
+	private final ObjectMapper objectMapper;
+
+	private final TextEncryptor textEncryptor;
+
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
+	PublicationRowMapper(ObjectMapper objectMapper, TextEncryptor textEncryptor) {
+		this.objectMapper = objectMapper;
+		this.textEncryptor = textEncryptor;
+	}
+
+	private Class<?> classFor(String name) {
+		try {
+			Assert.hasText(name, "you must provide a non-empty class name");
+			return Class.forName(name);
+		}
+		catch (ClassNotFoundException e) {
+			log.warn("classNotFoundException when trying to do Class.forName(" + name + ") ", e);
+		}
+		return null;
+	}
+
+	@Override
+	public Publication mapRow(ResultSet rs, int rowNum) throws SQLException {
+		var context = readContextFor(rs.getString("context"));
+		var payload = this.textEncryptor.decrypt(rs.getString("payload"));
+		return new Publication(rs.getLong("mogul_id"), rs.getLong("id"), rs.getString("plugin"), rs.getDate("created"),
+				rs.getDate("published"), context, payload, classFor(rs.getString("payload_class")));
+	}
+
+	private Map<String, String> readContextFor(String context) {
+		var decrypted = this.textEncryptor.decrypt(context);
+		// @formatter:off
+		var parameterizedTypeReference = new TypeReference<Map<String, String>>() {};
+		// @formatter:on
+		try {
+			return this.objectMapper.readValue(decrypted, parameterizedTypeReference);
+		} //
+		catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

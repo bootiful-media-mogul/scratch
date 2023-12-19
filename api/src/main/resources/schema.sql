@@ -57,6 +57,19 @@ create table if not exists podcast
 
 );
 
+
+create table if not exists publication
+(
+    id            serial primary key,
+    mogul_id      bigint    not null references mogul (id),
+    plugin        text      not null,
+    created       timestamp not null default now(),
+    published     timestamp null,
+    context       text      not null,
+    payload       text      not null,
+    payload_class text      not null
+);
+
 create table if not exists podcast_episode
 (
     podcast_id     bigint             not null references podcast (id),
