@@ -1,46 +1,5 @@
 package com.joshlong.mogul.api.old;
 
-import com.joshlong.mogul.api.*;
-import com.joshlong.mogul.api.old.archives.ArchiveResourceType;
-import com.joshlong.mogul.api.utils.FileUtils;
-import com.joshlong.mogul.api.utils.NodeUtils;
-import com.joshlong.podbean.EpisodeStatus;
-import com.joshlong.podbean.EpisodeType;
-import com.joshlong.podbean.PodbeanClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.core.serializer.Deserializer;
-import org.springframework.http.MediaType;
-import org.springframework.integration.core.GenericHandler;
-import org.springframework.integration.core.GenericTransformer;
-import org.springframework.integration.dsl.AggregatorSpec;
-import org.springframework.integration.dsl.IntegrationFlow;
-import org.springframework.integration.file.dsl.Files;
-import org.springframework.integration.json.JsonToObjectTransformer;
-import org.springframework.integration.splitter.AbstractMessageSplitter;
-import org.springframework.integration.transformer.HeaderFilter;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.function.Consumer;
-
 /**
  * todo rip the processor pipeline out of the main one; it shouldn't be a gateway. just
  * make it a regular flow so that i can not worry about the response being delayed and

@@ -3,7 +3,6 @@ package com.joshlong.mogul.api.old;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
 import com.joshlong.podbean.PodbeanClient;
-import com.joshlong.podbean.token.ClientCredentialsTokenProvider;
 import com.joshlong.podbean.token.TokenProvider;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;

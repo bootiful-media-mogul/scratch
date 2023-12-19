@@ -1,7 +1,5 @@
 package com.joshlong.mogul.api;
 
-import com.joshlong.mogul.api.old.podbean.PodbeanPublication;
-import com.joshlong.mogul.api.utils.JdbcUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;

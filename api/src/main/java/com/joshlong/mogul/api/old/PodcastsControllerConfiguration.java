@@ -1,12 +1,5 @@
 package com.joshlong.mogul.api.old;
 
-import com.joshlong.mogul.api.ApiProperties;
-import com.joshlong.mogul.api.MogulService;
-import com.joshlong.templates.MarkdownService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.serializer.Serializer;
-
 //@Configuration
 class PodcastsControllerConfiguration {
 

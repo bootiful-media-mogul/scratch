@@ -1,32 +1,5 @@
 package com.joshlong.mogul.api.old;
 
-import com.joshlong.lucene.DocumentWriteMapper;
-import com.joshlong.lucene.LuceneTemplate;
-import com.joshlong.mogul.api.MogulService;
-import com.joshlong.templates.MarkdownService;
-import lombok.SneakyThrows;
-import org.apache.lucene.document.*;
-import org.apache.lucene.index.Term;
-import org.jsoup.Jsoup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Controller;
-import org.springframework.util.Assert;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 //@Deprecated
 //@Controller
 //@ResponseBody

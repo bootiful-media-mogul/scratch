@@ -1,17 +1,11 @@
 package com.joshlong.mogul.api.old;
 
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.core.GenericHandler;
 import org.springframework.integration.dsl.DirectChannelSpec;
 import org.springframework.integration.dsl.MessageChannelSpec;
 import org.springframework.integration.dsl.MessageChannels;
-import org.springframework.util.StringUtils;
-
-import java.util.Locale;
 
 //@Configuration
 public class PodcastIntegrations {

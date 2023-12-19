@@ -1,14 +1,10 @@
 package com.joshlong.mogul.api.managedfiles;
 
-import org.apache.tika.Tika;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.util.StringUtils;
-
-import java.io.IOException;
 
 /**
  * includes some useful content types that, for some reason, {@link MediaType } does not
