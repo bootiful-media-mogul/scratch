@@ -31,9 +31,9 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * the idea here is that we want a way to take any asset - be it a {@literal .wav} or a
+ * we want a way to take any asset - be it a {@literal .wav} or a
  * {@literal .png} - and turn it into a {@literal  .mp3} and a 1MB-or-less
- * {@literal .jpg}.
+ * {@literal .jpg} respectively.
  */
 @Configuration
 class MediaNormalizationIntegration {

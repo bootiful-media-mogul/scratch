@@ -146,17 +146,18 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
-			ManagedFile introduction, ManagedFile interview) {
-		Assert.notNull(podcastId, "the podcast Id can not be null");
-		Assert.hasText(title, "the title has text");
-		Assert.hasText(description, "the description has text");
-		Assert.notNull(graphic, "the graphic is not null ");
-		Assert.notNull(introduction, "the introduction is not null ");
-		Assert.notNull(interview, "the interview is not null ");
+			ManagedFile introduction, ManagedFile interview, ManagedFile producedAudio) {
+		Assert.notNull(podcastId, "the podcast is null");
+		Assert.hasText(title, "the title has no text");
+		Assert.hasText(description, "the description has no text");
+		Assert.notNull(graphic, "the graphic is null ");
+		Assert.notNull(introduction, "the introduction is null ");
+		Assert.notNull(producedAudio, "the produced audio is null ");
+		Assert.notNull(interview, "the interview is null ");
 		var kh = new GeneratedKeyHolder();
 		this.db.sql(
-				"insert into podcast_episode(podcast_id, title, description,  graphic ,  introduction ,interview ) VALUES (?,?,?,?,?,? )")
-			.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id())
+				"insert into podcast_episode(podcast_id, title, description,  graphic ,  introduction ,interview , produced_audio ) VALUES (?,?,?,?,?,?,? )")
+			.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id(),producedAudio.id())
 			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);
 		var ep = this.getEpisodeById(id.longValue());
@@ -221,12 +222,13 @@ class DefaultPodcastService implements PodcastService {
 		var intro = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
 		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0,
 				CommonMediaTypes.BINARY);
+		var producedAudio = managedFileService.createManagedFile( currentMogulId, bucket, uid,  "produced-audio.mp3" , 0 , CommonMediaTypes.MP3) ;
 		Assert.notNull(image, "the image managedFile is null");
 		Assert.notNull(intro, "the intro managedFile is null");
 		Assert.notNull(interview, "the interview managedFile is null");
 		// no need to publish an event here as we are already publishing an event in
 		// `createPodcastEpisode`
-		return createPodcastEpisode(podcastId, title, description, image, intro, interview);
+		return createPodcastEpisode(podcastId, title, description, image, intro, interview ,producedAudio);
 	}
 
 	@Override
