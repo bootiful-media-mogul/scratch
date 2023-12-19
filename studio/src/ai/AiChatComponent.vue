@@ -24,8 +24,7 @@ todo support workshopping the image for the podcast as well: give it
         >
           go
         </button>
-        <button :disabled="isPromptEmpty()" class="pure-button finish"
-                value="ok" @click="finished">
+        <button :disabled="isPromptEmpty()" class="pure-button finish" value="ok" @click="finished">
           finish
         </button>
       </div>
@@ -36,13 +35,12 @@ todo support workshopping the image for the podcast as well: give it
 .ai-workshop-panel .buttons {
   display: grid;
   grid-template-areas: 'chat . finish';
-  grid-template-columns: min-content var(--form-buttons-gutter-space ) min-content;
+  grid-template-columns: min-content var(--form-buttons-gutter-space) min-content;
 }
 
-.ai-workshop-panel .buttons .finish{
-  grid-area: finish ;
+.ai-workshop-panel .buttons .finish {
+  grid-area: finish;
 }
-
 
 .ai-workshop-panel .buttons .chat {
   grid-area: chat;

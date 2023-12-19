@@ -7,55 +7,62 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Publication {
-    private final Mogul mogul;
-    private final Date created;
-    private final Date published;
-    private final String payload;
-    private final String plugin;
-    private final Map<String, String> context;
 
-    Publication(Mogul mogul, String plugin, Date created, Date published, Map<String, String> context, String payload) {
-        this.mogul = mogul;
-        this.context = context;
-        this.plugin = plugin;
-        this.created = created;
-        this.published = published;
-        this.payload = payload;
-    }
+	private final Mogul mogul;
 
-    Publication(Mogul mogul, String plugin, Date created, String payload) {
-        this(mogul, plugin, created, null, new HashMap<>(), payload);
-    }
+	private final Date created;
 
-    Publication(Mogul mogul, String plugin, Date created, Map<String, String> context, String payload) {
-        this(mogul, plugin, created, null, context, payload);
-    }
+	private final Date published;
 
-    public Mogul mogul() {
-        return this.mogul;
-    }
+	private final String payload;
 
-    public Date created() {
-        return this.created;
-    }
+	private final String plugin;
 
-    public Date published() {
-        return this.published;
-    }
+	private final Map<String, String> context;
 
-    public String payload() {
-        return this.payload;
-    }
+	Publication(Mogul mogul, String plugin, Date created, Date published, Map<String, String> context, String payload) {
+		this.mogul = mogul;
+		this.context = context;
+		this.plugin = plugin;
+		this.created = created;
+		this.published = published;
+		this.payload = payload;
+	}
 
-    public Map<String, String> context() {
-        return this.context;
-    }
+	Publication(Mogul mogul, String plugin, Date created, String payload) {
+		this(mogul, plugin, created, null, new HashMap<>(), payload);
+	}
 
-    public String plugin() {
-        return plugin;
-    }
+	Publication(Mogul mogul, String plugin, Date created, Map<String, String> context, String payload) {
+		this(mogul, plugin, created, null, context, payload);
+	}
 
-    public static Publication of(Mogul mogul, String plugin, Map<String, String> context, String payload) {
-        return new Publication(mogul, plugin, new Date(), context, payload);
-    }
+	public Mogul mogul() {
+		return this.mogul;
+	}
+
+	public Date created() {
+		return this.created;
+	}
+
+	public Date published() {
+		return this.published;
+	}
+
+	public String payload() {
+		return this.payload;
+	}
+
+	public Map<String, String> context() {
+		return this.context;
+	}
+
+	public String plugin() {
+		return plugin;
+	}
+
+	public static Publication of(Mogul mogul, String plugin, Map<String, String> context, String payload) {
+		return new Publication(mogul, plugin, new Date(), context, payload);
+	}
+
 }

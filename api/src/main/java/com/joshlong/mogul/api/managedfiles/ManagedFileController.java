@@ -33,8 +33,8 @@ class ManagedFileController {
 	}
 
 	@QueryMapping
-	ManagedFile managedFileById(@Argument Long id ) {
-		return this.managedFileService.getManagedFile( id );
+	ManagedFile managedFileById(@Argument Long id) {
+		return this.managedFileService.getManagedFile(id);
 	}
 
 	@GetMapping(MF_RW_URL)
@@ -47,9 +47,9 @@ class ManagedFileController {
 		var contentType = mf.contentType();
 		log.debug("content-type: " + contentType);
 		return ResponseEntity.ok()
-				.contentLength( mf.size())
-				.contentType(MediaType.parseMediaType(contentType))
-				.body(read);
+			.contentLength(mf.size())
+			.contentType(MediaType.parseMediaType(contentType))
+			.body(read);
 
 	}
 
@@ -60,14 +60,14 @@ class ManagedFileController {
 		var mogul = this.mogulService.getCurrentMogul();
 		var managedFile = this.managedFileService.getManagedFile(id);
 		Assert.notNull(managedFile, "the managed file is null for managed file id [" + id + "]");
-		Assert.state(managedFile.mogulId().equals(mogul.id()), "you're trying to write to an invalid file to which you are not authorized!");
+		Assert.state(managedFile.mogulId().equals(mogul.id()),
+				"you're trying to write to an invalid file to which you are not authorized!");
 		var originalFilename = file.getOriginalFilename();
 		var mediaType = CommonMediaTypes.guess(file.getResource());
 		log.debug("guessing the media type for [" + file.getOriginalFilename() + "] is  " + mediaType);
 		this.managedFileService.write(managedFile.id(), originalFilename, mediaType, file.getResource());
-		var updated = managedFileService.getManagedFile( managedFile.id()) ;
-		log.debug("finished writing managed file [" + id + "] to s3: " + originalFilename + ":" +
-				updated.toString());
+		var updated = managedFileService.getManagedFile(managedFile.id());
+		log.debug("finished writing managed file [" + id + "] to s3: " + originalFilename + ":" + updated.toString());
 		return Map.of("managedFileId", id);
 	}
 

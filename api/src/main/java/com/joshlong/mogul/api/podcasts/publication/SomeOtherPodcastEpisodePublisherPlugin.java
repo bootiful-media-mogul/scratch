@@ -10,35 +10,34 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component("demo")
 class SomeOtherPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlugin, BeanNameAware {
 
-    private final AtomicReference<String> beanName = new AtomicReference<>();
+	private final AtomicReference<String> beanName = new AtomicReference<>();
 
-    @Override
-    public void setBeanName(String name) {
-        this.beanName.set(name);
-    }
+	@Override
+	public void setBeanName(String name) {
+		this.beanName.set(name);
+	}
 
-    @Override
-    public String name() {
-        return this.beanName.get();
-    }
+	@Override
+	public String name() {
+		return this.beanName.get();
+	}
 
-    @Override
-    public boolean supports(Map<String, String> context, Episode payload) {
-        return true;
-    }
+	@Override
+	public boolean supports(Map<String, String> context, Episode payload) {
+		return true;
+	}
 
-    @Override
-    public void publish(Map<String, String> context, Episode payload) {
+	@Override
+	public void publish(Map<String, String> context, Episode payload) {
 
-        System.out.println("publishing [" + payload.toString() +
-                "] with [" + beanName.get() +
-                "] and context [" + context +
-                "] ");
+		System.out.println(
+				"publishing [" + payload.toString() + "] with [" + beanName.get() + "] and context [" + context + "] ");
 
-    }
+	}
 
-    @Override
-    public void unpublish(Map<String, String> context, Episode payload) {
+	@Override
+	public void unpublish(Map<String, String> context, Episode payload) {
 
-    }
+	}
+
 }

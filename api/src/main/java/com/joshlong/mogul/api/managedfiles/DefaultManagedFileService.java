@@ -28,9 +28,11 @@ class DefaultManagedFileService implements ManagedFileService {
 	private final Storage storage;
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	private final ApplicationEventPublisher publisher;
 
-	DefaultManagedFileService(JdbcClient db, Storage storage, ApplicationEventPublisher publisher, ApplicationEventPublisher publisher1) {
+	DefaultManagedFileService(JdbcClient db, Storage storage, ApplicationEventPublisher publisher,
+			ApplicationEventPublisher publisher1) {
 		this.db = db;
 		this.storage = storage;
 		this.publisher = publisher1;
@@ -41,13 +43,11 @@ class DefaultManagedFileService implements ManagedFileService {
 		var managedFile = getManagedFile(managedFileId);
 		var bucket = managedFile.bucket();
 		var folder = managedFile.folder();
-		this.storage.write(bucket, folder + '/' +   managedFile.storageFilename(), resource);
+		this.storage.write(bucket, folder + '/' + managedFile.storageFilename(), resource);
 		var clientMediaType = mediaType == null ? CommonMediaTypes.BINARY : mediaType;
-		this.db
-				.sql("update managed_file set filename =?, content_type =? , written = true , size =? where id=?")
-				.params(filename, clientMediaType.toString(),
-						contentLength(resource), managedFileId)
-				.update();
+		this.db.sql("update managed_file set filename =?, content_type =? , written = true , size =? where id=?")
+			.params(filename, clientMediaType.toString(), contentLength(resource), managedFileId)
+			.update();
 		log.info("managed file has been written? " + getManagedFile(managedFileId).written());
 
 		this.publisher.publishEvent(new ManagedFileUpdatedEvent(managedFile));
@@ -56,12 +56,17 @@ class DefaultManagedFileService implements ManagedFileService {
 
 	@Override
 	public ManagedFileDeletionRequest getManagedFileDeletionRequest(Long managedFileDeletionRequestId) {
-		return db.sql("select * from managed_file_deletion_request where id =? ").param(managedFileDeletionRequestId).query(new ManagedFileDeletionRequestRowMapper()).single();
+		return db.sql("select * from managed_file_deletion_request where id =? ")
+			.param(managedFileDeletionRequestId)
+			.query(new ManagedFileDeletionRequestRowMapper())
+			.single();
 	}
 
 	@Override
 	public Collection<ManagedFileDeletionRequest> getOutstandingManagedFileDeletionRequests() {
-		return this.db.sql("select * from managed_file_deletion_request where deleted = false").query(new ManagedFileDeletionRequestRowMapper()).list();
+		return this.db.sql("select * from managed_file_deletion_request where deleted = false")
+			.query(new ManagedFileDeletionRequestRowMapper())
+			.list();
 	}
 
 	@Override
@@ -70,8 +75,8 @@ class DefaultManagedFileService implements ManagedFileService {
 		storage.remove(mfRequest.bucket(), mfRequest.folder() + '/' + mfRequest.storageFilename());
 		Assert.notNull(mfRequest, "the managed file deletion request should not be null");
 		this.db.sql(" update  managed_file_deletion_request  set deleted = true where id = ? ")
-				.param(managedFileDeletionRequestId)
-				.update();
+			.param(managedFileDeletionRequestId)
+			.update();
 		var mfdr = getManagedFileDeletionRequest(managedFileDeletionRequestId);
 		log.debug("completed [" + mfdr + "]");
 	}
@@ -81,8 +86,8 @@ class DefaultManagedFileService implements ManagedFileService {
 		var mf = getManagedFile(managedFileId);
 		db.sql("delete from managed_file where id =?").param(managedFileId).update();
 		db.sql("insert into managed_file_deletion_request ( mogul_id, bucket, folder, filename ,storage_filename) values(?,?,? ,?,?)")
-				.params(mf.mogulId(), mf.bucket(), mf.folder(), mf.filename()  ,mf.storageFilename())
-				.update();
+			.params(mf.mogulId(), mf.bucket(), mf.folder(), mf.filename(), mf.storageFilename())
+			.update();
 	}
 
 	@Override
@@ -104,23 +109,21 @@ class DefaultManagedFileService implements ManagedFileService {
 	private long contentLength(Resource resource) {
 		try {
 			return resource.contentLength();
-		}//
+		} //
 		catch (Throwable throwable) {
 			return 0;
 		}
 	}
 
 	@Override
-	public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size, MediaType mediaType) {
+	public ManagedFile createManagedFile(Long mogulId, String bucket, String folder, String fileName, long size,
+			MediaType mediaType) {
 		var kh = new GeneratedKeyHolder();
-		this.db
-				.sql("""
-    				insert into managed_file( storage_filename, mogul_id, bucket, folder, filename, size,content_type) 
-    				VALUES (?,?,?,?,?,?,?)
-    			""")
-				.params(
-						UUID.randomUUID().toString() ,
-						mogulId, bucket, folder, fileName, size, mediaType.toString())
+		this.db.sql("""
+					insert into managed_file( storage_filename, mogul_id, bucket, folder, filename, size,content_type)
+					VALUES (?,?,?,?,?,?,?)
+				""")
+			.params(UUID.randomUUID().toString(), mogulId, bucket, folder, fileName, size, mediaType.toString())
 			.update(kh);
 		log.info("the bucket is [" + bucket + "]");
 		return getManagedFile(((Number) kh.getKeys().get("id")).longValue());
@@ -132,30 +135,20 @@ class ManagedFileDeletionRequestRowMapper implements RowMapper<ManagedFileDeleti
 
 	@Override
 	public ManagedFileDeletionRequest mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new ManagedFileDeletionRequest(
-				rs.getLong("id"),
-				rs.getLong("mogul_id"),
-				rs.getString("bucket"),
-				rs.getString("folder"),
-				rs.getString("filename"),
-				rs.getString("storage_filename"),
-				rs.getBoolean("deleted"),
-				rs.getDate("created")
-		);
+		return new ManagedFileDeletionRequest(rs.getLong("id"), rs.getLong("mogul_id"), rs.getString("bucket"),
+				rs.getString("folder"), rs.getString("filename"), rs.getString("storage_filename"),
+				rs.getBoolean("deleted"), rs.getDate("created"));
 	}
+
 }
+
 class ManagedFileRowMapper implements RowMapper<ManagedFile> {
 
 	@Override
 	public ManagedFile mapRow(ResultSet rs, int rowNum) throws SQLException {
-		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"),
-				rs.getString("bucket"),
-				rs.getString("storage_filename"),
-				rs.getString("folder"),
-				rs.getString("filename"), rs.getDate("created"),
-				rs.getBoolean("written") ,
-				rs.getLong("size"),
-				rs.getString("content_type"));
+		return new ManagedFile(rs.getLong("mogul_id"), rs.getLong("id"), rs.getString("bucket"),
+				rs.getString("storage_filename"), rs.getString("folder"), rs.getString("filename"),
+				rs.getDate("created"), rs.getBoolean("written"), rs.getLong("size"), rs.getString("content_type"));
 	}
 
 }

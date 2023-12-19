@@ -40,18 +40,19 @@ class PodcastController {
 	}
 
 	@QueryMapping
-	Episode podcastEpisodeById (@Argument Long id ) {
+	Episode podcastEpisodeById(@Argument Long id) {
 		return this.podcastService.getEpisodeById(id);
 	}
 
-	PodcastController(MogulService mogulService, PodcastService podcastService, Map<String, PodcastEpisodePublisherPlugin> plugins, PublicationService publicationService, Settings settings) {
+	PodcastController(MogulService mogulService, PodcastService podcastService,
+			Map<String, PodcastEpisodePublisherPlugin> plugins, PublicationService publicationService,
+			Settings settings) {
 		this.mogulService = mogulService;
 		this.podcastService = podcastService;
 		this.plugins = plugins;
 		this.publicationService = publicationService;
 		this.settings = settings;
 	}
-
 
 	@SchemaMapping
 	Collection<String> availablePlugins(Episode episode) {
@@ -66,7 +67,6 @@ class PodcastController {
 		}
 		return plugins;
 	}
-
 
 	@SchemaMapping
 	long created(Episode episode) {
@@ -114,7 +114,8 @@ class PodcastController {
 	boolean publishPodcastEpisode(@Argument Long episodeId, @Argument String pluginName) {
 		var episode = this.podcastService.getEpisodeById(episodeId);
 		Assert.notNull(episode, "the episode should not be null");
-		Assert.state(this.plugins.containsKey(pluginName), "the plugin [" + pluginName + "] does not exist or is not applicable for [" + episode + "]");
+		Assert.state(this.plugins.containsKey(pluginName),
+				"the plugin [" + pluginName + "] does not exist or is not applicable for [" + episode + "]");
 		var plugin = this.plugins.get(pluginName);
 		var configuration = this.settings.getAllValuesByCategory(this.mogulService.getCurrentMogul().id(), pluginName);
 		plugin.publish(configuration, episode);

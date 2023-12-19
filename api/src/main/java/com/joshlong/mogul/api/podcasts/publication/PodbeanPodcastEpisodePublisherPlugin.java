@@ -17,32 +17,33 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component(PodbeanPodcastEpisodePublisherPlugin.PLUGIN_NAME)
 class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlugin, BeanNameAware {
 
-    public static final String PLUGIN_NAME = "podbean";
+	public static final String PLUGIN_NAME = "podbean";
 
-    private final AtomicReference<String> beanName = new AtomicReference<>();
+	private final AtomicReference<String> beanName = new AtomicReference<>();
 
-    @Override
-    public String name() {
-        return this.beanName.get();
-    }
+	@Override
+	public String name() {
+		return this.beanName.get();
+	}
 
-    @Override
-    public void setBeanName(@NonNull String name) {
-        this.beanName.set(name);
-    }
+	@Override
+	public void setBeanName(@NonNull String name) {
+		this.beanName.set(name);
+	}
 
-    @Override
-    public boolean supports(Map<String, String> context, Episode payload) {
-        return context.containsKey("clientId") && context.containsKey("clientSecret");
-    }
+	@Override
+	public boolean supports(Map<String, String> context, Episode payload) {
+		return context.containsKey("clientId") && context.containsKey("clientSecret");
+	}
 
-    @Override
-    public void publish(Map<String, String> context, Episode payload) {
-        System.out.println("publishing to podbean with context [" + context + "] and payload [" + payload + "]");
-    }
+	@Override
+	public void publish(Map<String, String> context, Episode payload) {
+		System.out.println("publishing to podbean with context [" + context + "] and payload [" + payload + "]");
+	}
 
-    @Override
-    public void unpublish(Map<String, String> context, Episode payload) {
-        System.out.println("unpublishing to podbean with context [" + context + "] and payload [" + payload + "]");
-    }
+	@Override
+	public void unpublish(Map<String, String> context, Episode payload) {
+		System.out.println("unpublishing to podbean with context [" + context + "] and payload [" + payload + "]");
+	}
+
 }

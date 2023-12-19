@@ -1,9 +1,9 @@
 <script lang="ts">
-import {Episode, Podcast, podcasts} from '@/services'
+import { Episode, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
-import {reactive} from 'vue'
-import {dateTimeFormatter} from '../dates'
+import { reactive } from 'vue'
+import { dateTimeFormatter } from '../dates'
 
 export default {
   mounted(): void {
@@ -49,8 +49,7 @@ export default {
       this.dirtyKey = this.computeDirtyKey()
 
       const plugins = episode.availablePlugins
-      if (plugins && plugins.length == 1 )
-       this.selectedPlugin = plugins [0]
+      if (plugins && plugins.length == 1) this.selectedPlugin = plugins[0]
       await this.loadPodcast()
     },
 
@@ -60,33 +59,30 @@ export default {
       if (this.draftEpisode.id) {
         // we're editing a record, so update it
         const episode = await podcasts.updatePodcastEpisode(
-            this.draftEpisode.id,
-            this.title,
-            this.description
+          this.draftEpisode.id,
+          this.title,
+          this.description
         )
         await this.loadEpisode(episode)
       } //
       else {
         const episode = await podcasts.createPodcastEpisodeDraft(
-            this.selectedPodcastId,
-            this.title,
-            this.description
+          this.selectedPodcastId,
+          this.title,
+          this.description
         )
         await this.loadEpisode(episode)
       }
     },
 
-    async publish (e:Event) {
+    async publish(e: Event) {
       e.preventDefault()
-      await podcasts.publishPodcastEpisode ( this.draftEpisode.id , this.selectedPlugin)
-    }  ,
-    pluginSelected (e:Event ){
+      await podcasts.publishPodcastEpisode(this.draftEpisode.id, this.selectedPlugin)
+    },
+    pluginSelected(e: Event) {
       e.preventDefault()
-      console.log('so you selected a plugin, didja ? it is ' + JSON.stringify(
-          this.selectedPlugin
-      ))
-
-    } ,
+      console.log('so you selected a plugin, didja ? it is ' + JSON.stringify(this.selectedPlugin))
+    },
 
     /**
      * returns true if the buttons should be disabled because there's no change in the data in the form.
@@ -107,11 +103,11 @@ export default {
 
     computeDirtyKey(): string {
       return (
-          '' +
-          (this.draftEpisode.id ? this.draftEpisode.id : '') +
-          this.description +
-          ':' +
-          this.title
+        '' +
+        (this.draftEpisode.id ? this.draftEpisode.id : '') +
+        this.description +
+        ':' +
+        this.title
       )
     },
 
@@ -137,7 +133,7 @@ export default {
   data() {
     return {
       selectedPlugin: '',
-      created:  -1 ,
+      created: -1,
       draftEpisode: reactive({} as Episode),
       episodes: [] as Array<Episode>,
       currentPodcast: null as any as Podcast,
@@ -163,30 +159,30 @@ export default {
       <label for="episodeTitle">
         title
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast title more pithy and exciting"
-            :text="title"
-            @ai-workshop-completed="title = $event.text"
+          prompt="please help me make the following podcast title more pithy and exciting"
+          :text="title"
+          @ai-workshop-completed="title = $event.text"
         />
       </label>
-      <input id="episodeTitle" required v-model="title" type="text"/>
+      <input id="episodeTitle" required v-model="title" type="text" />
 
       <label for="episodeDescription">
         description
         <AiWorkshopItIconComponent
-            prompt="please help me make the following podcast description more pithy and exciting"
-            :text="description"
-            @ai-workshop-completed="description = $event.text"
+          prompt="please help me make the following podcast description more pithy and exciting"
+          :text="description"
+          @ai-workshop-completed="description = $event.text"
         />
       </label>
-      <textarea id="episodeDescription" rows="10" required v-model="description"/>
+      <textarea id="episodeDescription" rows="10" required v-model="description" />
 
       <div v-if="draftEpisode">
         <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
           <div class="pure-u-3-24"><label>graphic</label></div>
           <div class="pure-u-21-24">
             <ManagedFileComponent
-                accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
-                v-model:managed-file-id="draftEpisode.graphic.id"
+              accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
+              v-model:managed-file-id="draftEpisode.graphic.id"
             />
           </div>
         </div>
@@ -194,8 +190,8 @@ export default {
           <div class="pure-u-3-24"><label>introduction</label></div>
           <div class="pure-u-21-24">
             <ManagedFileComponent
-                accept=".mp3,audio/mpeg"
-                v-model:managed-file-id="draftEpisode.introduction.id"
+              accept=".mp3,audio/mpeg"
+              v-model:managed-file-id="draftEpisode.introduction.id"
             />
           </div>
         </div>
@@ -203,8 +199,8 @@ export default {
           <div class="pure-u-3-24"><label>interview</label></div>
           <div class="pure-u-21-24">
             <ManagedFileComponent
-                v-model:managed-file-id="draftEpisode.interview.id"
-                accept=".mp3,audio/mpeg"
+              v-model:managed-file-id="draftEpisode.interview.id"
+              accept=".mp3,audio/mpeg"
             />
           </div>
         </div>
@@ -212,45 +208,47 @@ export default {
       <div class="podcast-episode-controls-row">
         <span class="save">
           <button
-              @click="save"
-              :disabled="buttonsDisabled()"
-              type="submit"
-              class="pure-button pure-button-primary"
+            @click="save"
+            :disabled="buttonsDisabled()"
+            type="submit"
+            class="pure-button pure-button-primary"
           >
             save
           </button>
         </span>
         <span class="cancel">
           <button
-              @click="cancel"
-              type="submit"
-              :disabled="description == '' && title == ''"
-              class="pure-button pure-button-primary"
+            @click="cancel"
+            type="submit"
+            :disabled="description == '' && title == ''"
+            class="pure-button pure-button-primary"
           >
             cancel
           </button>
         </span>
 
         <div class="publish-menu">
-          <select v-model="selectedPlugin" @change="pluginSelected"
-                  :disabled="!draftEpisode.complete">
-
+          <select
+            v-model="selectedPlugin"
+            @change="pluginSelected"
+            :disabled="!draftEpisode.complete"
+          >
             <option disabled value="">Please select a plugin</option>
 
             <option
-                v-for="(option, index) in draftEpisode.availablePlugins"
-                :key="index"
-                :value="option"
+              v-for="(option, index) in draftEpisode.availablePlugins"
+              :key="index"
+              :value="option"
             >
               {{ option }}
             </option>
           </select>
 
           <button
-              :disabled="!draftEpisode.complete"
-              @click="publish"
-              type="submit"
-              class="pure-button pure-button-primary publish-button"
+            :disabled="!draftEpisode.complete"
+            @click="publish"
+            type="submit"
+            class="pure-button pure-button-primary publish-button"
           >
             publish
           </button>
@@ -282,7 +280,7 @@ export default {
 .podcast-episode-controls-row {
   display: grid;
   grid-template-areas: 'save . cancel . publish';
-  grid-template-columns: min-content var(--form-buttons-gutter-space) min-content  auto min-content ;
+  grid-template-columns: min-content var(--form-buttons-gutter-space) min-content auto min-content;
 }
 
 .podcast-episode-controls-row .save {
@@ -298,18 +296,17 @@ export default {
 }
 
 .podcast-episode-controls-row .publish-menu {
-
   display: grid;
-  grid-area: publish ;
+  grid-area: publish;
   grid-template-columns: min-content var(--form-buttons-gutter-space) min-content;
   grid-template-areas: '  publish-select  . publish-button';
 }
 
- .publish-menu button {
+.publish-menu button {
   grid-area: publish-button;
 }
 
- .publish-menu select {
+.publish-menu select {
   grid-area: publish-select;
 }
 

@@ -62,10 +62,9 @@ a {
   box-sizing: content-box;
   background-color: black;
 
-
   color: white;
 }
-.pure-form-stacked select  {
+.pure-form-stacked select {
 }
 
 .form-row {

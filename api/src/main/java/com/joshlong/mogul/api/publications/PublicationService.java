@@ -4,7 +4,6 @@ import java.util.Map;
 
 public interface PublicationService {
 
+	<T> void publish(Long mogulId, String payload, Map<String, String> context, PublisherPlugin plugin);
 
-
-    <T> void publish(Long mogulId, String payload, Map<String, String> context, PublisherPlugin  plugin);
 }

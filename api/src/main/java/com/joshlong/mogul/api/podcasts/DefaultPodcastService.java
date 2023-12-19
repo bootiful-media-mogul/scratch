@@ -35,11 +35,13 @@ class DefaultPodcastService implements PodcastService {
 	private final EpisodeRowMapper episodeRowMapper;
 
 	private final ManagedFileService managedFileService;
+
 	private final MogulService mogulService;
+
 	private final ApplicationEventPublisher publisher;
 
-
-	DefaultPodcastService(MogulService mogulService, JdbcClient db, ManagedFileService managedFileService, ApplicationEventPublisher publisher) {
+	DefaultPodcastService(MogulService mogulService, JdbcClient db, ManagedFileService managedFileService,
+			ApplicationEventPublisher publisher) {
 		this.db = db;
 		this.mogulService = mogulService;
 		this.managedFileService = managedFileService;
@@ -49,15 +51,17 @@ class DefaultPodcastService implements PodcastService {
 
 	@ApplicationModuleListener
 	void managedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
-		// ok so some MF was updated; check to see if it's one of the MFs attached to one of our episodes and if it is
-		// let's emit the EpisodeUpdatedEvent so that we can update the Episode's produced == true bit
+		// ok so some MF was updated; check to see if it's one of the MFs attached to one
+		// of our episodes and if it is
+		// let's emit the EpisodeUpdatedEvent so that we can update the Episode's produced
+		// == true bit
 
 		var id = managedFileUpdatedEvent.managedFile().id();
 		var all = this.db//
-				.sql("select  * from podcast_episode where interview =  ? or introduction = ?  or graphic = ?")//
-				.params(id, id, id)//
-				.query(this.episodeRowMapper)//
-				.list();
+			.sql("select  * from podcast_episode where interview =  ? or introduction = ?  or graphic = ?")//
+			.params(id, id, id)//
+			.query(this.episodeRowMapper)//
+			.list();
 		// is it really true that this should be a list? as the system
 		// is built, there should never be the same managed file assigned to
 		// more than one podcast...
@@ -71,12 +75,11 @@ class DefaultPodcastService implements PodcastService {
 			var presentlyProduced = e.complete();
 			if (presentlyProduced != complete) {
 				this.db.sql("update podcast_episode set complete = ? where id =? ")//
-						.params(complete, e.id())//
-						.update();
+					.params(complete, e.id())//
+					.update();
 				log.debug("setting [" + e + "] as produced = [" + complete + "]");
 				//
-				publisher.publishEvent(
-					new PodcastEpisodeUpdatedEvent(getEpisodeById(e.id())));
+				publisher.publishEvent(new PodcastEpisodeUpdatedEvent(getEpisodeById(e.id())));
 			}
 		}
 	}
@@ -176,7 +179,7 @@ class DefaultPodcastService implements PodcastService {
 		this.db.sql("delete from podcast_episode where id= ?").param(episode.id()).update();
 
 		for (var mfId : ids)
-			 this.managedFileService.deleteManagedFile(mfId);
+			this.managedFileService.deleteManagedFile(mfId);
 
 		publisher.publishEvent(new PodcastEpisodeDeletedEvent(episode));
 	}
@@ -194,11 +197,13 @@ class DefaultPodcastService implements PodcastService {
 		var bucket = PodcastService.PODCAST_EPISODES_BUCKET;
 		var image = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
 		var intro = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
-		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
+		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0,
+				CommonMediaTypes.BINARY);
 		Assert.notNull(image, "the image managedFile is null");
 		Assert.notNull(intro, "the intro managedFile is null");
 		Assert.notNull(interview, "the interview managedFile is null");
-		// no need to publish an event here as we are already publishing an event in `createPodcastEpisode`
+		// no need to publish an event here as we are already publishing an event in
+		// `createPodcastEpisode`
 		return createPodcastEpisode(podcastId, title, description, image, intro, interview);
 	}
 
@@ -209,14 +214,17 @@ class DefaultPodcastService implements PodcastService {
 		Assert.hasText(description, "the description is null");
 		var episode = getEpisodeById(episodeId);
 		mogulService.assertAuthorizedMogul(episode.podcast().mogulId());
-		db.sql("update podcast_episode set title =? , description =? where  id = ?").params(title, description, episodeId).update();
+		db.sql("update podcast_episode set title =? , description =? where  id = ?")
+			.params(title, description, episodeId)
+			.update();
 		var episodeById = getEpisodeById(episodeId);
 		Assert.notNull(episodeById, "the result should not be null");
 		publisher.publishEvent(new PodcastEpisodeUpdatedEvent(episodeById));
 		return episodeById;
 	}
 
-	//todo publish the right events for {podcast|episode} {creation|update}
-	// todo can we publish a podcast episode updated event when the managedFiles it manages are changed?
-}
+	// todo publish the right events for {podcast|episode} {creation|update}
+	// todo can we publish a podcast episode updated event when the managedFiles it
+	// manages are changed?
 
+}

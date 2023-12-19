@@ -11,31 +11,35 @@ import org.springframework.util.StringUtils;
 import java.io.IOException;
 
 /**
- * includes some useful content types that, for some reason, {@link  MediaType } does not have.
+ * includes some useful content types that, for some reason, {@link MediaType } does not
+ * have.
  */
 public abstract class CommonMediaTypes {
 
-    private final static Logger log = LoggerFactory.getLogger(CommonMediaTypes.class);
+	private final static Logger log = LoggerFactory.getLogger(CommonMediaTypes.class);
 
-    public static MediaType guess (Resource resource) {
-        var ct = java.net.URLConnection .guessContentTypeFromName ( resource.getFilename());
-        return StringUtils.hasText(ct) ?  MediaType.parseMediaType( ct ) : CommonMediaTypes.BINARY ;
-    }
+	public static MediaType guess(Resource resource) {
+		var ct = java.net.URLConnection.guessContentTypeFromName(resource.getFilename());
+		return StringUtils.hasText(ct) ? MediaType.parseMediaType(ct) : CommonMediaTypes.BINARY;
+	}
 
+	public static final MediaType BINARY = MediaType.APPLICATION_OCTET_STREAM;
 
-    public static final MediaType BINARY = MediaType.APPLICATION_OCTET_STREAM;
+	// images
+	public static final MediaType PNG = MediaType.IMAGE_PNG;
 
-    // images
-    public static final MediaType PNG = MediaType.IMAGE_PNG;
-    public static final MediaType WEBP = MediaType.parseMediaType("image/webp");
-    public static final MediaType JPG = MediaType.IMAGE_JPEG;
-    public static final MediaType GIF = MediaType.IMAGE_GIF; // yuck
+	public static final MediaType WEBP = MediaType.parseMediaType("image/webp");
 
+	public static final MediaType JPG = MediaType.IMAGE_JPEG;
 
-    // movies
-    public static final MediaType MP3 = MediaType.parseMediaType("audio/mpeg");
-    public static final MediaType MP4 = MediaType.parseMediaType("application/mp4");
+	public static final MediaType GIF = MediaType.IMAGE_GIF; // yuck
 
-    // audio
-    public static final MediaType WAV = MediaType.parseMediaType("audio/wav");
+	// movies
+	public static final MediaType MP3 = MediaType.parseMediaType("audio/mpeg");
+
+	public static final MediaType MP4 = MediaType.parseMediaType("application/mp4");
+
+	// audio
+	public static final MediaType WAV = MediaType.parseMediaType("audio/wav");
+
 }

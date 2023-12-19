@@ -48,17 +48,18 @@ public class Settings {
 	public Map<String, String> getAllValuesByCategory(Long mogulId, String category) {
 		var all = getAllSettingsByCategory(mogulId, category);
 		var res = new HashMap<String, String>();
-		for (var a : all.keySet()) res.put(a, all.get(a).value());
+		for (var a : all.keySet())
+			res.put(a, all.get(a).value());
 		return res;
 	}
 
 	public Map<String, Setting> getAllSettingsByCategory(Long mogulId, String category) {
 
 		var settings = this.db//
-				.sql("select * from settings where mogul_id = ? and category =?   ")
-				.params(mogulId, category)
-				.query(this.rowMapper)
-				.list();
+			.sql("select * from settings where mogul_id = ? and category =?   ")
+			.params(mogulId, category)
+			.query(this.rowMapper)
+			.list();
 
 		var map = new HashMap<String, Setting>();
 
@@ -67,6 +68,7 @@ public class Settings {
 
 		return map;
 	}
+
 	private Setting get(Long mogulId, String category, String key) {
 		var settings = this.db//
 			.sql("select * from settings where mogul_id = ? and category =? and key = ? ")
@@ -83,7 +85,6 @@ public class Settings {
 			return v.value();
 		return null;
 	}
-
 
 	public String getString(Long mogulId, String category, String key) {
 		return getValue(mogulId, category, key);

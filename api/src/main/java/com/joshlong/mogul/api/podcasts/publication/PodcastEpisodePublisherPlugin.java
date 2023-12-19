@@ -5,5 +5,6 @@ import com.joshlong.mogul.api.publications.PublisherPlugin;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public interface PodcastEpisodePublisherPlugin extends PublisherPlugin <Episode> {
+public interface PodcastEpisodePublisherPlugin extends PublisherPlugin<Episode> {
+
 }
