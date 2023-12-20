@@ -1,6 +1,8 @@
 package com.joshlong.mogul.api.podcasts.production;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.ApiProperties;
+import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import com.joshlong.mogul.api.podcasts.Episode;
 import com.joshlong.mogul.api.utils.IntegrationUtils;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -12,9 +14,11 @@ import org.springframework.integration.core.GenericTransformer;
 import org.springframework.integration.dsl.DirectChannelSpec;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.MessageChannels;
+import org.springframework.integration.json.JsonToObjectTransformer;
 import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.messaging.MessageChannel;
 
+import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
@@ -63,7 +67,15 @@ class ProductionIntegrationFlowConfiguration {
                 .handle(Amqp.outboundGateway(amqpTemplate)//
                         .routingKey(q)//
                         .exchangeName(q)//
-                )
+                )//
+                //todo does any of this work?
+                .transform( new JsonToObjectTransformer( Exported.class) )
+                .transform(new GenericTransformer<Exported,Episode>() {
+                    @Override
+                    public Episode transform(Exported source) {
+                        return null;
+                    }
+                })
                 .handle(IntegrationUtils.debugHandler("the response from the processor came back!"))
                 // todo we need to make sure we get the audio from s3, download it locally, and then
                 //  re-upload it, this time going through the ManagedFileService#write method,
@@ -71,4 +83,6 @@ class ProductionIntegrationFlowConfiguration {
                 //  also, the return value from this flow should be the managedFile containing the produced audio, so let's make sure to download that
                 .get();
     }
+
+    record Exported (URI exported){}
 }

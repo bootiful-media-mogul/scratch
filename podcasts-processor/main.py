@@ -146,7 +146,7 @@ def background_thread():
         print ( 'output s3 url: ' , output_media)
         bucket, folder, file = output_media[len('s3://'):].split('/')
         s3.meta.client.upload_file(upload_local_fn, bucket, f'{folder}/{file}')
-        return {'exported-audio': output_media}
+        return {'exported': output_media}
 
     while True:
         try:
