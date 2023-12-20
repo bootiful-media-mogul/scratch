@@ -12,7 +12,7 @@ public record ManagedFile(Long mogulId, Long id, String bucket,
 
 	public URI s3Uri() {
 		return URI.create(
-				"s3://" + this.bucket() + "/" + this.folder() + '/' + storageFilename()
+				"s3://" + this.bucket() + "/" + this.folder() + '/' + this. storageFilename()
 		);
 	}
 }

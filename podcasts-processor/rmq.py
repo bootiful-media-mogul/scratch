@@ -43,7 +43,7 @@ def start_rabbitmq_processor(
             for method_frame, properties, json_request in channel.consume(requests_q):
                 try:
                     replies_q = properties.reply_to
-                    result = process_job_requests_fn(properties, json.loads(json_request))
+                    result = process_job_requests_fn(properties, json_request)
                     json_response: str = json.dumps(result)
                     utils.log(f"sending json_response {json_response} to replies queue {replies_q}")
                     basic_properties = pika.BasicProperties(

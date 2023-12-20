@@ -16,6 +16,7 @@ import org.springframework.integration.json.ObjectToJsonTransformer;
 import org.springframework.messaging.MessageChannel;
 
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * we have a python processor that will take the audio files we feed it and turn them into a final, produced audio form. this is the integration
@@ -55,6 +56,7 @@ class ProductionIntegrationFlowConfiguration {
                         "introduction", source.producedIntroduction().s3Uri().toString(),
                         "interview", source.producedInterview().s3Uri().toString(),
                         "output", source.producedAudio().s3Uri().toString(),
+                        "uid", UUID.randomUUID().toString() ,
                         "episodeId", Long.toString(source.id())
                 ))
                 .transform(new ObjectToJsonTransformer())

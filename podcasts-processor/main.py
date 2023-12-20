@@ -4,6 +4,7 @@ import os
 import tempfile
 import threading
 import typing
+import uuid
 
 import boto3
 from flask import Flask
@@ -32,7 +33,6 @@ def background_thread():
     rmq_uri = None
     assets_s3_bucket = None
     assets_s3_bucket_folder = None
-    output_s3_bucket = None
     try:
         requests_q = 'podcast-processor-requests'
         aws_region = os.environ["AWS_REGION"]
@@ -41,7 +41,6 @@ def background_thread():
 
         assets_s3_bucket = os.environ["PODCAST_ASSETS_S3_BUCKET"]
         assets_s3_bucket_folder = os.environ["PODCAST_ASSETS_S3_BUCKET_FOLDER"]
-        output_s3_bucket = os.environ["PODCAST_OUTPUT_S3_BUCKET"]
 
         rmq_uri = utils.parse_uri(os.environ['RMQ_ADDRESS'])
 
@@ -74,26 +73,16 @@ def background_thread():
         utils.log(properties)
         utils.log(request)
 
-        # def resolve_config_file_name() -> str:
-        #     bp_mode: str = os.environ.get("BP_MODE", "development")
-        #     utils.log("BP_MODE: %s" % bp_mode)
-        #     return "config-%s.json" % bp_mode
+        json_request = json.loads(request )
+        uid = str(uuid.uuid4())
+        intro_media = json_request['introduction']
+        interview_media = json_request['interview']
+        output_media = json_request['output']
 
-        json_request = json.loads(request['request'])
-        title = json_request['title']
-        uid = json_request['uid']
-        description = json_request['description']
-        request_uploads = json_request['uploads']
-        intro_media = request_uploads['INTRODUCTION']
-        interview_media = request_uploads['INTERVIEW']
-        image_media = request_uploads['IMAGE']
         simple_request = {
-            'image': image_media,
             'intro': intro_media,
             'interview': interview_media,
-            'title': title,
-            'uid': uid,
-            'description': description
+            'output': output_media
         }
         utils.log(f'processing: {simple_request}')
         normalized_uid_str = normalize_string(uid)
@@ -154,18 +143,10 @@ def background_thread():
         )
         utils.log(f'results: {results}')
         upload_local_fn = results['export']
-        fqn = f'{uid}/{os.path.basename(upload_local_fn)}'
-        s3.meta.client.upload_file(upload_local_fn, output_s3_bucket, fqn)
-        x = {
-            'title': title,
-            'description': description,
-            'introduction': intro_media,
-            'interview': interview_media,
-            'uid': uid,
-            'exported-audio': s3_uri(output_s3_bucket, fqn),
-            'exported-photo': image_media
-        }
-        return x
+        print ( 'output s3 url: ' , output_media)
+        bucket, folder, file = output_media[len('s3://'):].split('/')
+        s3.meta.client.upload_file(upload_local_fn, bucket, f'{folder}/{file}')
+        return {'exported-audio': output_media}
 
     while True:
         try:
