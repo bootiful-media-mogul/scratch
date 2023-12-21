@@ -26,7 +26,6 @@ public class Storage {
 
 	private final S3Client s3;
 
-
 	public Storage(S3Client s3) {
 		this.s3 = s3;
 	}
@@ -51,7 +50,8 @@ public class Storage {
 	/*
 	 * writes 5mb chunks at a time to s3
 	 */
-	private void doWriteForLargeFiles(String bucketName, String keyName, Resource resource, DataSize maxSize) throws Exception {
+	private void doWriteForLargeFiles(String bucketName, String keyName, Resource resource, DataSize maxSize)
+			throws Exception {
 		try (var inputStream = resource.getInputStream();) {
 			var chunkSize = (int) maxSize.toBytes();
 			var createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
@@ -79,14 +79,12 @@ public class Storage {
 					buffer = new byte[chunkSize];
 				}
 			}
-			var completedMultipartUpload = CompletedMultipartUpload.builder()
-					.parts(completedParts)
-					.build();
+			var completedMultipartUpload = CompletedMultipartUpload.builder().parts(completedParts).build();
 			var completeMultipartUploadRequest = CompleteMultipartUploadRequest.builder()
 				.bucket(bucketName)
 				.key(keyName)
 				.uploadId(uploadId)
-					.multipartUpload(completedMultipartUpload)
+				.multipartUpload(completedMultipartUpload)
 				.build();
 
 			s3.completeMultipartUpload(completeMultipartUploadRequest);
@@ -116,19 +114,14 @@ public class Storage {
 					+ Thread.currentThread() + "]");
 
 			ensureBucketExists(bucket);
-		/*	var len = -1L;
-			try {
-				len = resource.contentLength();
-			} catch (Throwable throwable) {
-				// ...
-			}
-			if (len < largeFile.toBytes()) {
-				doWriteForSmallFiles(bucket, objectName, resource);
-			} //
-			else {*/
+			/*
+			 * var len = -1L; try { len = resource.contentLength(); } catch (Throwable
+			 * throwable) { // ... } if (len < largeFile.toBytes()) {
+			 * doWriteForSmallFiles(bucket, objectName, resource); } // else {
+			 */
 			doWriteForLargeFiles(bucket, objectName, resource, largeFile);
-		//	}
-		}//
+			// }
+		} //
 		catch (Throwable throwable) {
 			throw new RuntimeException(throwable);
 		}

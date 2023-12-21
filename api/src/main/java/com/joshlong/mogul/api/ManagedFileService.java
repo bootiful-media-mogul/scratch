@@ -31,7 +31,8 @@ public interface ManagedFileService {
 	void write(Long managedFileId, String filename, MediaType mts, Resource resource);
 
 	/**
-	 * behind the scenes this variant simply creates a {@link FileSystemResource} which can be queried for its content length
+	 * behind the scenes this variant simply creates a {@link FileSystemResource} which
+	 * can be queried for its content length
 	 */
 	void write(Long managedFileId, String filename, MediaType mts, File resource);
 

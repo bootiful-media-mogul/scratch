@@ -8,6 +8,7 @@ import org.springframework.integration.annotation.MessagingGateway;
 @MessagingGateway
 public interface PodcastProducer {
 
-    @Gateway(requestChannel = ProductionIntegrationFlowConfiguration.PRODUCTION_FLOW_REQUESTS)
-    ManagedFile produce(Episode episode);
+	@Gateway(requestChannel = ProductionIntegrationFlowConfiguration.PRODUCTION_FLOW_REQUESTS)
+	ManagedFile produce(Episode episode);
+
 }

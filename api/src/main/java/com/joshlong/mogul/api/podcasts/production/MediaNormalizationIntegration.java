@@ -31,9 +31,8 @@ import java.util.Set;
 import java.util.function.Function;
 
 /**
- * we want a way to take any asset - be it a {@literal .wav} or a
- * {@literal .png} - and turn it into a {@literal  .mp3} and a 1MB-or-less
- * {@literal .jpg} respectively.
+ * we want a way to take any asset - be it a {@literal .wav} or a {@literal .png} - and
+ * turn it into a {@literal  .mp3} and a 1MB-or-less {@literal .jpg} respectively.
  */
 @Configuration
 class MediaNormalizationIntegration {
@@ -94,22 +93,19 @@ class MediaNormalizationIntegration {
 	}
 
 	@Bean(MEDIA_NORMALIZATION_FLOW)
-	IntegrationFlow mediaNormalizationFlow(
-			@Qualifier(REQUESTS) MessageChannel requests,
-			@Qualifier(AUDIO_FLOW) IntegrationFlow audio,
-			@Qualifier(IMAGE_FLOW) IntegrationFlow image) {
+	IntegrationFlow mediaNormalizationFlow(@Qualifier(REQUESTS) MessageChannel requests,
+			@Qualifier(AUDIO_FLOW) IntegrationFlow audio, @Qualifier(IMAGE_FLOW) IntegrationFlow image) {
 		var imgMediaType = MediaType.parseMediaType("image/*");
 		return IntegrationFlow//
-				.from(requests)//
-				.route(ManagedFile.class,
+			.from(requests)//
+			.route(ManagedFile.class,
 					(Function<ManagedFile, Object>) managedFile -> (imgMediaType
 						.isCompatibleWith(MediaType.parseMediaType(managedFile.contentType()))) ? IMAGE_FLOW
 								: AUDIO_FLOW,
 					rs -> rs.subFlowMapping(IMAGE_FLOW, image)
 						.subFlowMapping(AUDIO_FLOW, audio)
-							.defaultOutputToParentFlow()
-				) //
-				.get();
+						.defaultOutputToParentFlow()) //
+			.get();
 	}
 
 }

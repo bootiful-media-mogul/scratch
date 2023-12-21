@@ -42,7 +42,7 @@ class DefaultManagedFileService implements ManagedFileService {
 
 	@Override
 	public void write(Long managedFileId, String filename, MediaType mts, File resource) {
-		this.write( managedFileId , filename , mts, new FileSystemResource(resource));
+		this.write(managedFileId, filename, mts, new FileSystemResource(resource));
 	}
 
 	@Override
@@ -62,8 +62,7 @@ class DefaultManagedFileService implements ManagedFileService {
 
 	@Override
 	public ManagedFileDeletionRequest getManagedFileDeletionRequest(Long managedFileDeletionRequestId) {
-		return db
-			.sql("select * from managed_file_deletion_request where id =? ")
+		return db.sql("select * from managed_file_deletion_request where id =? ")
 			.param(managedFileDeletionRequestId)
 			.query(new ManagedFileDeletionRequestRowMapper())
 			.single();
@@ -71,8 +70,7 @@ class DefaultManagedFileService implements ManagedFileService {
 
 	@Override
 	public Collection<ManagedFileDeletionRequest> getOutstandingManagedFileDeletionRequests() {
-		return this.db
-			.sql("select * from managed_file_deletion_request where deleted = false")
+		return this.db.sql("select * from managed_file_deletion_request where deleted = false")
 			.query(new ManagedFileDeletionRequestRowMapper())
 			.list();
 	}

@@ -10,19 +10,14 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-/**
- * acts as the interface from the client into the podbean pipeline
- */
 @Component(PodbeanPodcastEpisodePublisherPlugin.PLUGIN_NAME)
 class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlugin, BeanNameAware {
-
 
 	public static final String PLUGIN_NAME = "podbean";
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final AtomicReference<String> beanName = new AtomicReference<>();
-
 
 	@Override
 	public String name() {
@@ -41,8 +36,8 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 
 	@Override
 	public void publish(Map<String, String> context, Episode payload) {
-		log.debug( "publishing to podbean with context [" + context + "] and payload [" + payload + "]. " +
-				"produced audio is [" + payload.producedAudio() + "]");
+		log.debug("publishing to podbean with context [" + context + "] and payload [" + payload + "]. "
+				+ "produced audio is [" + payload.producedAudio() + "]");
 	}
 
 	@Override

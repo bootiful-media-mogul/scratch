@@ -18,56 +18,58 @@ import java.util.Map;
 @Configuration
 class PodcastEpisodePublisherPluginConfiguration {
 
-    @Bean
-    static ProducingPodcastPublisherPluginBeanPostProcessor podcastProducingBeanPostProcessor(BeanFactory beanFactory) {
-        return new ProducingPodcastPublisherPluginBeanPostProcessor(beanFactory);
-    }
+	@Bean
+	static ProducingPodcastPublisherPluginBeanPostProcessor podcastProducingBeanPostProcessor(BeanFactory beanFactory) {
+		return new ProducingPodcastPublisherPluginBeanPostProcessor(beanFactory);
+	}
+
 }
 
 class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProcessor {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final BeanFactory beanFactory;
+	private final BeanFactory beanFactory;
 
-    ProducingPodcastPublisherPluginBeanPostProcessor(BeanFactory beanFactory) {
-        this.beanFactory = beanFactory;
-    }
+	ProducingPodcastPublisherPluginBeanPostProcessor(BeanFactory beanFactory) {
+		this.beanFactory = beanFactory;
+	}
 
-    @Override
-    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        var clazzName = getClass().getName();
-        if (bean instanceof PodcastEpisodePublisherPlugin podcastEpisodePublisherPlugin) {
-            var pfb = new ProxyFactoryBean();
-            pfb.addAdvice((MethodInterceptor) invocation -> {
-                var podcastProducer = beanFactory.getBean(PodcastProducer.class);
-                var podcastService = beanFactory.getBean(PodcastService.class);
-                log.debug("inside " + clazzName + ".");
-                var publishMethod = invocation.getMethod().getName().equalsIgnoreCase("publish");
-                log.debug("about to invoke publish method? " + publishMethod);
-                // todo some sort of dirty check to avoid production if dependent files haven't changed.
-                if (publishMethod) {
-                    var context = (Map<String, String>) invocation.getArguments()[0];
-                    var episode = (Episode) invocation.getArguments()[1];
-                    var producedManagedFile = podcastProducer.produce(episode);
-                    log.debug("produced the audio file [" + producedManagedFile +
-                            "] before publication with the plugin [" + beanName + "]");
+	@Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+		var clazzName = getClass().getName();
+		if (bean instanceof PodcastEpisodePublisherPlugin podcastEpisodePublisherPlugin) {
+			var pfb = new ProxyFactoryBean();
+			pfb.addAdvice((MethodInterceptor) invocation -> {
+				var podcastProducer = beanFactory.getBean(PodcastProducer.class);
+				var podcastService = beanFactory.getBean(PodcastService.class);
+				log.debug("inside " + clazzName + ".");
+				var publishMethod = invocation.getMethod().getName().equalsIgnoreCase("publish");
+				log.debug("about to invoke publish method? " + publishMethod);
+				// todo some sort of dirty check to avoid production if dependent files
+				// haven't changed.
+				if (publishMethod) {
+					var context = (Map<String, String>) invocation.getArguments()[0];
+					var episode = (Episode) invocation.getArguments()[1];
+					var producedManagedFile = podcastProducer.produce(episode);
+					log.debug("produced the audio file [" + producedManagedFile
+							+ "] before publication with the plugin [" + beanName + "]");
 
-                    var updatedEpisode = podcastService.getEpisodeById(episode.id());
-                    podcastEpisodePublisherPlugin.publish(context, updatedEpisode);
-                    return null;
-                }
+					var updatedEpisode = podcastService.getEpisodeById(episode.id());
+					podcastEpisodePublisherPlugin.publish(context, updatedEpisode);
+					return null;
+				}
 
-                return invocation.proceed();
-            });
-            var targetClass = podcastEpisodePublisherPlugin.getClass();
-            for (var i : targetClass.getInterfaces())
-                pfb.addInterface(i);
-            pfb.setTargetClass(targetClass);
-            pfb.setTarget(podcastEpisodePublisherPlugin);
-            return pfb.getObject();
-        }
-        return BeanPostProcessor.super.
-                postProcessAfterInitialization(bean, beanName);
-    }
+				return invocation.proceed();
+			});
+			var targetClass = podcastEpisodePublisherPlugin.getClass();
+			for (var i : targetClass.getInterfaces())
+				pfb.addInterface(i);
+			pfb.setTargetClass(targetClass);
+			pfb.setTarget(podcastEpisodePublisherPlugin);
+			return pfb.getObject();
+		}
+		return BeanPostProcessor.super.postProcessAfterInitialization(bean, beanName);
+	}
+
 }

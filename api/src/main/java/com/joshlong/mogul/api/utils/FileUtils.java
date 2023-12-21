@@ -10,13 +10,15 @@ import java.util.UUID;
 
 public abstract class FileUtils {
 
-	public static File tempFile (){
-        try {
-            return Files.createTempFile( "mogul-temp","temp-file") .toFile();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
+	public static File tempFile() {
+		try {
+			return Files.createTempFile("mogul-temp", "temp-file").toFile();
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	public static boolean delete(File file) {
 		if (file != null && file.exists()) {
 			if (file.isDirectory())
