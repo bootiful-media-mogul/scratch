@@ -1,7 +1,8 @@
 package com.joshlong.mogul.api.podcasts.publication;
 
 import com.joshlong.mogul.api.podcasts.Episode;
-import com.joshlong.mogul.api.podcasts.production.PodcastProducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -18,13 +19,10 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 
 	public static final String PLUGIN_NAME = "podbean";
 
-	private final PodcastProducer podcastProducer;
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private final AtomicReference<String> beanName = new AtomicReference<>();
 
-	PodbeanPodcastEpisodePublisherPlugin(PodcastProducer podcastProducer) {
-		this.podcastProducer = podcastProducer;
-	}
 
 	@Override
 	public String name() {
@@ -43,14 +41,13 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 
 	@Override
 	public void publish(Map<String, String> context, Episode payload) {
-		System.out.println("publishing to podbean with context [" + context + "] and payload [" + payload + "]");
-		var producedAudioManagedFile = this.podcastProducer.produce(payload);
-		System.out.println("produced audio, it is [" + producedAudioManagedFile + "]");
+		log.debug( "publishing to podbean with context [" + context + "] and payload [" + payload + "]. " +
+				"produced audio is [" + payload.producedAudio() + "]");
 	}
 
 	@Override
 	public void unpublish(Map<String, String> context, Episode payload) {
-		System.out.println("unpublishing to podbean with context [" + context + "] and payload [" + payload + "]");
+		log.debug("unpublishing to podbean with context [" + context + "] and payload [" + payload + "]");
 	}
 
 }

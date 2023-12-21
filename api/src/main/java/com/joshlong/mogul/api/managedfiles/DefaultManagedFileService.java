@@ -55,13 +55,15 @@ class DefaultManagedFileService implements ManagedFileService {
 		this.db.sql("update managed_file set filename =?, content_type =? , written = true , size =? where id=?")
 			.params(filename, clientMediaType.toString(), contentLength(resource), managedFileId)
 			.update();
-		log.info("managed file has been written? " + getManagedFile(managedFileId).written());
-		this.publisher.publishEvent(new ManagedFileUpdatedEvent(managedFile));
+		var freshManagedFile = getManagedFile(managedFileId);
+		log.debug("managed file has been written? " + freshManagedFile.written());
+		this.publisher.publishEvent(new ManagedFileUpdatedEvent(freshManagedFile));
 	}
 
 	@Override
 	public ManagedFileDeletionRequest getManagedFileDeletionRequest(Long managedFileDeletionRequestId) {
-		return db.sql("select * from managed_file_deletion_request where id =? ")
+		return db
+			.sql("select * from managed_file_deletion_request where id =? ")
 			.param(managedFileDeletionRequestId)
 			.query(new ManagedFileDeletionRequestRowMapper())
 			.single();
@@ -69,7 +71,8 @@ class DefaultManagedFileService implements ManagedFileService {
 
 	@Override
 	public Collection<ManagedFileDeletionRequest> getOutstandingManagedFileDeletionRequests() {
-		return this.db.sql("select * from managed_file_deletion_request where deleted = false")
+		return this.db
+			.sql("select * from managed_file_deletion_request where deleted = false")
 			.query(new ManagedFileDeletionRequestRowMapper())
 			.list();
 	}

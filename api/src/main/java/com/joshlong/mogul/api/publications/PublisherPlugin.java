@@ -12,6 +12,4 @@ public interface PublisherPlugin<T> {
 
 	void unpublish(Map<String, String> context, T payload);
 
-	// PublicationStatus status(Publication publication);
-
 }

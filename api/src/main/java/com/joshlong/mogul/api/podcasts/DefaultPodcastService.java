@@ -168,7 +168,6 @@ class DefaultPodcastService implements PodcastService {
 	@Override
 	public Episode getEpisodeById(Long episodeId) {
 		var res = db.sql("select * from podcast_episode where id =?").param(episodeId).query(episodeRowMapper).list();
-		log.info("there are " + res.size() + " results.");
 		return res.isEmpty() ? null : res.getFirst();
 	}
 
