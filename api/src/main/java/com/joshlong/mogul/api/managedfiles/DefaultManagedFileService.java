@@ -5,6 +5,7 @@ import com.joshlong.mogul.api.Storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.RowMapper;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -39,6 +41,11 @@ class DefaultManagedFileService implements ManagedFileService {
 	}
 
 	@Override
+	public void write(Long managedFileId, String filename, MediaType mts, File resource) {
+		this.write( managedFileId , filename , mts, new FileSystemResource(resource));
+	}
+
+	@Override
 	public void write(Long managedFileId, String filename, MediaType mediaType, Resource resource) {
 		var managedFile = getManagedFile(managedFileId);
 		var bucket = managedFile.bucket();
@@ -49,9 +56,7 @@ class DefaultManagedFileService implements ManagedFileService {
 			.params(filename, clientMediaType.toString(), contentLength(resource), managedFileId)
 			.update();
 		log.info("managed file has been written? " + getManagedFile(managedFileId).written());
-
 		this.publisher.publishEvent(new ManagedFileUpdatedEvent(managedFile));
-
 	}
 
 	@Override

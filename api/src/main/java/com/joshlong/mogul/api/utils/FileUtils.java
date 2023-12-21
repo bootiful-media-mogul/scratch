@@ -1,11 +1,30 @@
 package com.joshlong.mogul.api.utils;
 
 import org.springframework.util.Assert;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.UUID;
 
 public abstract class FileUtils {
+
+	public static File tempFile (){
+        try {
+            return Files.createTempFile( "mogul-temp","temp-file") .toFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+	public static boolean delete(File file) {
+		if (file != null && file.exists()) {
+			if (file.isDirectory())
+				FileSystemUtils.deleteRecursively(file);
+			return file.delete();
+		}
+		return false;
+	}
 
 	@SuppressWarnings("unused")
 	public static File ensureDirectoryExists(File file) {

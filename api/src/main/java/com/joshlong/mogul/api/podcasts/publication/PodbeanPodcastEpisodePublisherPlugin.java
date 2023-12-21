@@ -46,8 +46,6 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 		System.out.println("publishing to podbean with context [" + context + "] and payload [" + payload + "]");
 		var producedAudioManagedFile = this.podcastProducer.produce(payload);
 		System.out.println("produced audio, it is [" + producedAudioManagedFile + "]");
-		// todo send to podbean
-
 	}
 
 	@Override

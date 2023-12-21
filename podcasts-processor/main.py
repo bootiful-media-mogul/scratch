@@ -69,11 +69,11 @@ def background_thread():
     utils.log('-' * 50)
 
     def handle_job(properties, request):
-        utils.log('-' * 50)
-        utils.log(properties)
-        utils.log(request)
+        # utils.log('-' * 50)
+        # utils.log(properties)
+        # utils.log(request)
 
-        json_request = json.loads(request )
+        json_request = json.loads(request)
         uid = str(uuid.uuid4())
         intro_media = json_request['introduction']
         interview_media = json_request['interview']
@@ -96,9 +96,6 @@ def background_thread():
         asset_closing = build_full_s3_asset_path_for("closing.mp3")
         asset_intro = build_full_s3_asset_path_for("intro.mp3")
         asset_music_segue = build_full_s3_asset_path_for("music-segue.mp3")
-        utils.log(f'asset: closing: {asset_closing}')
-        utils.log(f'asset: intro: {asset_intro}')
-        utils.log(f'asset: segue: {asset_music_segue}')
 
         def download(s3p: str) -> str:
             import typing
@@ -143,7 +140,7 @@ def background_thread():
         )
         utils.log(f'results: {results}')
         upload_local_fn = results['export']
-        print ( 'output s3 url: ' , output_media)
+        print('output s3 url: ', output_media)
         bucket, folder, file = output_media[len('s3://'):].split('/')
         s3.meta.client.upload_file(upload_local_fn, bucket, f'{folder}/{file}')
         return {'exported': output_media}

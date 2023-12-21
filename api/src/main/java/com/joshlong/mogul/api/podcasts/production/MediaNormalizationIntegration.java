@@ -94,18 +94,22 @@ class MediaNormalizationIntegration {
 	}
 
 	@Bean(MEDIA_NORMALIZATION_FLOW)
-	IntegrationFlow mediaNormalizationFlow(@Qualifier(REQUESTS) MessageChannel requests,
-			@Qualifier(AUDIO_FLOW) IntegrationFlow audio, @Qualifier(IMAGE_FLOW) IntegrationFlow image) {
+	IntegrationFlow mediaNormalizationFlow(
+			@Qualifier(REQUESTS) MessageChannel requests,
+			@Qualifier(AUDIO_FLOW) IntegrationFlow audio,
+			@Qualifier(IMAGE_FLOW) IntegrationFlow image) {
 		var imgMediaType = MediaType.parseMediaType("image/*");
-		return IntegrationFlow.from(requests)
-			.route(ManagedFile.class,
+		return IntegrationFlow//
+				.from(requests)//
+				.route(ManagedFile.class,
 					(Function<ManagedFile, Object>) managedFile -> (imgMediaType
 						.isCompatibleWith(MediaType.parseMediaType(managedFile.contentType()))) ? IMAGE_FLOW
 								: AUDIO_FLOW,
 					rs -> rs.subFlowMapping(IMAGE_FLOW, image)
 						.subFlowMapping(AUDIO_FLOW, audio)
-						.defaultOutputToParentFlow())
-			.get();
+							.defaultOutputToParentFlow()
+				) //
+				.get();
 	}
 
 }
