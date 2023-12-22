@@ -16,8 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Map;
@@ -77,23 +75,27 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 		var tempProducedAudioFile = download(graphicResource, FileUtils.tempFile());
 
 		log.debug("downloading produced audio for podbean publication");
-		var producedAudioResource = this.managedFileService.read(audio.id());
-		var tempGraphicFile = download(producedAudioResource, FileUtils.tempFile());
+		/*
+		 * var producedAudioResource = this.managedFileService.read(audio.id()); var
+		 * tempGraphicFile = download(producedAudioResource, FileUtils.tempFile());
+		 */
 
-		var producedAudioAuthorization = this.podbeanClient.upload(CommonMediaTypes.MP3, tempProducedAudioFile);
-		var producedGraphicAuthorization = this.podbeanClient.upload(CommonMediaTypes.JPG, tempGraphicFile);
-
-		var podbeanEpisode = this.podbeanClient.publishEpisode(payload.title(), payload.description(),
-				EpisodeStatus.DRAFT, EpisodeType.PUBLIC, producedAudioAuthorization.getFileKey(),
-				producedGraphicAuthorization.getFileKey());
-		log.debug("published episode to podbean: [" + podbeanEpisode + "]");
+		// var producedAudioAuthorization =
+		// this.podbeanClient.upload(CommonMediaTypes.MP3, tempProducedAudioFile);
+		// var producedGraphicAuthorization =
+		// this.podbeanClient.upload(CommonMediaTypes.JPG, tempGraphicFile);
+		/*
+		 * var podbeanEpisode = this.podbeanClient.publishEpisode(payload.title(),
+		 * payload.description(), EpisodeStatus.DRAFT, EpisodeType.PUBLIC,
+		 * producedAudioAuthorization.getFileKey(),
+		 * producedGraphicAuthorization.getFileKey());
+		 */
+		// log.debug("published episode to podbean: [" + podbeanEpisode + "]");
 
 	}
 
 	private static File download(Resource resource, File file) {
-
-		try (var bin = new BufferedInputStream(resource.getInputStream());
-				var bout = new BufferedOutputStream(new FileOutputStream(file))) {
+		try (var bin = resource.getInputStream(); var bout = new FileOutputStream(file)) {
 			FileCopyUtils.copy(bin, bout);
 		} //
 		catch (Throwable throwable) {

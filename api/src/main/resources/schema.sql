@@ -84,8 +84,8 @@ create table if not exists podcast_episode
     produced_introduction bigint null references managed_file (id),
 
     produced_audio bigint             null references managed_file (id),
-    produced_audio_updated        timestamp not null default now(),
-    produced_audio_assets_updated timestamp not null default now(),
+    produced_audio_updated        timestamp null,
+    produced_audio_assets_updated timestamp null,
 
     complete bool not null default false,
 

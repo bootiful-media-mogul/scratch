@@ -8,7 +8,6 @@ import com.joshlong.podbean.token.TokenProvider;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.framework.ProxyFactory;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
@@ -17,8 +16,7 @@ import org.springframework.util.Assert;
 class PodbeanConfiguration {
 
 	@Bean
-	TokenProvider multitenantTokenProvider(MogulService mogulService, Settings settings,
-			PodcastService podcastService) {
+	TokenProvider multitenantTokenProvider(MogulService mogulService, Settings settings) {
 		var log = LoggerFactory.getLogger(getClass());
 		var tokenProviderClass = TokenProvider.class;
 		var proxyFactory = new ProxyFactory();

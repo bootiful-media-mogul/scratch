@@ -10,9 +10,15 @@ import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.util.Assert;
 
 import java.util.Map;
 
+/**
+ * introduces some behavior to produce the audio for a given episode if and only if it
+ * hasn't already been produced. this production happens lazily, just before a publication
+ * plugin is run
+ */
 class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProcessor {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -35,8 +41,10 @@ class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProces
 				if (publishMethod) {
 					var context = (Map<String, String>) invocation.getArguments()[0];
 					var episode = (Episode) invocation.getArguments()[1];
-					var shouldProduceAudio = episode.producedAudioUpdated().before(episode.producedAudioAssetsUpdated())
-							|| episode.producedAudioUpdated().equals(episode.producedAudioAssetsUpdated());
+					Assert.notNull(episode.producedAudioAssetsUpdated(),
+							"the  produced_audio_assets_updated field is null");
+					var shouldProduceAudio = episode.producedAudioUpdated() == null
+							|| episode.producedAudioUpdated().before(episode.producedAudioAssetsUpdated());
 					log.debug("should produce the audio for episode [" + episode + "] from scratch? ["
 							+ shouldProduceAudio + "]");
 					if (shouldProduceAudio) {

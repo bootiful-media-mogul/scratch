@@ -39,6 +39,8 @@ class DefaultPublicationService implements PublicationService {
 
 	private final RowMapper<Publication> publicationRowMapper;
 
+	private final Logger log = LoggerFactory.getLogger(getClass());
+
 	private final TextEncryptor textEncryptor;
 
 	DefaultPublicationService(JdbcClient db, Settings settings, MogulService mogulService, TextEncryptor textEncryptor,
@@ -79,15 +81,18 @@ class DefaultPublicationService implements PublicationService {
 		context.putAll(configuration);
 		context.putAll(contextAndSettings);
 		plugin.publish(context, payload);
-		var contextJson = textEncryptor.encrypt(json(context));
-		var publicationData = textEncryptor.encrypt(json(payload.publicationKey()));
+		log.debug("finished publishing with plugin " + plugin.name() + '.');
+		var contextJson = this.textEncryptor.encrypt(json(context));
+		var publicationData = this.textEncryptor.encrypt(json(payload.publicationKey()));
 		var entityClazz = payload.getClass().getName();
 		var kh = new GeneratedKeyHolder();
 		this.db.sql(
 				"insert into publication(mogul_id, plugin, created, published, context, payload , payload_class) VALUES (?,?,?,?,?,?,?)")
 			.params(mogulId, plugin.name(), new Date(), null, contextJson, publicationData, entityClazz)
 			.update(kh);
-		return this.getPublicationById(JdbcUtils.getIdFromKeyHolder(kh).longValue());
+		var publication = this.getPublicationById(JdbcUtils.getIdFromKeyHolder(kh).longValue());
+		log.debug("writing publication out: " + publication);
+		return publication;
 	}
 
 	@Override

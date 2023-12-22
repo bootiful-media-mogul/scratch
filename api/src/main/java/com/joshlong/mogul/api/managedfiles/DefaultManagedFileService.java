@@ -17,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -74,13 +76,10 @@ class DefaultManagedFileService implements ManagedFileService {
 		var resource = this.read(managedFile.id());
 		var tmp = FileUtils.tempFile();
 		try {
-			try (var in = new BufferedInputStream(resource.getInputStream());
-					var out = new BufferedOutputStream(new FileOutputStream(tmp))) {
-				if (log.isDebugEnabled())
-					log.debug("starting download to local file [" + tmp.getAbsolutePath() + "]");
+			try (var in = (resource.getInputStream()); var out = (new FileOutputStream(tmp))) {
+				log.debug("starting download to local file [" + tmp.getAbsolutePath() + "]");
 				FileCopyUtils.copy(in, out);
-				if (log.isDebugEnabled())
-					log.debug("finished download to local file [" + tmp.getAbsolutePath() + "]");
+				log.debug("finished download to local file [" + tmp.getAbsolutePath() + "]");
 			} //
 			this.write(managedFile.id(), managedFile.filename(), CommonMediaTypes.MP3, tmp);
 		} //
@@ -92,7 +91,9 @@ class DefaultManagedFileService implements ManagedFileService {
 		finally {
 			FileUtils.delete(tmp);
 		}
-		return this.getManagedFile(managedFileId);
+		var mf = this.getManagedFile(managedFileId);
+		log.debug("refreshed managed file " + mf);
+		return mf;
 	}
 
 	@Override

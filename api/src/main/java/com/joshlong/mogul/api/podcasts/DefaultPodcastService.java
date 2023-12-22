@@ -132,6 +132,9 @@ class DefaultPodcastService implements PodcastService {
 	@ApplicationModuleListener
 	void podcastEpisodeUpdated(PodcastEpisodeUpdatedEvent updatedEvent) {
 		if (updatedEvent.episode().complete()) {
+			this.db.sql("update podcast_episode set produced_audio_assets_updated =NOW() where id =? ")
+				.params(updatedEvent.episode().id())
+				.update();
 			this.publisher.publishEvent(new PodcastEpisodeCompletedEvent(updatedEvent.episode()));
 		}
 	}
@@ -314,11 +317,17 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public Episode writePodcastEpisodeProducedAudio(Long episodeId, Long managedFileId) {
-		this.managedFileService.refreshManagedFile(managedFileId);
-		this.db.sql("update podcast_episode set produced_audio_updated = NOW() where id =? ")
-			.params(episodeId)
-			.update();
-		return this.getEpisodeById(episodeId);
+		try {
+			this.managedFileService.refreshManagedFile(managedFileId);
+			this.db.sql("update podcast_episode set produced_audio_updated=? where id=? ")
+				.params(new Date(), episodeId)
+				.update();
+			log.debug("updated episode " + episodeId + " to have non-null produced_audio_updated");
+			return this.getEpisodeById(episodeId);
+		} //
+		catch (Throwable throwable) {
+			throw new RuntimeException("got an exception dealing with " + throwable.getLocalizedMessage(), throwable);
+		}
 	}
 
 }
