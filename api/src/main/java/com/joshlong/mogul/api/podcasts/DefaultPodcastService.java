@@ -55,54 +55,84 @@ class DefaultPodcastService implements PodcastService {
 		this.publisher = publisher;
 	}
 
-	@ApplicationModuleListener
-	void podcastEpisodeManagedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
-		var id = managedFileUpdatedEvent.managedFile().id();
+	private Episode findUpdatedEpisodeForManagedFile(ManagedFile managedFile) {
+		var id = managedFile.id();
 		var allEpisodes = this.db//
 			.sql("select  * from podcast_episode where interview =  ? or introduction = ?  or graphic = ?")//
 			.params(id, id, id)//
 			.query(this.episodeRowMapper)//
 			.list();
-		for (var episode : allEpisodes) {
-			var complete = true;
-			for (var mf : Set.of(episode.introduction(), episode.interview(), episode.graphic())) {
-				if (!mf.written())
-					complete = false;
-			}
-			this.db.sql("update podcast_episode set complete = ? where id =? ")//
-				.params(complete, episode.id())//
-				.update();
-			log.debug("setting [" + episode + "] as produced = [" + complete + "]");
-			var mappings = Map.of("produced_interview", episode.interview(), "produced_graphic", episode.graphic(),
-					"produced_introduction", episode.introduction());
-			for (var colName : mappings.keySet()) {
-				var mf = mappings.get(colName);
-				if (mf.id().equals(id)) {
-					var normalized = mediaNormalizer.normalize(mf);
-					log.info("you just changed the " + colName + ", going to normalize it. "
-							+ "the new normalized managed file is " + normalized.id() + " for podcast episode "
-							+ episode.id());
-					var existingValue = db.sql("select " + colName + " from podcast_episode where id =? ")
-						.params(episode.id())
-						.query((rs, rowNum) -> rs.getLong(colName))
-						.single();
+		if (!allEpisodes.isEmpty())
+			return allEpisodes.getFirst();
+		return null;
+	}
 
-					db.sql("update podcast_episode set " + colName + " = ? where id =?")
-						.params(normalized.id(), episode.id())
-						.update();
-					if (existingValue != 0) {
-						managedFileService.deleteManagedFile(existingValue);
-					}
-				}
+	@ApplicationModuleListener
+	void podcastEpisodeManagedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
+		var episode = findUpdatedEpisodeForManagedFile(managedFileUpdatedEvent.managedFile());
+		var idOfUpdatedManagedFile = managedFileUpdatedEvent.managedFile().id();
+		if (episode == null) {
+			log.warn("could not find a podcast episode where the managedFile is "
+					+ managedFileUpdatedEvent.managedFile());
+			return;
+		}
+		var mappings = Map.of("produced_interview", Objects.requireNonNull(episode).interview(), //
+				"produced_graphic", Objects.requireNonNull(episode).graphic(), //
+				"produced_introduction", Objects.requireNonNull(episode).introduction()//
+		);
+		for (var colName : mappings.keySet()) {
+			var importantManagedFile = mappings.get(colName);
+			if (importantManagedFile.id().equals(idOfUpdatedManagedFile)) {
+				normalizeManagedFile(colName, importantManagedFile, episode);
 			}
-			publisher.publishEvent(new PodcastEpisodeUpdatedEvent(getEpisodeById(episode.id())));
+		}
+		// make sure we have the latest state.
+		episode = getEpisodeById(episode.id());
+		var complete = true;
+		for (var managedFile : new ManagedFile[] { episode.introduction(), //
+				episode.producedIntroduction(), //
+				episode.interview(), //
+				episode.producedInterview(), //
+				episode.graphic(), //
+				episode.producedGraphic()//
+		}) {
+			var written = managedFile != null && managedFile.written();
+			if (!written) {
+				log.debug("oh no! " + managedFile
+						+ " is either null or not written, so marking the whole episode as incomplete");
+				complete = false;
+				break;
+			}
+		}
+		this.db.sql(" update podcast_episode set complete = ?  where id =? ")//
+			.params(complete, episode.id())//
+			.update();
+
+		this.publisher.publishEvent(new PodcastEpisodeUpdatedEvent(getEpisodeById(episode.id())));
+
+	}
+
+	private void normalizeManagedFile(String colName, ManagedFile importantManagedFile, Episode episode) {
+		var normalized = this.mediaNormalizer.normalize(importantManagedFile);
+		log.debug("you just changed the " + colName + ", going to normalize it. "
+				+ "the new normalized managed file is " + normalized.id() + " for podcast episode " + episode.id());
+		var existingValue = db.sql("select " + colName + " from podcast_episode where id =? ")
+			.params(episode.id())
+			.query((rs, rowNum) -> rs.getLong(colName))
+			.single();
+
+		db.sql("update podcast_episode set " + colName + " = ?   where id =?")
+			.params(normalized.id(), episode.id())
+			.update();
+		if (existingValue != 0) {
+			this.managedFileService.deleteManagedFile(existingValue);
 		}
 	}
 
 	@ApplicationModuleListener
 	void podcastEpisodeUpdated(PodcastEpisodeUpdatedEvent updatedEvent) {
 		if (updatedEvent.episode().complete()) {
-			publisher.publishEvent(new PodcastEpisodeCompletedEvent(updatedEvent.episode()));
+			this.publisher.publishEvent(new PodcastEpisodeCompletedEvent(updatedEvent.episode()));
 		}
 	}
 
@@ -115,7 +145,7 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public Collection<Podcast> getAllPodcastsByMogul(Long mogulId) {
-		return this.db.sql("select * from podcast where mogul_id =? order by created")
+		return this.db.sql("select * from podcast where mogul_id = ? order by created")
 			.param(mogulId)
 			.query(new PodcastRowMapper())
 			.list();
@@ -127,26 +157,28 @@ class DefaultPodcastService implements PodcastService {
 		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] is null");
 		return this.db.sql("select * from podcast_episode where podcast_id =? order by created ")
 			.param(podcastId)
-			.query(episodeRowMapper)
+			.query(this.episodeRowMapper)
 			.list();
 	}
 
 	@Override
 	public Podcast createPodcast(Long mogulId, String title) {
 		var kh = new GeneratedKeyHolder();
-		this.db.sql(
-				"insert into podcast (mogul_id, title) values (?,?) on conflict on constraint  podcast_mogul_id_title_key do update set title =excluded.title")
+		this.db
+			.sql("insert into podcast (mogul_id, title) values (?,?) on conflict on constraint "
+					+ " podcast_mogul_id_title_key do update set title =excluded.title")
 			.params(mogulId, title)
 			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);
 		var podcast = getPodcastById(id.longValue());
-		publisher.publishEvent(new PodcastCreatedEvent(podcast));
+		this.publisher.publishEvent(new PodcastCreatedEvent(podcast));
 		return podcast;
 	}
 
 	@Override
 	public Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
-			ManagedFile introduction, ManagedFile interview, ManagedFile producedAudio) {
+			ManagedFile introduction, ManagedFile interview, ManagedFile producedGraphic, ManagedFile producedIntro,
+			ManagedFile producedInterview, ManagedFile producedAudio) {
 		Assert.notNull(podcastId, "the podcast is null");
 		Assert.hasText(title, "the title has no text");
 		Assert.hasText(description, "the description has no text");
@@ -154,9 +186,25 @@ class DefaultPodcastService implements PodcastService {
 		Assert.notNull(introduction, "the introduction is null ");
 		Assert.notNull(producedAudio, "the produced audio is null ");
 		Assert.notNull(interview, "the interview is null ");
+		Assert.notNull(producedGraphic, "the produced graphic is null");
+		Assert.notNull(producedInterview, "the produced interview is null");
+		Assert.notNull(producedIntro, "the produced intro is null");
 		var kh = new GeneratedKeyHolder();
-		this.db.sql(
-				"insert into podcast_episode(podcast_id, title, description,  graphic ,  introduction ,interview , produced_audio ) VALUES (?,?,?,?,?,?,? )")
+		this.db.sql("""
+					insert into podcast_episode(
+						podcast_id,
+						title,
+						description,
+						graphic ,
+						introduction ,
+						interview ,
+						produced_graphic,
+						produced_introduction,
+						produced_interview,
+						produced_audio
+					)
+					values (?,?,?,?,?,?,?,?,?,?)
+				""")
 			.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id(), producedAudio.id())
 			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);
@@ -197,6 +245,9 @@ class DefaultPodcastService implements PodcastService {
 		func.accept(episode.introduction(), ids);
 		func.accept(episode.interview(), ids);
 		func.accept(episode.producedAudio(), ids);
+		func.accept(episode.producedGraphic(), ids);
+		func.accept(episode.producedInterview(), ids);
+		func.accept(episode.producedIntroduction(), ids);
 
 		this.db.sql("delete from podcast_episode where id= ?").param(episode.id()).update();
 
@@ -221,14 +272,16 @@ class DefaultPodcastService implements PodcastService {
 		var intro = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0, CommonMediaTypes.BINARY);
 		var interview = managedFileService.createManagedFile(currentMogulId, bucket, uid, "", 0,
 				CommonMediaTypes.BINARY);
+		var producedGraphic = managedFileService.createManagedFile(currentMogulId, bucket, uid, "produced-graphic.jpg",
+				0, CommonMediaTypes.JPG);
+		var producedIntroduction = managedFileService.createManagedFile(currentMogulId, bucket, uid,
+				"produced-intro.mp3", 0, CommonMediaTypes.MP3);
+		var producedInterview = managedFileService.createManagedFile(currentMogulId, bucket, uid,
+				"produced-interview.mp3", 0, CommonMediaTypes.MP3);
 		var producedAudio = managedFileService.createManagedFile(currentMogulId, bucket, uid, "produced-audio.mp3", 0,
 				CommonMediaTypes.MP3);
-		Assert.notNull(image, "the image managedFile is null");
-		Assert.notNull(intro, "the intro managedFile is null");
-		Assert.notNull(interview, "the interview managedFile is null");
-		// no need to publish an event here as we are already publishing an event in
-		// `createPodcastEpisode`
-		return createPodcastEpisode(podcastId, title, description, image, intro, interview, producedAudio);
+		return createPodcastEpisode(podcastId, title, description, image, intro, interview, producedGraphic,
+				producedIntroduction, producedInterview, producedAudio);
 	}
 
 	@Override
@@ -248,17 +301,12 @@ class DefaultPodcastService implements PodcastService {
 	}
 
 	@Override
-	public Episode updatePodcastEpisodeProducedManagedFiles(Long episodeId, ManagedFile producedGraphic,
-			ManagedFile producedIntroduction, ManagedFile producedInterview) {
-		this.db.sql(
-				"update podcast_episode set produced_introduction =?, produced_interview =?, produced_graphic =? where id =? ")
-			.params(producedIntroduction.id(), producedInterview.id(), producedGraphic.id())
+	public Episode writePodcastEpisodeProducedAudio(Long episodeId, Long managedFileId) {
+		this.managedFileService.refreshManagedFile(managedFileId);
+		this.db.sql("update podcast_episode set produced_audio_updated = NOW() where id =? ")
+			.params(episodeId)
 			.update();
-		return getEpisodeById(episodeId);
+		return this.getEpisodeById(episodeId);
 	}
-
-	// todo publish the right events for {podcast|episode} {creation|update}
-	// todo can we publish a podcast episode updated event when the managedFiles it
-	// manages are changed?
 
 }

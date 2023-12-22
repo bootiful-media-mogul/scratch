@@ -52,7 +52,7 @@ public class Storage {
 	 */
 	private void doWriteForLargeFiles(String bucketName, String keyName, Resource resource, DataSize maxSize)
 			throws Exception {
-		try (var inputStream = resource.getInputStream();) {
+		try (var inputStream = new BufferedInputStream(resource.getInputStream());) {
 			var chunkSize = (int) maxSize.toBytes();
 			var createMultipartUploadRequest = CreateMultipartUploadRequest.builder()
 				.bucket(bucketName)
@@ -65,6 +65,7 @@ public class Storage {
 			var buffer = new byte[chunkSize];
 			var bytesRead = -1;
 			while ((bytesRead = inputStream.read(buffer)) > 0) {
+				log.debug("uploading to part [" + partNumber + "]");
 				var actualBytes = bytesRead == chunkSize ? buffer : Arrays.copyOf(buffer, bytesRead);
 				var uploadPartRequest = UploadPartRequest.builder()
 					.bucket(bucketName)
@@ -107,20 +108,12 @@ public class Storage {
 	}
 
 	public void write(String bucket, String objectName, Resource resource) {
-
-		var largeFile = DataSize.ofMegabytes(10);
 		try {
+			var largeFile = DataSize.ofMegabytes(10);
 			log.debug("started executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread ["
 					+ Thread.currentThread() + "]");
-
 			ensureBucketExists(bucket);
-			/*
-			 * var len = -1L; try { len = resource.contentLength(); } catch (Throwable
-			 * throwable) { // ... } if (len < largeFile.toBytes()) {
-			 * doWriteForSmallFiles(bucket, objectName, resource); } // else {
-			 */
 			doWriteForLargeFiles(bucket, objectName, resource, largeFile);
-			// }
 		} //
 		catch (Throwable throwable) {
 			throw new RuntimeException(throwable);
@@ -129,7 +122,7 @@ public class Storage {
 	}
 
 	private boolean bucketExists(String bucketName) {
-		var buckets = (this.s3.listBuckets());
+		var buckets = this.s3.listBuckets();
 		if (buckets.hasBuckets()) {
 			return buckets.buckets().stream().anyMatch(bucket -> bucket.name().equalsIgnoreCase(bucketName));
 		}

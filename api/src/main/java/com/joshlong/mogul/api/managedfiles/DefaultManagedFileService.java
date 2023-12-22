@@ -2,6 +2,7 @@ package com.joshlong.mogul.api.managedfiles;
 
 import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.Storage;
+import com.joshlong.mogul.api.utils.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -14,8 +15,9 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.FileCopyUtils;
 
-import java.io.File;
+import java.io.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
@@ -58,6 +60,39 @@ class DefaultManagedFileService implements ManagedFileService {
 		var freshManagedFile = getManagedFile(managedFileId);
 		log.debug("managed file has been written? " + freshManagedFile.written());
 		this.publisher.publishEvent(new ManagedFileUpdatedEvent(freshManagedFile));
+	}
+
+	/**
+	 * this one pulls down a {@link ManagedFile managed file}'s contents from S3, and then
+	 * re-writes it, allowing us to synchronize our view of the S3 asset with the actual
+	 * state of the S3 object.
+	 *
+	 */
+	@Override
+	public ManagedFile refreshManagedFile(Long managedFileId) {
+		var managedFile = this.getManagedFile(managedFileId);
+		var resource = this.read(managedFile.id());
+		var tmp = FileUtils.tempFile();
+		try {
+			try (var in = new BufferedInputStream(resource.getInputStream());
+					var out = new BufferedOutputStream(new FileOutputStream(tmp))) {
+				if (log.isDebugEnabled())
+					log.debug("starting download to local file [" + tmp.getAbsolutePath() + "]");
+				FileCopyUtils.copy(in, out);
+				if (log.isDebugEnabled())
+					log.debug("finished download to local file [" + tmp.getAbsolutePath() + "]");
+			} //
+			this.write(managedFile.id(), managedFile.filename(), CommonMediaTypes.MP3, tmp);
+		} //
+		catch (IOException e) {
+			throw new RuntimeException(
+					"could not refresh the file [" + tmp.getAbsolutePath() + "] for ManagedFile [" + managedFile + "]",
+					e);
+		} //
+		finally {
+			FileUtils.delete(tmp);
+		}
+		return this.getManagedFile(managedFileId);
 	}
 
 	@Override

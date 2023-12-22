@@ -5,7 +5,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.io.File;
 
 @ConfigurationProperties(prefix = "mogul")
-public record ApiProperties(Aws aws, Podcasts podcasts, Settings settings, boolean debug) {
+public record ApiProperties(Aws aws, Podcasts podcasts, Transcription transcription, Settings settings, boolean debug) {
+
+	public record Transcription(S3 s3) {
+
+		public record S3(String inputBucket, String outputBucket) {
+		}
+	}
 
 	public record Settings(String password, String salt) {
 	}
@@ -13,22 +19,7 @@ public record ApiProperties(Aws aws, Podcasts podcasts, Settings settings, boole
 	public record Aws(String accessKey, String accessKeySecret, String region) {
 	}
 
-	public record Podcasts(Pipeline pipeline, Processor processor, Aws aws) {
-
-		public record Pipeline(File root) {
-
-			public File drafts() {
-				return new File(this.root(), "drafts");
-			}
-
-			public File archives() {
-				return new File(this.root(), "archives");
-			}
-
-			public File podbeanStaging() {
-				return new File(this.root(), "podbean");
-			}
-		}
+	public record Podcasts(Processor processor) {
 
 		public record Processor(S3 s3, Amqp amqp) {
 

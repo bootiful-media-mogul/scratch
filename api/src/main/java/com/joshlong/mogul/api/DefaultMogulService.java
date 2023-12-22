@@ -77,7 +77,6 @@ class DefaultMogulService implements MogulService {
 			publisher.publishEvent(new MogulCreatedEvent(mogul));
 		}
 		return mogul;
-
 	}
 
 	@Override

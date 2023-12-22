@@ -1,6 +1,5 @@
 package com.joshlong.mogul.api.utils;
 
-import com.joshlong.mogul.api.old.PodcastIntegrations;
 import org.slf4j.LoggerFactory;
 import org.springframework.integration.core.GenericHandler;
 import org.springframework.util.StringUtils;
@@ -17,7 +16,7 @@ public abstract class IntegrationUtils {
 	}
 
 	public static GenericHandler<Object> terminatingDebugHandler(String header) {
-		var log = LoggerFactory.getLogger(PodcastIntegrations.class);
+		var log = LoggerFactory.getLogger(IntegrationUtils.class);
 		return (payload, headers) -> {
 			var message = new StringBuilder();
 			if (StringUtils.hasText(header))

@@ -6,9 +6,7 @@ create table if not exists mogul
     email text null,
     created timestamp not null default now(),
     unique (client_id, username)
-) ;
-
-
+);
 
 create table if not exists managed_file_deletion_request
 (
@@ -86,6 +84,8 @@ create table if not exists podcast_episode
     produced_introduction bigint null references managed_file (id),
 
     produced_audio bigint             null references managed_file (id),
+    produced_audio_updated        timestamp not null default now(),
+    produced_audio_assets_updated timestamp not null default now(),
 
     complete bool not null default false,
 

@@ -20,16 +20,23 @@ class EpisodeRowMapper implements RowMapper<Episode> {
 
 	@Override
 	public Episode mapRow(ResultSet rs, int rowNum) throws SQLException {
-
-		return new Episode(rs.getLong("id"), this.podcastFunction.apply(rs.getLong("podcast_id")),
-				rs.getString("title"), rs.getString("description"), rs.getDate("created"),
-				this.managedFileFunction.apply(rs.getLong("graphic")),
-				this.managedFileFunction.apply(rs.getLong("produced_graphic")),
-				this.managedFileFunction.apply(rs.getLong("introduction")),
-				this.managedFileFunction.apply(rs.getLong("produced_introduction")),
-				this.managedFileFunction.apply(rs.getLong("interview")),
-				this.managedFileFunction.apply(rs.getLong("produced_interview")),
-				this.managedFileFunction.apply(rs.getLong("produced_audio")), rs.getBoolean("complete"));
+		return new Episode(//
+				rs.getLong("id"), //
+				this.podcastFunction.apply(rs.getLong("podcast_id")), //
+				rs.getString("title"), //
+				rs.getString("description"), //
+				rs.getDate("created"), //
+				this.managedFileFunction.apply(rs.getLong("graphic")), //
+				this.managedFileFunction.apply(rs.getLong("produced_graphic")), //
+				this.managedFileFunction.apply(rs.getLong("introduction")), //
+				this.managedFileFunction.apply(rs.getLong("produced_introduction")), //
+				this.managedFileFunction.apply(rs.getLong("interview")), //
+				this.managedFileFunction.apply(rs.getLong("produced_interview")), //
+				this.managedFileFunction.apply(rs.getLong("produced_audio")), //
+				rs.getBoolean("complete"), //
+				rs.getDate("produced_audio_updated"), //
+				rs.getDate("produced_audio_assets_updated")//
+		);
 	}
 
 }

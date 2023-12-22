@@ -17,7 +17,8 @@ public interface PodcastService {
 	Podcast createPodcast(Long mogulId, String title);
 
 	Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
-			ManagedFile introduction, ManagedFile interview, ManagedFile producedAudio);
+			ManagedFile introduction, ManagedFile interview, ManagedFile producedGraphic, ManagedFile producedIntro,
+			ManagedFile producedInterview, ManagedFile producedAudio);
 
 	Podcast getPodcastById(Long podcastId);
 
@@ -31,7 +32,6 @@ public interface PodcastService {
 
 	Episode updatePodcastEpisodeDraft(Long episodeId, String title, String description);
 
-	Episode updatePodcastEpisodeProducedManagedFiles(Long episodeId, ManagedFile producedGraphic,
-			ManagedFile producedIntroduction, ManagedFile producedInterview);
+	Episode writePodcastEpisodeProducedAudio(Long episodeId, Long managedFileId);
 
 }

@@ -13,9 +13,9 @@ import org.springframework.util.Assert;
 @Controller
 class AiController {
 
-	private final AiClient singularity;
+	private final DefaultAiClient singularity;
 
-	AiController(AiClient singularity) {
+	AiController(DefaultAiClient singularity) {
 		Assert.notNull(singularity, "the AI client is null");
 		this.singularity = singularity;
 	}
