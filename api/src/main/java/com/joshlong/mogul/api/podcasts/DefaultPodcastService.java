@@ -72,7 +72,7 @@ class DefaultPodcastService implements PodcastService {
 		var episode = findUpdatedEpisodeForManagedFile(managedFileUpdatedEvent.managedFile());
 		var idOfUpdatedManagedFile = managedFileUpdatedEvent.managedFile().id();
 		if (episode == null) {
-			log.warn("could not find a podcast episode where the managedFile is "
+			log.debug("could not find a podcast episode where the managedFile is "
 					+ managedFileUpdatedEvent.managedFile());
 			return;
 		}
@@ -203,9 +203,21 @@ class DefaultPodcastService implements PodcastService {
 						produced_interview,
 						produced_audio
 					)
-					values (?,?,?,?,?,?,?,?,?,?)
+					values (
+						?,
+						?,
+						?,
+						? ,
+						? ,
+						? ,
+						?,
+						?,
+						?,
+						?
+					)
 				""")
-			.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id(), producedAudio.id())
+			.params(podcastId, title, description, graphic.id(), introduction.id(), interview.id(),
+					producedGraphic.id(), producedIntro.id(), producedInterview.id(), producedAudio.id())
 			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);
 		var ep = this.getEpisodeById(id.longValue());

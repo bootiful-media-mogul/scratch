@@ -1,5 +1,6 @@
 package com.joshlong.mogul.api.podcasts;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
 import com.joshlong.mogul.api.Settings;
@@ -11,18 +12,29 @@ import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.graphql.data.method.annotation.SchemaMapping;
+import org.springframework.http.MediaType;
+import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
 class PodcastController {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
+
+	private final Map<Long, PodcastEpisodeSseEmitter> episodeCompleteEventSseEmitters = new ConcurrentHashMap<>();
+
+	private final ObjectMapper om;
 
 	private final MogulService mogulService;
 
@@ -36,12 +48,13 @@ class PodcastController {
 
 	PodcastController(MogulService mogulService, PodcastService podcastService,
 			Map<String, PodcastEpisodePublisherPlugin> plugins, PublicationService publicationService,
-			Settings settings) {
+			Settings settings, ObjectMapper om) {
 		this.mogulService = mogulService;
 		this.podcastService = podcastService;
 		this.plugins = plugins;
 		this.publicationService = publicationService;
 		this.settings = settings;
+		this.om = om;
 	}
 
 	@QueryMapping
@@ -139,7 +152,65 @@ class PodcastController {
 		Assert.notNull(podcast, "the podcast is null!");
 		mogulService.assertAuthorizedMogul(podcast.mogulId());
 		return podcastService.createPodcastEpisodeDraft(currentMogulId, podcastId, title, description);
+	}
 
+	// if the user wants information about when an episode is ready to be published, we'll
+	// setup an SSE stream here they can poll
+
+	record PodcastEpisodeSseEmitter(Long podcastId, Long episodeId, SseEmitter sseEmitter) {
+
+	}
+
+	@GetMapping("/podcasts/{podcastId}/episodes/{episodeId}/completions")
+	SseEmitter streamPodcastEpisodeCompletionEvents(@PathVariable Long podcastId, @PathVariable Long episodeId) {
+
+		log.debug("creating SSE watchdog for episode [" + episodeId + "]");
+		var peEmitter = new PodcastEpisodeSseEmitter(podcastId, episodeId, new SseEmitter());
+		var episode = podcastService.getEpisodeById(episodeId);
+		Assert.notNull(episode, "the episode is null");
+		mogulService.assertAuthorizedMogul(episode.podcast().mogulId());
+		Assert.state(episode.podcast().id().equals(podcastId),
+				"the podcast specified and the actual podcast are not the same");
+		Assert.state(episode.podcast().mogulId().equals(mogulService.getCurrentMogul().id()),
+				"these are not the same Mogul");
+		if (!this.episodeCompleteEventSseEmitters.containsKey(episodeId)) {
+			this.episodeCompleteEventSseEmitters.put(episodeId, peEmitter);
+		}
+		log.debug("installing an SseEmitter for episode [" + episode + "]");
+		var cleanup = (Runnable) () -> {
+			this.episodeCompleteEventSseEmitters.remove(episodeId);
+			log.debug("removing sse listener for episode [" + episodeId + "]");
+		};
+		peEmitter.sseEmitter().onCompletion(cleanup);
+		peEmitter.sseEmitter().onTimeout(cleanup);
+		return peEmitter.sseEmitter();
+	}
+
+	@ApplicationModuleListener
+	void broadcastPodcastEpisodeCompletedEventToClients(PodcastEpisodeCompletedEvent podcastEpisodeCompletedEvent) {
+		var id = podcastEpisodeCompletedEvent.episode().id();
+		log.debug("going to send an event to the" + " clients listening for episode [" + id + "]");
+
+		var emitter = this.episodeCompleteEventSseEmitters.get(id);
+
+		if (null == emitter) {
+			log.warn("could not find an emitter for episode [" + id + "]");
+			return;
+		}
+
+		try {
+			var json = om.writeValueAsString(Map.of("id", id));
+			emitter.sseEmitter().send(json, MediaType.APPLICATION_JSON);
+			log.debug("sent an event to clients listening for " + podcastEpisodeCompletedEvent.episode());
+
+		} //
+		catch (IOException e) {
+			emitter.sseEmitter().completeWithError(e);
+		} //
+		finally {
+			log.debug("no need for this listener anymore, removing it.");
+			emitter.sseEmitter().complete();
+		}
 	}
 
 }

@@ -30,7 +30,7 @@ export default {
 
     async deleteEpisode(episode: Episode) {
       await podcasts.deleteEpisode(episode.id)
-      await this.loadPodcast()
+      await this.cancel(new Event(''))
     },
 
     async loadEpisode(episode: Episode) {
@@ -50,7 +50,32 @@ export default {
 
       const plugins = episode.availablePlugins
       if (plugins && plugins.length == 1) this.selectedPlugin = plugins[0]
+
       await this.loadPodcast()
+
+      if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
+        console.log(
+          'going to install a listener for completion events for podcast episode [' +
+            this.draftEpisode.id +
+            ']'
+        )
+        const uri: string =
+          '/api/podcasts/' +
+          this.currentPodcast.id +
+          '/episodes/' +
+          this.draftEpisode.id +
+          '/completions'
+        console.log('the uri is ' + uri)
+        this.completionEventListenersEventSource = new EventSource(uri)
+        this.completionEventListenersEventSource.onmessage = (sseEvent: MessageEvent) => {
+          console.log('got the following SSE event: ' + sseEvent.data)
+          this.draftEpisode.complete = true
+          this.completionEventListenersEventSource.close()
+        }
+        this.completionEventListenersEventSource.onerror = function (sseME: Event) {
+          console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
+        }
+      }
     },
 
     async save(e: Event) {
@@ -132,6 +157,8 @@ export default {
 
   data() {
     return {
+      completionEventListenersEventSource: null as any as EventSource,
+      completionEventListeners: [],
       selectedPlugin: '',
       created: -1,
       draftEpisode: reactive({} as Episode),

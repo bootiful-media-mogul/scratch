@@ -1,6 +1,5 @@
 package com.joshlong.mogul.api;
 
-import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,15 +23,15 @@ public class ApiApplication {
 		return DateTimeFormatter.BASIC_ISO_DATE;
 	}
 
-
 	// todo delete me
-//	@Bean
-	ApplicationRunner install (MogulService mogul , Settings settings){
+	// @Bean
+	ApplicationRunner install(MogulService mogul, Settings settings) {
 		return args -> {
-            var jlong = mogul.getMogulByName("jlong").id() ;
-            var category = "podbean";
-            settings.set(jlong , category ,"clientId" , "");
-            settings.set(jlong , category ,"clientSecret" , "");
-        };
+			var jlong = mogul.getMogulByName("jlong").id();
+			var category = "podbean";
+			settings.set(jlong, category, "clientId", "");
+			settings.set(jlong, category, "clientSecret", "");
+		};
 	}
+
 }
