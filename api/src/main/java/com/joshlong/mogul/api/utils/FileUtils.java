@@ -2,6 +2,7 @@ package com.joshlong.mogul.api.utils;
 
 import org.springframework.util.Assert;
 import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,13 +11,21 @@ import java.util.UUID;
 
 public abstract class FileUtils {
 
-	public static File tempFile() {
+	public static File tempFile(String extension) {
 		try {
-			return Files.createTempFile("mogul-temp", "temp-file").toFile();
+			var ext = "";
+			if (StringUtils.hasText(extension))
+				ext = (!extension.startsWith(".") ? "." + extension : extension).toLowerCase();
+
+			return Files.createTempFile("mogul-temp", "temp-file" + ext).toFile();
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static File tempFile() {
+		return tempFile(null);
 	}
 
 	public static boolean delete(File file) {

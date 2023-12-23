@@ -7,6 +7,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.unit.DataSize;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
@@ -145,8 +146,15 @@ public class Storage {
 	}
 
 	public Resource read(String bucket, String objectName) {
-		var getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(objectName).build();
-		return new InputStreamResource(new BufferedInputStream(s3.getObject(getObjectRequest)));
+		try {
+			var getObjectRequest = GetObjectRequest.builder().bucket(bucket).key(objectName).build();
+			var inputStream = s3.getObject(getObjectRequest);
+			return new InputStreamResource(new BufferedInputStream(inputStream));
+		}
+		catch (Throwable throwable) {
+			log.warn("error when reading bucket [" + bucket + "] and object name [" + objectName + "] from S3");
+			return null;
+		}
 	}
 
 	public Resource read(URI uri) {

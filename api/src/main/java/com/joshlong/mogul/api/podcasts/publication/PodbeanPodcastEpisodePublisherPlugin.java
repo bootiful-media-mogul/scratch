@@ -19,7 +19,6 @@ import org.springframework.util.FileCopyUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component(PodbeanPodcastEpisodePublisherPlugin.PLUGIN_NAME)
@@ -62,39 +61,26 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 		// todo some sort of thread local in which to stash the context
 		// to make it available to the multitenant TokenProvider
 
-		var audio = payload.producedAudio();
-		var graphic = payload.producedGraphic();
+		var tempProducedAudioFile = download(this.managedFileService.read(payload.producedAudio().id()),
+				FileUtils.tempFile("mp3"));
+		var tempGraphicFile = download(this.managedFileService.read(payload.producedGraphic().id()),
+				FileUtils.tempFile("jpg"));
 
-		for (var mf : Set.of(audio, graphic)) {
-			Assert.state(mf.written() && mf.size() > 0,
-					"the produced managed files must be " + "up-to-date before publication with Podbean");
-		}
+		var producedAudioAuthorization = this.podbeanClient.upload(CommonMediaTypes.MP3, tempProducedAudioFile);
+		log.debug("got the podcast audio authorization: " + producedAudioAuthorization);
+		var producedGraphicAuthorization = this.podbeanClient.upload(CommonMediaTypes.JPG, tempGraphicFile);
 
-		log.debug("downloading produced graphic for podbean publication");
-		var graphicResource = this.managedFileService.read(graphic.id());
-		var tempProducedAudioFile = download(graphicResource, FileUtils.tempFile());
+		var podbeanEpisode = this.podbeanClient.publishEpisode(payload.title(), payload.description(),
+				EpisodeStatus.DRAFT, EpisodeType.PUBLIC, producedAudioAuthorization.getFileKey(),
+				producedGraphicAuthorization.getFileKey());
 
-		log.debug("downloading produced audio for podbean publication");
-		/*
-		 * var producedAudioResource = this.managedFileService.read(audio.id()); var
-		 * tempGraphicFile = download(producedAudioResource, FileUtils.tempFile());
-		 */
-
-		// var producedAudioAuthorization =
-		// this.podbeanClient.upload(CommonMediaTypes.MP3, tempProducedAudioFile);
-		// var producedGraphicAuthorization =
-		// this.podbeanClient.upload(CommonMediaTypes.JPG, tempGraphicFile);
-		/*
-		 * var podbeanEpisode = this.podbeanClient.publishEpisode(payload.title(),
-		 * payload.description(), EpisodeStatus.DRAFT, EpisodeType.PUBLIC,
-		 * producedAudioAuthorization.getFileKey(),
-		 * producedGraphicAuthorization.getFileKey());
-		 */
-		// log.debug("published episode to podbean: [" + podbeanEpisode + "]");
+		log.debug("published episode to podbean: [" + podbeanEpisode + "]");
 
 	}
 
 	private static File download(Resource resource, File file) {
+		Assert.notNull(resource, "the resource you wanted to" + " download to local file [" + file.getAbsolutePath()
+				+ "] does not exist");
 		try (var bin = resource.getInputStream(); var bout = new FileOutputStream(file)) {
 			FileCopyUtils.copy(bin, bout);
 		} //
