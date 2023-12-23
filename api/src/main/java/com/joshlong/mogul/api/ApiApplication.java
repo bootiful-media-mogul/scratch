@@ -23,7 +23,7 @@ public class ApiApplication {
 		return DateTimeFormatter.BASIC_ISO_DATE;
 	}
 
-	@Bean
+	// @Bean
 	ApplicationRunner install(MogulService mogul, Settings settings) {
 		return args -> {
 			var jlong = mogul.getMogulByName("jlong").id();
