@@ -1,44 +1,64 @@
 <script lang="ts">
 
-import {dateTimeFormatter} from '../dates'
-import {mogul} from "../services";
+import {mogul, SettingsPage} from "@/services";
+import {settings} from "@/services";
 
 export default {
 
 
   methods: {},
 
+
   data() {
     const mogul = ''
+    const settings: Array<SettingsPage> = []
     return {
-      mogul
+      mogul, settings
     }
   },
   async created() {
     this.mogul = await mogul.me()
+    const results = await settings.settings()
+    console.log(JSON.stringify(results))
+    this.settings = results
   }
 
 }
 </script>
 
 <template>
-  <h1 v-if="mogul">Settings for  {{ mogul }} </h1>
+  <h1 v-if="mogul">Settings for {{ mogul }} </h1>
 
   <form class="pure-form pure-form-stacked">
     <fieldset>
-      <legend>
-        <span> Global Settings  </span>
+
+
+      <div
+          v-for="settingsPage in settings"
+          v-bind:key="settingsPage.category"
+      >
+
+
+           <legend>
+        <span>
+        {{ $t( 'settings.' + settingsPage.category  )}}
+        </span>
       </legend>
 
-      <label for="episodeTitle">
-        title
-      </label>
-      <input id="episodeTitle" required type="text"/>
+<!--        <h2>{{ $t( 'settings.' + settingsPage.category  )}}</h2>-->
+
+        <div :key="setting.name" v-for="setting in settingsPage.settings">
+          {{ $t('settings.' +  settingsPage.category+'.'+setting.name) }} ::
+          {{ setting.valid }}
+        </div>
+
+
+      </div>
 
 
       <div class="podcast-episode-controls-row">
         <span class="save">
-           <button   class="pure-button pure-button-primary" type="submit">
+           <button class="pure-button pure-button-primary" type="submit">
              save
            </button>
         </span>

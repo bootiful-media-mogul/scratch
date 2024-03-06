@@ -7,11 +7,33 @@ type Mutation {
     deletePodcastEpisode(id:ID): ID
 }
 
+
+
+type Setting {
+    name : String
+    valid: Boolean
+}
+type SettingsPage {
+    valid: Boolean
+    category: String
+    settings: [Setting]
+}
+
+
+
+
+# schema for the settings
+
 type Mogul {
  name :String
 }
 
 type Query {
+
+    # settings
+    settings: [SettingsPage]
+
+    # mogul
     me: Mogul
 
     # ai
@@ -38,6 +60,9 @@ type ManagedFile {
     size: Float
     written : Boolean
 }
+
+
+
 
 type Episode {
     availablePlugins :[String]
