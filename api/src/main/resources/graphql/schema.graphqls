@@ -25,8 +25,10 @@ type Query {
 
     # managed files
     managedFileById ( id : ID) : ManagedFile
-
 }
+
+
+
 type ManagedFile {
     id: ID
     bucket: String

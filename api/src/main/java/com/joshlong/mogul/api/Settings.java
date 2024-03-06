@@ -18,7 +18,7 @@ public class Settings {
 
 	private final SettingsRowMapper rowMapper;
 
-	Settings(JdbcClient db, TextEncryptor encryptor) {
+	public Settings(JdbcClient db, TextEncryptor encryptor) {
 		this.db = db;
 		this.encryptor = encryptor;
 		Assert.notNull(this.encryptor, "the encryptor must be non-null");

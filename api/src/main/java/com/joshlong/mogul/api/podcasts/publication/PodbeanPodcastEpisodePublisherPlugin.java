@@ -3,6 +3,7 @@ package com.joshlong.mogul.api.podcasts.publication;
 import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
 import com.joshlong.mogul.api.podcasts.Episode;
+import com.joshlong.mogul.api.publications.PublisherPlugin;
 import com.joshlong.mogul.api.utils.FileUtils;
 import com.joshlong.podbean.EpisodeStatus;
 import com.joshlong.podbean.EpisodeType;
@@ -19,6 +20,7 @@ import org.springframework.util.FileCopyUtils;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component(PodbeanPodcastEpisodePublisherPlugin.PLUGIN_NAME)
@@ -50,9 +52,15 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 	}
 
 	@Override
-	public boolean supports(Map<String, String> context, Episode payload) {
-		return context.containsKey("clientId") && context.containsKey("clientSecret");
+	public boolean canPublish(Map<String, String> context, Episode payload) {
+		return this.isConfigurationValid(context) && payload != null && payload.complete();
 	}
+
+	@Override
+	public Set<String> getRequiredSettingKeys() {
+		return Set.of("clientId", "clientSecret");
+	}
+
 
 	@Override
 	public void publish(Map<String, String> context, Episode payload) {

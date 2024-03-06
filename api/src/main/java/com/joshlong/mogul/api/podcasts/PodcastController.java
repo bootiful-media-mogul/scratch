@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,7 +78,7 @@ class PodcastController {
 		for (var pluginName : this.plugins.keySet()) {
 			var configuration = settings.getAllValuesByCategory(mogul.id(), pluginName);
 			var plugin = this.plugins.get(pluginName);
-			if (plugin.supports(configuration, episode)) {
+			if (plugin.canPublish(configuration, episode)) {
 				plugins.add(plugin.name());
 			}
 		}

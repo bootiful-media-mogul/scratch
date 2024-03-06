@@ -6,6 +6,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Component
@@ -19,8 +20,18 @@ class GithubBlogPlugin implements PublisherPlugin<Blog>, BeanNameAware {
 	}
 
 	@Override
-	public boolean supports(Map<String, String> context, Blog payload) {
+	public Set<String> getRequiredSettingKeys() {
+		return Set.of("clientId" , "clientSecret");
+	}
+
+	@Override
+	public boolean isConfigurationValid(Map<String, String> context) {
 		return context.containsKey("clientId") && context.containsKey("clientSecret");
+	}
+
+	@Override
+	public boolean canPublish(Map<String, String> context, Blog payload) {
+		return isConfigurationValid(context) && payload != null;
 	}
 
 	@Override

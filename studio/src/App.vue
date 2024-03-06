@@ -34,6 +34,8 @@ export default {
       <div class="toolbar">
         <router-link to="/">home</router-link>
         |
+        <router-link to="/settings">settings</router-link>
+        |
         <router-link to="/podcasts">podcasts</router-link>
       </div>
 
@@ -56,7 +58,7 @@ export default {
       </div>
     </div>
     <div class="footer">
-      Mogul, made with love by
+      Mogul, made with love ❤️ by
       <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with Spring 🍃)
     </div>
   </div>
