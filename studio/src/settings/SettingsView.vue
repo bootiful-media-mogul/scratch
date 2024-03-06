@@ -39,16 +39,28 @@ export default {
       >
 
 
-           <legend>
-        <span>
-        {{ $t( 'settings.' + settingsPage.category  )}}
-        </span>
-      </legend>
 
-<!--        <h2>{{ $t( 'settings.' + settingsPage.category  )}}</h2>-->
+        <!--
+
+         todo what other parts of the app could be  and should be translated using i18n plugin? like, everything, basically?
+
+         todo get this to the point that it shows elegant
+         label: <br/>
+         <textarea ></textarea>
+
+         with good form stylin and everything.
+        -->
+
+        <legend>
+        <span>
+        {{ $t('settings.' + settingsPage.category) }}
+        </span>
+        </legend>
+
+        <!--        <h2>{{ $t( 'settings.' + settingsPage.category  )}}</h2>-->
 
         <div :key="setting.name" v-for="setting in settingsPage.settings">
-          {{ $t('settings.' +  settingsPage.category+'.'+setting.name) }} ::
+          {{ $t('settings.' + settingsPage.category + '.' + setting.name) }} ::
           {{ setting.valid }}
         </div>
 

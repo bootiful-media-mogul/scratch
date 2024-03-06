@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-@Component
+@Component(GithubBlogPlugin.PLUGIN_NAME)
 class GithubBlogPlugin implements PublisherPlugin<Blog>, BeanNameAware {
+
+	public static final String PLUGIN_NAME = "github";
 
 	private final AtomicReference<String> beanName = new AtomicReference<>();
 
