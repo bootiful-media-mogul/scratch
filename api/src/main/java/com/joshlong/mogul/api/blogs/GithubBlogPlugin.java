@@ -1,8 +1,8 @@
 package com.joshlong.mogul.api.blogs;
 
 import com.joshlong.mogul.api.publications.PublisherPlugin;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -34,7 +34,7 @@ class GithubBlogPlugin implements PublisherPlugin<Blog>, BeanNameAware {
 	}
 
 	@Override
-	public void setBeanName(@NotNull String name) {
+	public void setBeanName(@NonNull String name) {
 		this.beanName.set(name);
 	}
 

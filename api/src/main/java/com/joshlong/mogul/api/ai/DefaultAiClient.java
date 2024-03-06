@@ -1,5 +1,6 @@
 package com.joshlong.mogul.api.ai;
 
+import org.springframework.ai.chat.ChatClient;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpEntity;
@@ -15,13 +16,13 @@ class DefaultAiClient implements AiClient {
 
 	private final RestTemplate restTemplate;
 
-	private final org.springframework.ai.client.AiClient aiClient;
+	private final ChatClient aiClient;
 
 	private final String openaiApiKey;
 
 	private final TranscriptionClient transcriptionClient;
 
-	DefaultAiClient(RestTemplate restTemplate, org.springframework.ai.client.AiClient aiClient, String openaiApiKey,
+	DefaultAiClient(RestTemplate restTemplate, ChatClient aiClient, String openaiApiKey,
 			TranscriptionClient transcriptionClient) {
 		this.restTemplate = restTemplate;
 		this.aiClient = aiClient;
@@ -36,7 +37,7 @@ class DefaultAiClient implements AiClient {
 
 	@Override
 	public String chat(String prompt) {
-		return this.aiClient.generate(prompt);
+		return this.aiClient.call(prompt);
 	}
 
 	@Override
@@ -50,7 +51,7 @@ class DefaultAiClient implements AiClient {
 		var response = restTemplate.postForEntity(OPENAI_API_IMAGES_URL, entity, ImageGenerationResponse.class);
 		var igr = response.getBody();
 		if (igr != null && igr.data() != null && !igr.data().isEmpty()) {
-			var img = igr.data().iterator().next();
+			var img = igr.data().getFirst();
 			var url = img.url();
 			return new UrlResource(url);
 		}

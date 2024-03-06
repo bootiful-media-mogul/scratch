@@ -53,11 +53,10 @@ class ProductionIntegrationFlowConfiguration {
 
 	@Bean
 	IntegrationFlow episodeProductionIntegrationFlow(ApiProperties properties, PodcastService podcastService,
-			AmqpTemplate amqpTemplate, @Qualifier(PRODUCTION_FLOW_REQUESTS) MessageChannel channel) throws Exception {
-
+			AmqpTemplate amqpTemplate, @Qualifier(PRODUCTION_FLOW_REQUESTS) MessageChannel channel) {
 		var episodeIdHeaderName = "episodeId";
 		var q = properties.podcasts().processor().amqp().requests();
-		return IntegrationFlow.from(channel)
+		return IntegrationFlow.from(channel)//
 			.handle(IntegrationUtils.debugHandler("got invoked by the gateway"))
 			// todo send bumper s3 uris to the processor, so that they can be per-user.
 			// folks would upload ManagedFiles for audio assets, and we'd pull 'em from

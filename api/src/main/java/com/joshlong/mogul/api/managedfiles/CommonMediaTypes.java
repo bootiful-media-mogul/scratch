@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 /**
  * includes some useful content types that, for some reason, {@link MediaType } does not
  * have.
+ *
  */
 public abstract class CommonMediaTypes {
 
@@ -16,7 +17,9 @@ public abstract class CommonMediaTypes {
 
 	public static MediaType guess(Resource resource) {
 		var ct = java.net.URLConnection.guessContentTypeFromName(resource.getFilename());
-		return StringUtils.hasText(ct) ? MediaType.parseMediaType(ct) : CommonMediaTypes.BINARY;
+		var mt = StringUtils.hasText(ct) ? MediaType.parseMediaType(ct) : CommonMediaTypes.BINARY;
+		log.debug("guessed [" + ct + "] for resource [" + resource.getFilename() + "]. the media type is [" + mt + "]");
+		return mt;
 	}
 
 	public static final MediaType BINARY = MediaType.APPLICATION_OCTET_STREAM;

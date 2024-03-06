@@ -114,19 +114,26 @@ class DefaultPodcastService implements PodcastService {
 
 	private void normalizeManagedFile(String colName, ManagedFile importantManagedFile, Episode episode) {
 		var normalized = this.mediaNormalizer.normalize(importantManagedFile);
-		log.debug("you just changed the " + colName + ", going to normalize it. "
-				+ "the new normalized managed file is " + normalized.id() + " for podcast episode " + episode.id());
-		var existingValue = db.sql("select " + colName + " from podcast_episode where id =? ")
-			.params(episode.id())
-			.query((rs, rowNum) -> rs.getLong(colName))
-			.single();
 
-		db.sql("update podcast_episode set " + colName + " = ?   where id =?")
+		log.debug("you just changed the " + colName + ", going to normalize it. the new normalized managed file is "
+				+ normalized.id() + " for podcast episode " + episode.id());
+
+		// preserve the last managed_file id if it exists. we need to delete this one.
+		var existingValue = db//
+			.sql("select " + colName + " from podcast_episode where id =? ")//
+			.params(episode.id())//
+			.query((rs, rowNum) -> rs.getLong(colName))//
+			.list();//
+
+		db.sql("update podcast_episode set " + colName + " = ? where id =?")
 			.params(normalized.id(), episode.id())
 			.update();
-		if (existingValue != 0) {
-			this.managedFileService.deleteManagedFile(existingValue);
-		}
+
+		// now we want to officially delete off the old managed file
+		for (var value : existingValue)
+			if (value != 0)
+				this.managedFileService.deleteManagedFile(value);
+
 	}
 
 	@ApplicationModuleListener

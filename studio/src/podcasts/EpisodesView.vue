@@ -59,6 +59,7 @@ export default {
             this.draftEpisode.id +
             ']'
         )
+
         const uri: string =
           '/api/podcasts/' +
           this.currentPodcast.id +

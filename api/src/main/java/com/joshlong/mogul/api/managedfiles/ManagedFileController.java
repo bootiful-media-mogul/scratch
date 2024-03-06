@@ -50,7 +50,6 @@ class ManagedFileController {
 			.contentLength(mf.size())
 			.contentType(MediaType.parseMediaType(contentType))
 			.body(read);
-
 	}
 
 	@ResponseBody

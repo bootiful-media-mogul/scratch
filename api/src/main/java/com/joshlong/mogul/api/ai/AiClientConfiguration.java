@@ -2,7 +2,8 @@ package com.joshlong.mogul.api.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.ApiProperties;
-import org.springframework.ai.autoconfigure.openai.OpenAiProperties;
+import org.springframework.ai.autoconfigure.openai.OpenAiChatProperties;
+import org.springframework.ai.chat.ChatClient;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -20,8 +21,8 @@ class AiClientConfiguration {
 	}
 
 	@Bean
-	DefaultAiClient aiClient(org.springframework.ai.client.AiClient aiClient, TranscriptionClient transcriptionClient,
-			OpenAiProperties properties) {
+	DefaultAiClient aiClient(ChatClient aiClient, TranscriptionClient transcriptionClient,
+			OpenAiChatProperties properties) {
 		return new DefaultAiClient(new RestTemplateBuilder().build(), aiClient, properties.getApiKey(),
 				transcriptionClient);
 	}

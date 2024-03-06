@@ -22,6 +22,7 @@ public class AuthorizationApplication {
 		SpringApplication.run(AuthorizationApplication.class, args);
 	}
 
+
 	@Bean
 	PasswordEncoder passwordEncoderFactories() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();

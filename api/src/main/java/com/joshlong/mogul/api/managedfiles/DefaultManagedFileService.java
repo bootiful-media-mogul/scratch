@@ -59,6 +59,7 @@ class DefaultManagedFileService implements ManagedFileService {
 		this.db.sql("update managed_file set filename =?, content_type =? , written = true , size =? where id=?")
 			.params(filename, clientMediaType.toString(), contentLength(resource), managedFileId)
 			.update();
+		log.debug("are we uploading on a virtual thread? " + Thread.currentThread().isVirtual());
 		var freshManagedFile = getManagedFile(managedFileId);
 		log.debug("managed file has been written? " + freshManagedFile.written());
 		this.publisher.publishEvent(new ManagedFileUpdatedEvent(freshManagedFile));
@@ -114,13 +115,13 @@ class DefaultManagedFileService implements ManagedFileService {
 	@Override
 	public void completeManagedFileDeletion(Long managedFileDeletionRequestId) {
 		var mfRequest = getManagedFileDeletionRequest(managedFileDeletionRequestId);
-		storage.remove(mfRequest.bucket(), mfRequest.folder() + '/' + mfRequest.storageFilename());
 		Assert.notNull(mfRequest, "the managed file deletion request should not be null");
+		storage.remove(mfRequest.bucket(), mfRequest.folder() + '/' + mfRequest.storageFilename());
 		this.db.sql(" update  managed_file_deletion_request  set deleted = true where id = ? ")
 			.param(managedFileDeletionRequestId)
 			.update();
-		var mfdr = getManagedFileDeletionRequest(managedFileDeletionRequestId);
-		log.debug("completed [" + mfdr + "]");
+		var managedFileDeletionRequest = getManagedFileDeletionRequest(managedFileDeletionRequestId);
+		log.debug("completed [" + managedFileDeletionRequest + "]");
 	}
 
 	@Override

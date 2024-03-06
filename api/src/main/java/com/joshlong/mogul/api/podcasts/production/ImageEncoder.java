@@ -4,12 +4,15 @@ import com.joshlong.mogul.api.utils.FileUtils;
 import com.joshlong.mogul.api.utils.ProcessUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.unit.DataSize;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -17,13 +20,13 @@ import java.util.Locale;
 import java.util.Set;
 
 @Component
-class ImageEncoder {
+class ImageEncoder implements Encoder, ApplicationListener<ApplicationReadyEvent> {
 
 	private final Logger log = LoggerFactory.getLogger(ImageEncoder.class);
 
 	public final static DataSize MAX_SIZE = DataSize.ofMegabytes(1);
 
-	ImageEncoder() throws Exception {
+	private void version() throws IOException {
 		for (var tool : Set.of("convert", "identify"))
 			try (var cmd = new ProcessBuilder().command(tool, "--version").start().getInputStream();
 					var ow = new InputStreamReader(cmd)) {
@@ -32,6 +35,7 @@ class ImageEncoder {
 			}
 	}
 
+	@Override
 	public File encode(File path) {
 		try {
 			var output = isValidImage(path)
@@ -84,6 +88,16 @@ class ImageEncoder {
 
 	private boolean isValidImage(File f) {
 		return isValidSize(f) && isValidType(f);
+	}
+
+	@Override
+	public void onApplicationEvent(ApplicationReadyEvent event) {
+		try {
+			this.version();
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

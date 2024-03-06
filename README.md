@@ -4,6 +4,15 @@ pardon our dust.
 
 im going to do all the work here in a monorepo and then factor out as necessary 
 
+## running the system 
+
+there should be a `dev.sh` script in each module that will run the module for ease of development. 
+
+* launch the `authorization` module 
+* then launch the `gateway`
+* then launch the `api`
+* then run 
+* then launch the podcasts-processor
 
 ## publications 
 

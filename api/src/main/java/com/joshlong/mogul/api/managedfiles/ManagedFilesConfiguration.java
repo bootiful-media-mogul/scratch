@@ -15,10 +15,10 @@ import java.util.Collection;
 class ManagedFilesConfiguration {
 
 	@Bean
-	IntegrationFlow managedFileDeletionRequestsIntegrationFlow(ManagedFileService mfs) {
+	IntegrationFlow managedFileDeletionRequestsIntegrationFlow(ManagedFileService managedFileService) {
 
 		var messageSource = (MessageSource<Collection<ManagedFileDeletionRequest>>) () -> MessageBuilder
-			.withPayload(mfs.getOutstandingManagedFileDeletionRequests())
+			.withPayload(managedFileService.getOutstandingManagedFileDeletionRequests())
 			.build();
 
 		return IntegrationFlow
@@ -27,7 +27,7 @@ class ManagedFilesConfiguration {
 			.split()
 			// this does the dirty work of deleting the bits from s3.
 			.handle(ManagedFileDeletionRequest.class, (payload, headers) -> {
-				mfs.completeManagedFileDeletion(payload.id());
+				managedFileService.completeManagedFileDeletion(payload.id());
 				return null;
 			})
 			.get();

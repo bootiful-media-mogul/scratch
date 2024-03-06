@@ -83,6 +83,17 @@ class PodcastController {
 				plugins.add(plugin.name());
 			}
 		}
+		if (plugins.isEmpty()) {
+			log.warn(
+					"""
+
+							There are no plugins available for this Podcast Episode, despite the fact that the Episode is complete.
+
+							It may be that you forgot to specify some settings to activate plugins.
+
+							Check the Settings page (and build it if it doesn't exist).
+							""");
+		}
 		return plugins;
 	}
 
@@ -204,7 +215,8 @@ class PodcastController {
 			log.debug("sent an event to clients listening for " + podcastEpisodeCompletedEvent.episode());
 
 		} //
-		catch (IOException e) {
+		catch (Exception e) {
+			log.warn("experienced an exception when trying to emit a podcast completed event via SSE for id # " + id);
 			emitter.sseEmitter().completeWithError(e);
 		} //
 		finally {
