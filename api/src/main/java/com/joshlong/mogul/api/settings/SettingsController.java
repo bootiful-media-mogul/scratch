@@ -49,6 +49,7 @@ class SettingsController {
     @GetMapping("/settings-pages")
     SettingsPages settings() {
 
+        // todo make sure we implement this in graphql!
 
         var currentMogulId = this.mogulService.getCurrentMogul().id();
         var pages = new ArrayList<SettingsPage>();
