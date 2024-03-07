@@ -15,9 +15,19 @@ const translations = {
       'required-value': 'this is a required value!'
     },
 
+    'hello' : 'hello',
     'podbean': 'Podbean',
     'github': 'GitHub',
 
+    // managed files
+    'managedfiles.please-upload-a-file' : 'please upload a file',
+    // app
+    'app.menu.home' : 'home',
+    'app.menu.settings' : 'settings',
+    'app.menu.podcasts' : 'podcasts',
+    'app.made-with-love' :` Mogul, made with love ❤️ by  <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with Spring 🍃) ` ,
+
+    // episodes
     'episodes.title': 'all episodes',
     'episodes.episodes': 'episodes for {title}',
     'episodes.new-episode': 'new episode',
@@ -31,8 +41,7 @@ const translations = {
     'episodes.episode.title': 'title',
     'episodes.plugins.please-select-a-plugin': 'please select a plugin',
 
-
-    //
+    // podcasts
     'podcasts.title': 'Podcasts',
     'podcasts.new-podcast': 'New Podcast',
     'podcasts.new-podcast.title': 'title',
@@ -41,14 +50,12 @@ const translations = {
     'podcasts.podcasts.delete': 'delete',
     'podcasts.podcasts.episodes': 'episodes',
 
+    // settings
     'settings.title': 'System Settings for {mogul}',
     'settings.save-button': 'save configuration changes for {plugin}',
-
-
     'settings.github': 'Github',
     'settings.github.clientId': 'Client ID',
     'settings.github.clientSecret': 'Client Secret',
-
     'settings.podbean': 'Podbean',
     'settings.podbean.clientId': 'Client ID',
     'settings.podbean.clientSecret': 'Client Secret'

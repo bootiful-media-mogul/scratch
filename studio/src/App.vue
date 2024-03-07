@@ -28,15 +28,15 @@ export default {
   <div class="frame">
     <div class="page">
       <div class="welcome">
-        hello, <span style="font-weight: bold"> {{ mogul }} </span>!
+      {{ $t('hello')}} <span style="font-weight: bold"> {{ mogul }} </span>!
       </div>
 
       <div class="toolbar">
-        <router-link to="/">home</router-link>
+        <router-link to="/">{{ $t('app.menu.home')}} </router-link>
         |
-        <router-link to="/settings">settings</router-link>
+        <router-link to="/settings">{{ $t('app.menu.settings')}}</router-link>
         |
-        <router-link to="/podcasts">podcasts</router-link>
+        <router-link to="/podcasts">{{ $t('app.menu.podcasts')}}</router-link>
       </div>
 
       <div class="view">
@@ -58,8 +58,7 @@ export default {
       </div>
     </div>
     <div class="footer">
-      Mogul, made with love ❤️ by
-      <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with Spring 🍃)
+      <span v-html="$t( 'app.made-with-love' )"></span>
     </div>
   </div>
 </template>

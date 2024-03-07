@@ -35,7 +35,7 @@
 
     <span class="filename">
       <span v-if="filename">{{ filename }} </span>
-      <span class="form-prompt" v-else> (please upload a file) </span>
+      <span class="form-prompt" v-else>{{ $t('managedfiles.please-upload-a-file') }}</span>
     </span>
   </div>
 </template>
