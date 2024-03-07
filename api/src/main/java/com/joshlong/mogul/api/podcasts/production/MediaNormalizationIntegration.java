@@ -45,6 +45,15 @@ class MediaNormalizationIntegration {
 		managedFileService.write(managedFile.id(), managedFile.filename(), mediaType, new FileSystemResource(newFile));
 		return managedFile;
 	}
+	/*
+	'title': 'Podcasts',
+    'new-podcast': 'New Podcast',
+    'new-podcast.title': 'title',
+    'title.ai.prompt': `please help me take the following podcast title and make it more pithy and exciting!`,
+    'new-podcast.submit': 'create a new podcast' ,
+    'podcasts.delete':'delete' ,
+    'podcasts.episodes' : 'episodes',
+	* */
 
 	private static File tempLocalFileForManagedFile(ManagedFile managedFile) {
 		try {
@@ -56,8 +65,7 @@ class MediaNormalizationIntegration {
 	}
 
 	private static void dump(Resource resource, File file) {
-		try (var i = new BufferedInputStream(resource.getInputStream());
-				var o = new BufferedOutputStream(new FileOutputStream(file))) {
+		try (var i = new BufferedInputStream(resource.getInputStream()); var o = new BufferedOutputStream(new FileOutputStream(file))) {
 			FileCopyUtils.copy(i, o);
 		} ///
 		catch (IOException e) {

@@ -4,7 +4,6 @@ import { mogul, Setting, Settings, settings, SettingsPage } from '@/services'
 export default {
   methods: {
     save: function(category: string) {
-
       const pageForCategory = this.settings.filter(sp => sp.category == category)[0]
       const loadedPageForCategory = this.loadedSettings.filter(sp => sp.category == category) [0]
 
@@ -15,39 +14,14 @@ export default {
         return null as any
       }
 
-
       const loadedSettings = loadedPageForCategory.settings
       const updatedSettings = pageForCategory.settings
-
       updatedSettings.forEach(setting => {
-
         const matching = findSettingWithMatchingKey(loadedSettings, setting.name)
-
-        if (matching != null) {
-          if (matching.value != setting.value) {
-            console.debug('you have updated the setting ' + category + '::' + setting.name + ', so going to update it.')
-            settings.updateSetting(pageForCategory.category, setting.name, setting.value)
-          }
+        if (matching != null && matching.value != setting.value) {
+          settings.updateSetting(pageForCategory.category, setting.name, setting.value)
         }
-
       })
-
-      // go through the updated settings var and find those values that are different from those we rendered with
-
-
-      /*   const updatedSettings = pageForCategory.settings.filter( setting=> (setting.value ===  ))
-         updatedSettings.forEach((setting: Setting) => {
-
-           console.log(pageForCategory.category + '::' + setting.name + '=' + setting.value)
-
-          /// const loadedSetting = findSetting( this.loadedSettings , setting.name , setting.value)
-
-
-
-
-
-         })*/
-
     }
   },
 
@@ -74,8 +48,6 @@ export default {
       newSettings.push(nsp)
     })
     this.loadedSettings = newSettings
-
-
   }
 }
 

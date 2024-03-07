@@ -175,19 +175,25 @@ export default {
 </script>
 
 <template>
-  <h1 v-if="currentPodcast">Episodes for "{{ currentPodcast.title }}"</h1>
+  <h1 v-if="currentPodcast">
+
+      {{  $t('episodes.episodes' , {title: currentPodcast.title })   }}
+
+  </h1>
 
   <form class="pure-form pure-form-stacked">
     <fieldset>
       <legend>
-        <span v-if="title">Editing "{{ title }}"</span>
-        <span v-else> New Episode </span>
+        <span v-if="title">
+           {{  $t('episodes.editing-episode' , {title: title })   }}
+         </span>
+        <span v-else>  {{  $t('episodes.new-episode')   }} </span>
       </legend>
 
       <label for="episodeTitle">
-        title
+        {{  $t('episodes.episode.title'  )   }}
         <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast title more pithy and exciting"
+          :prompt="$t('episodes.episode.title.ai-prompt')"
           :text="title"
           @ai-workshop-completed="title = $event.text"
         />
@@ -195,9 +201,11 @@ export default {
       <input id="episodeTitle" required v-model="title" type="text" />
 
       <label for="episodeDescription">
-        description
+
+        {{ $t('episodes.episode.description')}}
+
         <AiWorkshopItIconComponent
-          prompt="please help me make the following podcast description more pithy and exciting"
+           :prompt="$t('episodes.episode.description.ai-prompt')"
           :text="description"
           @ai-workshop-completed="description = $event.text"
         />
@@ -241,7 +249,7 @@ export default {
             type="submit"
             class="pure-button pure-button-primary"
           >
-            save
+           {{ $t('episodes.buttons.save')}}
           </button>
         </span>
         <span class="cancel">
@@ -251,7 +259,7 @@ export default {
             :disabled="description == '' && title == ''"
             class="pure-button pure-button-primary"
           >
-            cancel
+            {{ $t('episodes.buttons.cancel')}}
           </button>
         </span>
 
@@ -261,7 +269,9 @@ export default {
             @change="pluginSelected"
             :disabled="!draftEpisode.complete"
           >
-            <option disabled value="">Please select a plugin</option>
+            <option disabled value="">
+              {{ $t('episodes.plugins.please-select-a-plugin')}}
+            </option>
 
             <option
               v-for="(option, index) in draftEpisode.availablePlugins"
@@ -278,7 +288,7 @@ export default {
             type="submit"
             class="pure-button pure-button-primary publish-button"
           >
-            publish
+               {{ $t('episodes.buttons.publish')}}
           </button>
         </div>
       </div>
@@ -287,7 +297,9 @@ export default {
 
   <form class="pure-form">
     <fieldset>
-      <legend>Episodes</legend>
+      <legend>
+      {{ $t('episodes.title')}}
+      </legend>
 
       <div class="pure-g form-row episodes-row" v-bind:key="episode.id" v-for="episode in episodes">
         <div class="id id-column">
