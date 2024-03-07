@@ -61,7 +61,6 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 		return Set.of("clientId", "clientSecret");
 	}
 
-
 	@Override
 	public void publish(Map<String, String> context, Episode payload) {
 		log.debug("publishing to podbean with context [" + context + "] and payload [" + payload

@@ -75,11 +75,7 @@ class DefaultMogulService implements MogulService {
 
 	@Override
 	public Mogul getMogulById(Long id) {
-		return this.db
-				.sql("select * from mogul where id =? ")
-				.param(id)
-				.query(this.mogulRowMapper)
-				.single();
+		return this.db.sql("select * from mogul where id =? ").param(id).query(this.mogulRowMapper).single();
 	}
 
 	@Override
@@ -87,7 +83,7 @@ class DefaultMogulService implements MogulService {
 		var moguls = this.db//
 			.sql("select * from mogul where  username  = ? ")
 			.param(name)
-				.query(this.mogulRowMapper)
+			.query(this.mogulRowMapper)
 			.list();
 		Assert.state(moguls.size() <= 1, "there should only be one mogul with this username [" + name + "]");
 		return moguls.isEmpty() ? null : moguls.getFirst();
@@ -100,17 +96,19 @@ class DefaultMogulService implements MogulService {
 				"the requested mogul [" + aLong + "] is not currently authenticated");
 	}
 
-/*	public PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId) {
-		var clientId = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS, PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID);
-		var clientSecret = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
-				PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET);
-		var configured = StringUtils.hasText(clientId) || StringUtils.hasText(clientSecret);
-		return configured ? new PodbeanAccountSettings(clientId, clientSecret) : null;
-	}*/
+	/*
+	 * public PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId) { var
+	 * clientId = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
+	 * PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID); var clientSecret =
+	 * this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
+	 * PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET); var configured =
+	 * StringUtils.hasText(clientId) || StringUtils.hasText(clientSecret); return
+	 * configured ? new PodbeanAccountSettings(clientId, clientSecret) : null; }
+	 */
+
 }
 
 class MogulRowMapper implements RowMapper<Mogul> {
-
 
 	@Override
 	public Mogul mapRow(ResultSet rs, int rowNum) throws SQLException {

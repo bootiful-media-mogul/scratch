@@ -14,9 +14,11 @@ public interface PublisherPlugin<T> {
 	default boolean isConfigurationValid(Map<String, String> context) {
 		var required = this.getRequiredSettingKeys();
 
-		if (context == null) context = new HashMap<>();
+		if (context == null)
+			context = new HashMap<>();
 
-		if (required == null) required = new HashSet<>();
+		if (required == null)
+			required = new HashSet<>();
 
 		var good = true;
 		for (var k : required)

@@ -14,10 +14,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 
 /**
- * By default, the Podbean autoconfiguration creates a global and singular instance of {@link TokenProvider tp}
- * based on the configuration stipulated at design time.
+ * By default, the Podbean autoconfiguration creates a global and singular instance of
+ * {@link TokenProvider tp} based on the configuration stipulated at design time.
  * <p>
- * This is a multi-tenant implementation that is aware of the currently signed in {@link  com.joshlong.mogul.api.Mogul }.
+ * This is a multi-tenant implementation that is aware of the currently signed in
+ * {@link com.joshlong.mogul.api.Mogul }.
  */
 @Configuration
 class PodbeanConfiguration {

@@ -7,16 +7,16 @@ type Mutation {
     deletePodcastEpisode(id:ID): ID
 }
 
-
-
 type Setting {
-    name : String
+    name: String
+    value: String
     valid: Boolean
 }
+
 type SettingsPage {
-    valid: Boolean
-    category: String
-    settings: [Setting]
+    valid : Boolean
+    category : String
+    settings : [Setting]
 }
 
 

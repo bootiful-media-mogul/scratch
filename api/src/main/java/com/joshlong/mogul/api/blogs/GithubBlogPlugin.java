@@ -23,7 +23,7 @@ class GithubBlogPlugin implements PublisherPlugin<Blog>, BeanNameAware {
 
 	@Override
 	public Set<String> getRequiredSettingKeys() {
-		return Set.of("clientId" , "clientSecret");
+		return Set.of("clientId", "clientSecret");
 	}
 
 	@Override
