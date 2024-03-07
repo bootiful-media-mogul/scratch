@@ -99,11 +99,13 @@ public class Settings {
 	}
 
 	public void set(Long mogulId, String category, String key, String value) {
-		var updated = this.db.sql("""
+		this.db.sql("""
 				insert into settings(mogul_id, category, key, value)
 				values (? ,? ,? ,? )
 				on conflict on constraint  settings_mogul_id_category_key_key do update set value = excluded.value
-				    """).params(mogulId, category, key, this.encryptor.encrypt(value)).update();
+						    """) //
+				.params(mogulId, category, key, this.encryptor.encrypt(value))//
+				.update();
 
 	}
 

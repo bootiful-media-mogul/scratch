@@ -3,6 +3,8 @@ package com.joshlong.mogul.api.settings;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.Settings;
 import com.joshlong.mogul.api.publications.PublisherPlugin;
+import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
@@ -38,6 +40,12 @@ class SettingsController {
 	}
 
 	record SettingsPage(boolean valid, String category, List<Setting> settings) {
+	}
+
+	@MutationMapping
+	boolean updateSetting(@Argument String category, @Argument String name, @Argument String value)  {
+		this.settings.set(this.mogulService.getCurrentMogul().id(), category, name, value);
+		return true ;
 	}
 
 	@QueryMapping

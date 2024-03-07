@@ -3,6 +3,8 @@ import Mogul from '@/mogul'
 import mitt from 'mitt'
 import { Client, errorExchange, fetchExchange } from '@urql/core'
 import router from '@/index'
+import { types } from 'sass'
+import Boolean = types.Boolean
 
 export const graphqlClient = new Client({
   url: '/api/graphql',
@@ -309,6 +311,36 @@ export class Settings {
 
   constructor(client: Client) {
     this.client = client
+  }
+
+  async updateSetting(category: string, name: string, value: string) {
+    /*const mutation = `
+         mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){
+          createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) {
+            availablePlugins,    created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
+          }
+         }
+        `
+    console.log(podcastId + ':' + title + ':' + description)
+    const result = await graphqlClient.mutation(mutation, {
+      podcast: podcastId,
+      title: title,
+      description: description
+    })
+
+    return (await result.data['createPodcastEpisodeDraft']) as Episode*/
+
+
+    const mutation = `
+      mutation UpdateSetting($category : String , $name:String, $value:String){ 
+       updateSetting (  category: $category, name: $name, value: $value)
+      }
+    `
+    const result = await graphqlClient.mutation(mutation, {
+      category: category, name: name, value: value
+    })
+
+    return (await result.data  ['updateSetting'] as Boolean)
   }
 
   async settings(): Promise<Array<SettingsPage>> {

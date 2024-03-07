@@ -1,38 +1,91 @@
 <script lang="ts">
-import { mogul, settings, SettingsPage } from '@/services'
+import { mogul, Setting, Settings, settings, SettingsPage } from '@/services'
 
 export default {
   methods: {
-    save: function  ( category: string ){
-      const pageForCategory = this.settings.filter( (sp:SettingsPage) => sp.category == category)[0]
+    save: function(category: string) {
 
-      console.log('Going to save updated configuration values for ' + category + '. ' +
-        'The page for the category is '  , pageForCategory
-      )
+      const pageForCategory = this.settings.filter(sp => sp.category == category)[0]
+      const loadedPageForCategory = this.loadedSettings.filter(sp => sp.category == category) [0]
+
+      function findSettingWithMatchingKey(settings: Array<Setting>, k: string): Setting {
+        const matches = settings.filter(s => s.name == k)
+        if (matches && matches.length > 0)
+          return matches [0]
+        return null as any
+      }
+
+
+      const loadedSettings = loadedPageForCategory.settings
+      const updatedSettings = pageForCategory.settings
+
+      updatedSettings.forEach(setting => {
+
+        const matching = findSettingWithMatchingKey(loadedSettings, setting.name)
+
+        if (matching != null) {
+          if (matching.value != setting.value) {
+            console.debug('you have updated the setting ' + category + '::' + setting.name + ', so going to update it.')
+            settings.updateSetting(pageForCategory.category, setting.name, setting.value)
+          }
+        }
+
+      })
+
+      // go through the updated settings var and find those values that are different from those we rendered with
+
+
+      /*   const updatedSettings = pageForCategory.settings.filter( setting=> (setting.value ===  ))
+         updatedSettings.forEach((setting: Setting) => {
+
+           console.log(pageForCategory.category + '::' + setting.name + '=' + setting.value)
+
+          /// const loadedSetting = findSetting( this.loadedSettings , setting.name , setting.value)
+
+
+
+
+
+         })*/
 
     }
   },
 
 
   data() {
+    const loadedSettings: Array<SettingsPage> = []
     const mogul = ''
     const settings: Array<SettingsPage> = []
     return {
       mogul,
-      settings
+      settings,
+      loadedSettings
     }
   },
   async created() {
     this.mogul = await mogul.me()
     this.settings = await settings.settings()
+
+    // clone the settings so we can do dirty checking
+    const newSettings: Array<SettingsPage> = []
+    this.settings.forEach((sp: SettingsPage) => {
+      const sub = sp.settings.map(setting => new Setting(setting.name, setting.valid, setting.value))
+      const nsp = new SettingsPage(sp.valid, sp.category, sub)
+      newSettings.push(nsp)
+    })
+    this.loadedSettings = newSettings
+
+
   }
 }
+
+
 </script>
 
 <template>
 
 
-  <h1 v-if="mogul">{{ $t('settings.title',{mogul:mogul})}}</h1>
+  <h1 v-if="mogul">{{ $t('settings.title', { mogul: mogul }) }}</h1>
   <div
     v-for="settingsPage in settings"
     v-bind:key="settingsPage.category"
@@ -42,7 +95,7 @@ export default {
       <fieldset>
 
         <legend>
-          {{  $t(settingsPage.category )}}
+          {{ $t(settingsPage.category) }}
         </legend>
 
         <div
@@ -55,7 +108,7 @@ export default {
               {{ $t('settings.' + settingsPage.category + '.' + setting.name) }}
             </label>
 
-            <textarea :required ="!setting.valid" :id="'aligned-name-' + setting.name" v-model="setting.value">
+            <textarea :required="!setting.valid" :id="'aligned-name-' + setting.name" v-model="setting.value">
             </textarea>
 
             <span class="pure-form-message-inline">
@@ -65,8 +118,9 @@ export default {
         </div>
 
         <div class="pure-controls">
-          <button @click.prevent="save( settingsPage.category , settingsPage.settings )" type="submit" class="pure-button pure-button-primary">
-              {{ $t('settings.save-button', { plugin: $t(settingsPage.category) })}}
+          <button @click.prevent="save( settingsPage.category , settingsPage.settings )" type="submit"
+                  class="pure-button pure-button-primary">
+            {{ $t('settings.save-button', { plugin: $t(settingsPage.category) }) }}
           </button>
         </div>
 
@@ -80,7 +134,7 @@ export default {
 <style scoped>
 
 .pure-controls .pure-button {
-   margin-top: calc(0.5 * var(--gutter-space))
+  margin-top: calc(0.5 * var(--gutter-space))
 }
 
 

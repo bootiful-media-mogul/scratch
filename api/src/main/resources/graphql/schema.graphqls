@@ -1,10 +1,11 @@
 type Mutation {
-    publishPodcastEpisode (episodeId:ID , pluginName:String ) : Boolean
-    updatePodcastEpisode( episodeId: ID , title : String, description: String ) : Episode
+    publishPodcastEpisode (episodeId:ID, pluginName: String ) : Boolean
+    updatePodcastEpisode( episodeId: ID, title: String, description: String ) : Episode
     createPodcast(title:String): Podcast
-    createPodcastEpisodeDraft(podcastId: ID , title:String, description:String) : Episode
+    createPodcastEpisodeDraft(podcastId: ID, title:String, description:String) : Episode
     deletePodcast(id:ID): ID
     deletePodcastEpisode(id:ID): ID
+    updateSetting(category:String, name:String, value:String) : Boolean
 }
 
 type Setting {
@@ -14,7 +15,7 @@ type Setting {
 }
 
 type SettingsPage {
-    valid : Boolean
+    valid    : Boolean
     category : String
     settings : [Setting]
 }
