@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * we have a python production that will take the audio files we feed it and turn them into
- * a final, produced audio form. this is the integration that gets our
+ * we have a python production that will take the audio files we feed it and turn them
+ * into a final, produced audio form. this is the integration that gets our
  * {@link com.joshlong.mogul.api.podcasts.Episode episodes} in and out of that production.
  */
 @Configuration

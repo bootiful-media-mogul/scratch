@@ -6,7 +6,8 @@ import org.springframework.integration.annotation.Gateway;
 import org.springframework.integration.annotation.MessagingGateway;
 
 /**
- * given a {@link com.joshlong.mogul.api.podcasts.Podcast}, turn this into a complete audio file
+ * given a {@link com.joshlong.mogul.api.podcasts.Podcast}, turn this into a complete
+ * audio file
  */
 @MessagingGateway
 public interface PodcastProducer {

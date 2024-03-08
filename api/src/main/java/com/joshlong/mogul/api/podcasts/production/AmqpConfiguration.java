@@ -13,12 +13,12 @@ import static com.joshlong.mogul.api.utils.RabbitUtils.defineDestination;
 @Configuration
 class AmqpConfiguration {
 
-    @Bean
-    InitializingBean podcastProcessingInitialization (AmqpAdmin amqp, ApiProperties properties) {
-        return () -> Set.of(
-                        properties.podcasts().production().amqp().replies(),
-                        properties.podcasts().production().amqp().requests())
-           .forEach(q -> defineDestination(amqp, q, q, q));
-    }
+	@Bean
+	InitializingBean podcastProcessingInitialization(AmqpAdmin amqp, ApiProperties properties) {
+		return () -> Set
+			.of(properties.podcasts().production().amqp().replies(),
+					properties.podcasts().production().amqp().requests())
+			.forEach(q -> defineDestination(amqp, q, q, q));
+	}
 
 }

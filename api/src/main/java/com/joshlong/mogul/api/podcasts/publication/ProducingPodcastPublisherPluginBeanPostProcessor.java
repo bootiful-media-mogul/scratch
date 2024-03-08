@@ -15,9 +15,9 @@ import org.springframework.util.Assert;
 import java.util.Map;
 
 /**
- * introduces some behavior to produce - to glue together the intro, the bumper, and the interview for -  the audio for a given episode if and only if it
- * hasn't already been produced. this production happens lazily, just before a publication
- * plugin is run
+ * introduces some behavior to produce - to glue together the intro, the bumper, and the
+ * interview for - the audio for a given episode if and only if it hasn't already been
+ * produced. this production happens lazily, just before a publication plugin is run
  */
 class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProcessor {
 

@@ -83,7 +83,6 @@ class PodcastController {
 			}
 		}
 
-
 		return plugins;
 	}
 
@@ -162,7 +161,8 @@ class PodcastController {
 
 	}
 
-	// todo remove this and make sure everything works as well with the new notifications mechanism!
+	// todo remove this and make sure everything works as well with the new notifications
+	// mechanism!
 	@GetMapping("/podcasts/{podcastId}/episodes/{episodeId}/completions")
 	SseEmitter streamPodcastEpisodeCompletionEvents(@PathVariable Long podcastId, @PathVariable Long episodeId) {
 

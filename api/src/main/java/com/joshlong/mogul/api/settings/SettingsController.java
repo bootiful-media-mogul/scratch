@@ -43,9 +43,9 @@ class SettingsController {
 	}
 
 	@MutationMapping
-	boolean updateSetting(@Argument String category, @Argument String name, @Argument String value)  {
+	boolean updateSetting(@Argument String category, @Argument String name, @Argument String value) {
 		this.settings.set(this.mogulService.getCurrentMogul().id(), category, name, value);
-		return true ;
+		return true;
 	}
 
 	@QueryMapping

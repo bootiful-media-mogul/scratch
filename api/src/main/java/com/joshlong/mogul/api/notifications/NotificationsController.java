@@ -17,90 +17,59 @@ import java.util.concurrent.ConcurrentHashMap;
 @Controller
 class NotificationsController {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 
+	/**
+	 * mapping between {@link com.joshlong.mogul.api.Mogul mogul} ID and a given SSE
+	 * emitter
+	 */
+	private final Map<Long, SseEmitter> sseSessions = new ConcurrentHashMap<>();
 
-    /**
-     * mapping between {@link com.joshlong.mogul.api.Mogul mogul} ID and a given SSE emitter
-     */
-    private final Map<Long, SseEmitter> sseSessions = new ConcurrentHashMap<>();
+	private final ObjectMapper objectMapper;
 
-    private final ObjectMapper objectMapper;
-    private final MogulService mogulService;
+	private final MogulService mogulService;
 
-    NotificationsController(ObjectMapper objectMapper, MogulService mogulService) {
-        this.objectMapper = objectMapper;
-        this.mogulService = mogulService;
-    }
+	NotificationsController(ObjectMapper objectMapper, MogulService mogulService) {
+		this.objectMapper = objectMapper;
+		this.mogulService = mogulService;
+	}
 
-    private static void deliver
-            (ObjectMapper om, SseEmitter emitter, NotificationEvent event) {
-        try {
-            var json = om.writeValueAsString(event);
-            emitter.send(json, MediaType.APPLICATION_JSON);
-        } //
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+	private static void deliver(ObjectMapper om, SseEmitter emitter, NotificationEvent event) {
+		try {
+			var json = om.writeValueAsString(event);
+			emitter.send(json, MediaType.APPLICATION_JSON);
+		} //
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
-    @ApplicationModuleListener
-    void notificationEventListener(NotificationEvent notification) {
-        Assert.notNull(notification, "the notification must not be null");
-        var mogulId = notification.mogulId();
+	@ApplicationModuleListener
+	void notificationEventListener(NotificationEvent notification) {
+		Assert.notNull(notification, "the notification must not be null");
+		var mogulId = notification.mogulId();
 
-        for (var loggedInMogulId : this.sseSessions.keySet()) {
-            var deliverToThisMogul = notification.mogulId() == null || (loggedInMogulId.equals(notification.mogulId()));
-            if ( deliverToThisMogul ) {
-                log.debug("got a notification for this Mogul # " + mogulId + "::" +
-                        notification);
-                var sse = this.sseSessions.get(loggedInMogulId);
-                deliver(this.objectMapper, sse, notification);
-            }
-        }
+		for (var loggedInMogulId : this.sseSessions.keySet()) {
+			var deliverToThisMogul = notification.mogulId() == null || (loggedInMogulId.equals(notification.mogulId()));
+			if (deliverToThisMogul) {
+				log.debug("got a notification for this Mogul # " + mogulId + "::" + notification);
+				var sse = this.sseSessions.get(loggedInMogulId);
+				deliver(this.objectMapper, sse, notification);
+			}
+		}
 
-    }
+	}
 
+	@GetMapping("/notifications")
+	SseEmitter sseEmitter() {
+		var currentMogulId = this.mogulService.getCurrentMogul().id();
+		return this.sseSessions.computeIfAbsent(currentMogulId, mogul -> {
+			var runnable = (Runnable) () -> this.sseSessions.remove(currentMogulId);
+			var sse = new SseEmitter();
+			sse.onTimeout(runnable);
+			sse.onCompletion(runnable);
+			return sse;
+		});
+	}
 
-    @GetMapping("/notifications")
-    SseEmitter sseEmitter() {
-        var currentMogulId = this.mogulService.getCurrentMogul().id();
-        return this.sseSessions.computeIfAbsent(currentMogulId, mogul -> {
-            var runnable = (Runnable) () -> this.sseSessions.remove(currentMogulId);
-            var sse = new SseEmitter();
-            sse.onTimeout(runnable);
-            sse.onCompletion(runnable);
-            return sse;
-        });
-    }
 }
-
-/*
-@RestController
-@RequestMapping("/sse")
-public class SseController {
-
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
-    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamSseMvc() {
-        SseEmitter emitter = new SseEmitter();
-
-        executorService.scheduleAtFixedRate(() -> {
-            try {
-                // Send a random event to the client
-                emitter.send("Random event at: " + System.currentTimeMillis());
-            } catch (IOException e) {
-                // Handle exceptions
-                emitter.completeWithError(e);
-            }
-        }, 0, 1, TimeUnit.SECONDS); // Send event every second
-
-        emitter.onCompletion(() -> {
-            executorService.shutdown();
-        });
-
-        return emitter;
-    }
-}
-*/

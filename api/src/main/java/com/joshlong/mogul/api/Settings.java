@@ -104,8 +104,8 @@ public class Settings {
 				values (? ,? ,? ,? )
 				on conflict on constraint  settings_mogul_id_category_key_key do update set value = excluded.value
 						    """) //
-				.params(mogulId, category, key, this.encryptor.encrypt(value))//
-				.update();
+			.params(mogulId, category, key, this.encryptor.encrypt(value))//
+			.update();
 
 	}
 
