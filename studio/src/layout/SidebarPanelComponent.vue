@@ -30,8 +30,8 @@
 }
 
 .sidebar-panel {
-  width: 100%;
-
+  width: var(--sidebar-width);
+  right: 0;
   overflow: hidden;
   padding: var(--gutter-space);
   background-color: white;
