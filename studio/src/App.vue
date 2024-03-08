@@ -32,7 +32,7 @@ export default {
       </div>
 
       <div class="toolbar">
-        <router-link to="/">{{ $t('app.menu.home') }} </router-link>
+        <router-link to="/">{{ $t('app.menu.home') }}</router-link>
         |
         <router-link to="/settings">{{ $t('app.menu.settings') }}</router-link>
         |
@@ -58,7 +58,7 @@ export default {
       </div>
     </div>
     <div class="footer">
-      <span v-html="$t('app.made-with-love')"></span>
+      <span v-html="$t('app.made-with-love', {'josh':'<a href=\'https://youtube.com/@coffeesoftware\'>Josh Long</a>'})"></span>
     </div>
   </div>
 </template>

@@ -11,12 +11,19 @@ import router from './index'
 const translations = {
   en: {
     labels: {
-      'required-value': 'this is a required value!'
+      'required-value': 'this is a required value!',
+      'ok' : 'OK',
+      'close' : 'Close',
+      'cancel' : 'Cancel',
+      'save' : 'Save',
+      'create' : 'Create',
     },
 
     hello: 'hello',
     podbean: 'Podbean',
     github: 'GitHub',
+
+    // previews
 
     // managed files
     'managedfiles.please-upload-a-file': 'please upload a file',
@@ -24,7 +31,7 @@ const translations = {
     'app.menu.home': 'home',
     'app.menu.settings': 'settings',
     'app.menu.podcasts': 'podcasts',
-    'app.made-with-love': ` Mogul, made with love ❤️ by  <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with Spring 🍃) `,
+    'app.made-with-love': ` Mogul, made with love ❤️ by {josh}  (and with Spring 🍃) `,
 
     // episodes
     'episodes.title': 'all episodes',
@@ -66,7 +73,10 @@ const translations = {
 const i18n = createI18n({
   locale: 'en',
   fallbackLocale: 'en',
-  messages: translations
+  messages: translations,
+  // warnHtmlInMessage : false
+
+  warnHtmlInMessage: "off"
 })
 
 const app = createApp(App)
