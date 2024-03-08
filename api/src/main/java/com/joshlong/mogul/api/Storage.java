@@ -7,12 +7,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.unit.DataSize;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -48,8 +50,9 @@ public class Storage {
 		write(uri.getHost(), uri.getPath(), resource);
 	}
 
+
 	/*
-	 * writes 5mb chunks at a time to s3
+	 * writes N-mb sized chunks at a time to s3
 	 */
 	private void doWriteForLargeFiles(String bucketName, String keyName, Resource resource, DataSize maxSize)
 			throws Exception {
@@ -93,6 +96,7 @@ public class Storage {
 		}
 	}
 
+/*
 	private void doWriteForSmallFiles(String bucket, String objectName, Resource resource) {
 		try (var inputStream = new BufferedInputStream(resource.getInputStream())) {
 			var putOb = PutObjectRequest.builder().bucket(bucket).key(objectName).metadata(Map.of()).build();
@@ -107,6 +111,7 @@ public class Storage {
 		log.debug("finished executing an S3 PUT for [" + bucket + '/' + objectName + "] on thread ["
 				+ Thread.currentThread() + "]");
 	}
+*/
 
 	public void write(String bucket, String objectName, Resource resource) {
 		try {
@@ -157,10 +162,12 @@ public class Storage {
 		}
 	}
 
+/*
 	public Resource read(URI uri) {
 		validUri(uri);
 		return this.read(uri.getHost(), uri.getPath());
 	}
+*/
 
 	private static void validUri(URI uri) {
 		Assert.state(

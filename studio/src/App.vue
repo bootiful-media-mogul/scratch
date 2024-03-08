@@ -7,9 +7,10 @@ import AiChatComponent from '@/ai/AiChatComponent.vue'
 import { mogul } from '@/services'
 import SidebarPanelComponent from '@/layout/SidebarPanelComponent.vue'
 import PreviewComponent from '@/managedfiles/PreviewComponent.vue'
+import NotificationBox from '@/notifications/NotificationBox.vue'
 
 export default {
-  components: { AiChatComponent, PreviewComponent, SidebarPanelComponent },
+  components: { NotificationBox, AiChatComponent, PreviewComponent, SidebarPanelComponent },
 
   methods: {},
   data() {
@@ -29,6 +30,9 @@ export default {
     <div class="page">
       <div class="welcome">
         {{ $t('hello') }} <span style="font-weight: bold"> {{ mogul }} </span>!
+      </div>
+      <div>
+        <NotificationBox/>
       </div>
 
       <div class="toolbar">

@@ -3,8 +3,6 @@ import Mogul from '@/mogul'
 import mitt from 'mitt'
 import { Client, errorExchange, fetchExchange } from '@urql/core'
 import router from '@/index'
-import { types } from 'sass'
-import Boolean = types.Boolean
 
 export const graphqlClient = new Client({
   url: '/api/graphql',
@@ -69,13 +67,22 @@ export class Podcast {
 }
 
 class Podcasts {
+
+
+  private readonly client: Client
+
+  constructor(client: Client) {
+    this.client = client
+  }
+
+
   async publishPodcastEpisode(episodeId: number, pluginName: string): Promise<boolean> {
     const mutation = ` 
           mutation PublishPodcastEpisode  ($episode: ID, $pluginName: String ){ 
             publishPodcastEpisode ( episodeId: $episode,  pluginName: $pluginName ) 
           }
         `
-    await graphqlClient.mutation(mutation, {
+    await this.client.mutation(mutation, {
       episode: episodeId,
       pluginName: pluginName
     })
@@ -95,7 +102,7 @@ class Podcasts {
          }
         `
     console.log(episodeId + ':' + title + ':' + description)
-    const result = await graphqlClient.mutation(mutation, {
+    const result = await this.client.mutation(mutation, {
       episode: episodeId,
       title: title,
       description: description
@@ -112,7 +119,7 @@ class Podcasts {
                 }
         }
         `
-    const res = await graphqlClient.query(q, { id: id })
+    const res = await this.client.query(q, { id: id })
 
     return (await res.data['podcastEpisodeById']) as Episode
   }
@@ -125,7 +132,7 @@ class Podcasts {
           }
          }
         `
-    const result = await graphqlClient.mutation(mutation, {
+    const result = await this.client.mutation(mutation, {
       title: title
     })
     return (await result.data['createPodcast']) as Podcast
@@ -139,7 +146,7 @@ class Podcasts {
                 }
         }
         `
-    const res = await graphqlClient.query(q, { podcastId: podcastId })
+    const res = await this.client.query(q, { podcastId: podcastId })
 
     return (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
   }
@@ -150,7 +157,7 @@ class Podcasts {
           deletePodcastEpisode(id: $id)  
          }
         `
-    const result = await graphqlClient.mutation(mutation, {
+    const result = await this.client.mutation(mutation, {
       id: id
     })
     return (await result.data['deletePodcastEpisode']) as Number
@@ -162,7 +169,7 @@ class Podcasts {
           deletePodcast(id: $id)  
          }
         `
-    const result = await graphqlClient.mutation(mutation, {
+    const result = await this.client.mutation(mutation, {
       id: id
     })
     return (await result.data['deletePodcast']) as Number
@@ -176,7 +183,7 @@ class Podcasts {
           }
          }
         `
-    const result = await graphqlClient.query(q, {})
+    const result = await this.client.query(q, {})
     return (await result.data['podcasts']) as Array<Podcast>
   }
 
@@ -193,7 +200,7 @@ class Podcasts {
          }
         `
     console.log(podcastId + ':' + title + ':' + description)
-    const result = await graphqlClient.mutation(mutation, {
+    const result = await this.client.mutation(mutation, {
       podcast: podcastId,
       title: title,
       description: description
@@ -212,7 +219,7 @@ class Podcasts {
                 }
             }
         `
-    const result = await graphqlClient.query(q, { id: podcastId })
+    const result = await this.client.query(q, { id: podcastId })
     return (await result.data['podcastById']) as Podcast
   }
 }
@@ -306,7 +313,55 @@ export class Episode {
   }
 }
 
+/**
+ * handles consuming and displaying notifications to the user
+ */
+
+
+export class Notification {
+  readonly when: Date
+  readonly key: string
+  readonly category: string
+  readonly context: string
+  readonly mogulId: number
+
+  constructor(mogulId: number, key: string, context: string, category: string, when: Date) {
+    this.context = context
+    this.mogulId = mogulId
+    this.category = category
+    this.when = when
+    this.key = key
+  }
+
+}
+
+
+export class Notifications {
+
+  listen(callback: (notification: Notification) => void): EventSource {
+    const uri = '/api/notifications'
+    const es = new EventSource(uri)
+    es.onmessage = (sseEvent: MessageEvent) => {
+      console.log('got the following SSE event: ' + sseEvent.data)
+      callback(new Notification(1, 'key',
+        'context:{' + sseEvent.data + '}', 'category', new Date()))
+    }
+    es.onerror = function(sseME: Event) {
+      console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
+    }
+
+    return es
+
+  }
+
+
+}
+
+/**
+ * handles updating and inspecting all the configuration values.
+ */
 export class Settings {
+
   private readonly client: Client
 
   constructor(client: Client) {
@@ -314,34 +369,18 @@ export class Settings {
   }
 
   async updateSetting(category: string, name: string, value: string) {
-    /*const mutation = `
-         mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){
-          createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) {
-            availablePlugins,    created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
-          }
-         }
-        `
-    console.log(podcastId + ':' + title + ':' + description)
-    const result = await graphqlClient.mutation(mutation, {
-      podcast: podcastId,
-      title: title,
-      description: description
-    })
-
-    return (await result.data['createPodcastEpisodeDraft']) as Episode*/
-
     const mutation = `
       mutation UpdateSetting($category : String , $name:String, $value:String){ 
        updateSetting (  category: $category, name: $name, value: $value)
       }
     `
-    const result = await graphqlClient.mutation(mutation, {
+    const result = await this.client.mutation(mutation, {
       category: category,
       name: name,
       value: value
     })
 
-    return (await result.data['updateSetting']) as Boolean
+    return (await result.data['updateSetting']) as boolean
   }
 
   async settings(): Promise<Array<SettingsPage>> {
@@ -358,12 +397,19 @@ export class Settings {
                 }
             }
         `
-    const json = await graphqlClient.query(q, {})
+    const json = await this.client.query(q, {})
     return json.data['settings']
   }
 }
 
 export class ManagedFiles {
+
+  private readonly client: Client
+
+  constructor(client: Client) {
+    this.client = client
+  }
+
   async getManagedFileById(id: number): Promise<ManagedFile> {
     const q = `
         query ($id: ID) {
@@ -372,15 +418,16 @@ export class ManagedFiles {
           }
          }
         `
-    const result = await graphqlClient.query(q, { id: id })
+    const result = await this.client.query(q, { id: id })
     const managedFileId = await result.data['managedFileById']
     return managedFileId as ManagedFile
   }
 }
 
 export const ai = new Ai(graphqlClient)
+export const notifications = new Notifications()
 export const mogul = new Mogul(graphqlClient)
 export const events = mitt()
-export const podcasts = new Podcasts()
-export const managedFiles = new ManagedFiles()
+export const podcasts = new Podcasts(graphqlClient)
+export const managedFiles = new ManagedFiles(graphqlClient)
 export const settings = new Settings(graphqlClient)

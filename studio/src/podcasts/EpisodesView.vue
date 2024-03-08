@@ -53,6 +53,7 @@ export default {
 
       await this.loadPodcast()
 
+      // todo remove all of this since we're going to have a generic notification substrait
       if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
         console.log(
           'going to install a listener for completion events for podcast episode [' +

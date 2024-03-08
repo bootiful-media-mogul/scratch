@@ -1,7 +1,6 @@
 package com.joshlong.mogul.api.publications;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.Settings;
@@ -16,8 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +32,7 @@ class DefaultPublicationService implements PublicationService {
 
 	private final MogulService mogulService;
 
-	private final ObjectMapper om;
+	private final ObjectMapper objectMapper;
 
 	private final RowMapper<Publication> publicationRowMapper;
 
@@ -44,24 +41,24 @@ class DefaultPublicationService implements PublicationService {
 	private final TextEncryptor textEncryptor;
 
 	DefaultPublicationService(JdbcClient db, Settings settings, MogulService mogulService, TextEncryptor textEncryptor,
-			Map<String, PublisherPlugin<?>> plugins, ObjectMapper om) {
+			Map<String, PublisherPlugin<?>> plugins, ObjectMapper objectMapper) {
 		this.db = db;
 		this.settings = settings;
 		this.mogulService = mogulService;
 		this.textEncryptor = textEncryptor;
 		this.plugins.putAll(plugins);
-		this.om = om;
+		this.objectMapper = objectMapper;
 		Assert.notNull(this.db, "the JdbcClient must not be null");
 		Assert.notNull(this.mogulService, "the mogulService must not be null");
 		Assert.notNull(this.textEncryptor, "the textEncryptor must not be null");
 		Assert.notNull(this.settings, "the settings must not be null");
 		Assert.state(!this.plugins.isEmpty(), "there are no plugins for publication");
-		this.publicationRowMapper = new PublicationRowMapper(om, textEncryptor);
+		this.publicationRowMapper = new PublicationRowMapper(objectMapper, textEncryptor);
 	}
 
 	private String json(Object o) {
 		try {
-			return this.om.writeValueAsString(o);
+			return this.objectMapper.writeValueAsString(o);
 		} //
 		catch (JsonProcessingException e) {
 			throw new RuntimeException(e);

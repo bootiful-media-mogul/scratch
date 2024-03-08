@@ -2,8 +2,6 @@ package com.joshlong.mogul.api;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.io.File;
-
 @ConfigurationProperties(prefix = "mogul")
 public record ApiProperties(Aws aws, Podcasts podcasts, Transcription transcription, Settings settings, boolean debug) {
 
@@ -19,9 +17,9 @@ public record ApiProperties(Aws aws, Podcasts podcasts, Transcription transcript
 	public record Aws(String accessKey, String accessKeySecret, String region) {
 	}
 
-	public record Podcasts(Processor processor) {
+	public record Podcasts(Producer production) {
 
-		public record Processor(S3 s3, Amqp amqp) {
+		public record Producer(S3 s3, Amqp amqp) {
 
 			public record S3(String assetsBucket, String inputBucket, String outputBucket) {
 			}

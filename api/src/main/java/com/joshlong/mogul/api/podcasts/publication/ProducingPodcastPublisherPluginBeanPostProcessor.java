@@ -15,7 +15,7 @@ import org.springframework.util.Assert;
 import java.util.Map;
 
 /**
- * introduces some behavior to produce the audio for a given episode if and only if it
+ * introduces some behavior to produce - to glue together the intro, the bumper, and the interview for -  the audio for a given episode if and only if it
  * hasn't already been produced. this production happens lazily, just before a publication
  * plugin is run
  */
@@ -42,7 +42,7 @@ class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProces
 					var context = (Map<String, String>) invocation.getArguments()[0];
 					var episode = (Episode) invocation.getArguments()[1];
 					Assert.notNull(episode.producedAudioAssetsUpdated(),
-							"the  produced_audio_assets_updated field is null");
+							"the produced_audio_assets_updated field is null");
 					var shouldProduceAudio = episode.producedAudioUpdated() == null
 							|| episode.producedAudioUpdated().before(episode.producedAudioAssetsUpdated());
 					log.debug("should produce the audio for episode [" + episode + "] from scratch? ["

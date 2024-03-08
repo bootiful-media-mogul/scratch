@@ -7,6 +7,7 @@ import com.joshlong.mogul.api.PodcastService;
 import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import com.joshlong.mogul.api.managedfiles.ManagedFileUpdatedEvent;
+import com.joshlong.mogul.api.notifications.NotificationEvent;
 import com.joshlong.mogul.api.podcasts.production.MediaNormalizer;
 import com.joshlong.mogul.api.utils.JdbcUtils;
 import org.slf4j.Logger;
@@ -233,6 +234,17 @@ class DefaultPodcastService implements PodcastService {
 		var ep = this.getEpisodeById(id.longValue());
 		publisher.publishEvent(new PodcastEpisodeCreatedEvent(ep));
 		return ep;
+	}
+
+	@ApplicationModuleListener
+	void podcastCreatedEventNotifyingListener(PodcastCreatedEvent event) {
+		this.publisher.publishEvent(new NotificationEvent(
+				event.podcast().mogulId() ,
+				NotificationEvent.categoryFromClassName(event.getClass()),
+				Long.toString(event.podcast().id() ),
+				new Date(),
+				"your new podcast is ready!" //todo fix this
+		));
 	}
 
 	@Override

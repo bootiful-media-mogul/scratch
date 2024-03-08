@@ -35,6 +35,7 @@ def background_thread():
     assets_s3_bucket_folder = None
     try:
         requests_q = 'podcast-processor-requests'
+        print (os.environ)
         aws_region = os.environ["AWS_REGION"]
         aws_key_id = os.environ['AWS_ACCESS_KEY_ID']
         aws_key_secret = os.environ['AWS_ACCESS_KEY_SECRET']
