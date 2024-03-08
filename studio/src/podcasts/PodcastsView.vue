@@ -1,11 +1,11 @@
 <template>
-  <h1> {{ $t('podcasts.title')}}</h1>
+  <h1>{{ $t('podcasts.title') }}</h1>
   <form class="pure-form pure-form-stacked">
     <fieldset>
-      <legend> {{ $t('podcasts.new-podcast')}}</legend>
+      <legend>{{ $t('podcasts.new-podcast') }}</legend>
       <div class="pure-control-group">
         <label for="title">
-           {{ $t('podcasts.new-podcast.title')}}
+          {{ $t('podcasts.new-podcast.title') }}
 
           <AiWorkshopItIconComponent
             :prompt="$t('podcasts.title.ai.prompt')"
@@ -23,7 +23,7 @@
           @click="createPodcast"
           value="create"
         >
-            {{ $t('podcasts.new-podcast.submit')}}
+          {{ $t('podcasts.new-podcast.submit') }}
         </button>
       </div>
     </fieldset>
@@ -38,14 +38,14 @@
 
         <div class="pure-u-6-24">
           <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)">
-            {{ $t('podcasts.podcasts.episodes')}}
+            {{ $t('podcasts.podcasts.episodes') }}
           </a>
           |
           <a v-if="podcasts.length > 1" href="#" @click="deletePodcast(podcast.id)">
-            {{ $t('podcasts.podcasts.delete')}}
+            {{ $t('podcasts.podcasts.delete') }}
           </a>
           <a v-if="podcasts.length == 1" href="#" class="disabled">
-              {{ $t('podcasts.podcasts.delete')}}
+            {{ $t('podcasts.podcasts.delete') }}
           </a>
         </div>
         <div class="pure-u-17-24">

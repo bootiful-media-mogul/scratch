@@ -10,22 +10,21 @@ import router from './index'
 // i18n
 const translations = {
   en: {
-
     labels: {
       'required-value': 'this is a required value!'
     },
 
-    'hello' : 'hello',
-    'podbean': 'Podbean',
-    'github': 'GitHub',
+    hello: 'hello',
+    podbean: 'Podbean',
+    github: 'GitHub',
 
     // managed files
-    'managedfiles.please-upload-a-file' : 'please upload a file',
+    'managedfiles.please-upload-a-file': 'please upload a file',
     // app
-    'app.menu.home' : 'home',
-    'app.menu.settings' : 'settings',
-    'app.menu.podcasts' : 'podcasts',
-    'app.made-with-love' :` Mogul, made with love ❤️ by  <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with Spring 🍃) ` ,
+    'app.menu.home': 'home',
+    'app.menu.settings': 'settings',
+    'app.menu.podcasts': 'podcasts',
+    'app.made-with-love': ` Mogul, made with love ❤️ by  <a href="https://youtube.com/@coffeesoftware">Josh Long</a> (and with Spring 🍃) `,
 
     // episodes
     'episodes.title': 'all episodes',
@@ -33,10 +32,12 @@ const translations = {
     'episodes.new-episode': 'new episode',
     'episodes.buttons.publish': 'publish',
     'episodes.buttons.cancel': 'cancel',
-    'episodes.editing-episode':'editing "{title}"' ,
+    'episodes.editing-episode': 'editing "{title}"',
     'episodes.buttons.save': 'save',
-    'episodes.episode.description.ai-prompt': 'please help me make this podcast episode description fun and pithy',
-    'episodes.episode.title.ai-prompt': 'please help me make this podcast episode title fun and pithy',
+    'episodes.episode.description.ai-prompt':
+      'please help me make this podcast episode description fun and pithy',
+    'episodes.episode.title.ai-prompt':
+      'please help me make this podcast episode title fun and pithy',
     'episodes.episode.description': 'description',
     'episodes.episode.title': 'title',
     'episodes.plugins.please-select-a-plugin': 'please select a plugin',

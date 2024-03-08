@@ -330,17 +330,18 @@ export class Settings {
 
     return (await result.data['createPodcastEpisodeDraft']) as Episode*/
 
-
     const mutation = `
       mutation UpdateSetting($category : String , $name:String, $value:String){ 
        updateSetting (  category: $category, name: $name, value: $value)
       }
     `
     const result = await graphqlClient.mutation(mutation, {
-      category: category, name: name, value: value
+      category: category,
+      name: name,
+      value: value
     })
 
-    return (await result.data  ['updateSetting'] as Boolean)
+    return (await result.data['updateSetting']) as Boolean
   }
 
   async settings(): Promise<Array<SettingsPage>> {
