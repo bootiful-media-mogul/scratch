@@ -45,12 +45,6 @@ class MediaNormalizationIntegration {
 		managedFileService.write(managedFile.id(), managedFile.filename(), mediaType, new FileSystemResource(newFile));
 		return managedFile;
 	}
-	/*
-	 * 'title': 'Podcasts', 'new-podcast': 'New Podcast', 'new-podcast.title': 'title',
-	 * 'title.ai.prompt': `please help me take the following podcast title and make it
-	 * more pithy and exciting!`, 'new-podcast.submit': 'create a new podcast' ,
-	 * 'podcasts.delete':'delete' , 'podcasts.episodes' : 'episodes',
-	 */
 
 	private static File tempLocalFileForManagedFile(ManagedFile managedFile) {
 		try {

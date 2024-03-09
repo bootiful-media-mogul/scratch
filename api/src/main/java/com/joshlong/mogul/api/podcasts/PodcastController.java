@@ -3,7 +3,7 @@ package com.joshlong.mogul.api.podcasts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
-import com.joshlong.mogul.api.Settings;
+import com.joshlong.mogul.api.settings.Settings;
 import com.joshlong.mogul.api.podcasts.publication.PodcastEpisodePublisherPlugin;
 import com.joshlong.mogul.api.publications.PublicationService;
 import org.slf4j.Logger;

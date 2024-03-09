@@ -69,10 +69,9 @@ class DefaultManagedFileService implements ManagedFileService {
 	 * this one pulls down a {@link ManagedFile managed file}'s contents from S3, and then
 	 * re-writes it, allowing us to synchronize our view of the S3 asset with the actual
 	 * state of the S3 object.
-	 *
 	 */
 	@Override
-	public ManagedFile refreshManagedFile(Long managedFileId) {
+	public void refreshManagedFile(Long managedFileId) {
 		var managedFile = this.getManagedFile(managedFileId);
 		var resource = this.read(managedFile.id());
 		var tmp = FileUtils.tempFile();
@@ -94,7 +93,6 @@ class DefaultManagedFileService implements ManagedFileService {
 		}
 		var mf = this.getManagedFile(managedFileId);
 		log.debug("refreshed managed file " + mf);
-		return mf;
 	}
 
 	@Override

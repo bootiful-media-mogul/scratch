@@ -6,6 +6,7 @@ import java.net.URI;
 import java.sql.ResultSet;
 import java.util.Objects;
 
+@SuppressWarnings("unused")
 public abstract class JdbcUtils {
 
 	public static Number getIdFromKeyHolder(KeyHolder kh) {

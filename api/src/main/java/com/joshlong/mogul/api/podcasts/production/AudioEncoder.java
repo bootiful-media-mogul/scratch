@@ -8,6 +8,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.File;
@@ -38,7 +39,9 @@ class AudioEncoder implements Encoder, ApplicationListener<ApplicationReadyEvent
 			if (input.getAbsolutePath().endsWith(mp3Ext))
 				return input;
 			var mp3 = FileUtils.createRelativeTempFile(input, "." + mp3Ext);
-			ProcessUtils.runCommand("ffmpeg", "-i " + input.getAbsolutePath(), "-o " + mp3.getAbsolutePath());
+			var exit = ProcessUtils.runCommand("ffmpeg", "-i " + input.getAbsolutePath(),
+					"-o " + mp3.getAbsolutePath());
+			Assert.state(exit == 0, "the ffmpeg command successfully");
 			return mp3;
 		}
 		catch (Exception e) {

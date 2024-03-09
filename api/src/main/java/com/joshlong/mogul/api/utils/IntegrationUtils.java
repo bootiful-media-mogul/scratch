@@ -6,14 +6,7 @@ import org.springframework.util.StringUtils;
 
 import java.util.Locale;
 
-/**
- *
- */
 public abstract class IntegrationUtils {
-
-	public static GenericHandler<Object> terminatingDebugHandler() {
-		return terminatingDebugHandler(null);
-	}
 
 	public static GenericHandler<Object> terminatingDebugHandler(String header) {
 		var log = LoggerFactory.getLogger(IntegrationUtils.class);
@@ -32,10 +25,6 @@ public abstract class IntegrationUtils {
 			log.debug(message.toString());
 			return null;
 		};
-	}
-
-	public static GenericHandler<Object> debugHandler() {
-		return debugHandler(null);
 	}
 
 	public static GenericHandler<Object> debugHandler(String header) {

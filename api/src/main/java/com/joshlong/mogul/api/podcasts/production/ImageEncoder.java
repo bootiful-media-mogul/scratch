@@ -77,7 +77,8 @@ class ImageEncoder implements Encoder, ApplicationListener<ApplicationReadyEvent
 		var quality = 100;
 		var size = 0L;
 		do {
-			ProcessUtils.runCommand("convert", original, "-quality", String.valueOf(quality), output);
+			var convert = ProcessUtils.runCommand("convert", original, "-quality", String.valueOf(quality), output);
+			Assert.state(convert == 0, "the convert command failed to run.");
 			size = Files.size(Paths.get(output));
 			quality -= 5;
 		}

@@ -1,5 +1,6 @@
 package com.joshlong.mogul.api;
 
+import com.joshlong.mogul.api.settings.Settings;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -34,6 +35,8 @@ class DefaultMogulService implements MogulService {
 	private final ApplicationEventPublisher publisher;
 
 	private final Settings settings;
+
+	private final MogulRowMapper mogulRowMapper = new MogulRowMapper();
 
 	DefaultMogulService(JdbcClient jdbcClient, TransactionTemplate transactionTemplate,
 			ApplicationEventPublisher publisher, Settings settings) {
@@ -71,8 +74,6 @@ class DefaultMogulService implements MogulService {
 		return mogul;
 	}
 
-	private final MogulRowMapper mogulRowMapper = new MogulRowMapper();
-
 	@Override
 	public Mogul getMogulById(Long id) {
 		return this.db.sql("select * from mogul where id =? ").param(id).query(this.mogulRowMapper).single();
@@ -95,16 +96,6 @@ class DefaultMogulService implements MogulService {
 		Assert.state(currentlyAuthenticated != null && currentlyAuthenticated.id().equals(aLong),
 				"the requested mogul [" + aLong + "] is not currently authenticated");
 	}
-
-	/*
-	 * public PodbeanAccountSettings getPodbeanAccountSettings(Long mogulId) { var
-	 * clientId = this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
-	 * PODBEAN_ACCOUNTS_SETTINGS_CLIENT_ID); var clientSecret =
-	 * this.settings.getString(mogulId, PODBEAN_ACCOUNTS_SETTINGS,
-	 * PODBEAN_ACCOUNTS_SETTINGS_CLIENT_SECRET); var configured =
-	 * StringUtils.hasText(clientId) || StringUtils.hasText(clientSecret); return
-	 * configured ? new PodbeanAccountSettings(clientId, clientSecret) : null; }
-	 */
 
 }
 

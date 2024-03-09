@@ -59,11 +59,7 @@ class ProductionIntegrationFlowConfiguration {
 		return IntegrationFlow//
 			.from(channel)//
 			.handle(IntegrationUtils.debugHandler("got invoked by the gateway"))
-			// todo send bumper s3 uris to the production, so that they can be per-user.
-			// folks would upload ManagedFiles for audio assets, and we'd pull 'em from
-			// settings, i guess.
-			// todo build a settings page and approach for podbean so users can specify
-			// things like bumper music, podbean settings, etc.
+			// todo see github https://github.com/bootiful-media-mogul/scratch/issues/12
 			.transform(new AbstractTransformer() {
 				@Override
 				protected Object doTransform(Message<?> message) {

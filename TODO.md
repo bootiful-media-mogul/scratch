@@ -19,16 +19,6 @@ we need a way for a user to specify which intro, bumper, and outro to  use for e
 ## settings page: hide the configuration values on load. don't want somebody over-the-shouldering your company secrets or whatever. 
 Find a widget to hide the contents of textboxes  (show/hide eye icon or something) so that the values in the settings page are by default hidden
 
-## notifications subsystem to keep the user aprised of long-running operations like file uploads.
-toastbox notifications for any component in the system to be routed to the user’s screen. should we keep track of all the notifiations and give users a console they can login to see the older notifications in case they've somehow missed some of them? also: security! we need to use the technique i showed last time for validating a JWT token in the websocket messaging code. or, i could use SSE? that would allow me to continue using the existing JWT setup, keeping the code simpler on the server side, too.  
-
-you need to rip out and replace the SSE stuff in EpisodesView.vue with this new generic notification mechanism
-
-add a boolean for `urgent` or `modal` or something so you can distinguish between pasive notifications vs something that must interrupt the user and force them to acknowledge (click OK)
-
-what happens if multiple events overlap each other
-
-right now ive got the modal dialog setup ok, but i need to refactor to go back to the popup toaster style that we had earflier. i think the toaster should popup from the bottom of the screen, above the `mogul, made with love`. the bottom of the toaster should be flush with the top of the botom of the view port, but the tops of the the toaster should be rounded. the popup should eventually just disappear (fade out) 
 
 ## publications
 

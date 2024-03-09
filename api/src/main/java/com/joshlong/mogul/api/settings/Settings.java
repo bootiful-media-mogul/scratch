@@ -1,4 +1,4 @@
-package com.joshlong.mogul.api;
+package com.joshlong.mogul.api.settings;
 
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -26,7 +26,7 @@ public class Settings {
 		this.rowMapper = new SettingsRowMapper(encryptor);
 	}
 
-	public static record Setting(String category, String key, String value) {
+	public record Setting(String category, String key, String value) {
 	}
 
 	private static class SettingsRowMapper implements RowMapper<Setting> {
@@ -84,18 +84,6 @@ public class Settings {
 		if (v != null)
 			return v.value();
 		return null;
-	}
-
-	public String getString(Long mogulId, String category, String key) {
-		return getValue(mogulId, category, key);
-	}
-
-	public int getInt(Long mogulId, String cat, String key) {
-		return Integer.parseInt(getValue(mogulId, cat, key));
-	}
-
-	public double getDouble(Long moguleId, String category, String key) {
-		return Double.parseDouble(getValue(moguleId, category, key));
 	}
 
 	public void set(Long mogulId, String category, String key, String value) {

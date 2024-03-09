@@ -2,9 +2,6 @@ package com.joshlong.mogul.api.utils;
 
 import java.io.IOException;
 
-/**
- *
- */
 public abstract class ProcessUtils {
 
 	public static int runCommand(String... command) throws IOException, InterruptedException {
