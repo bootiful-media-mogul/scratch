@@ -27,7 +27,13 @@ export default {
 <style></style>
 <template>
 
-  <NotificationBox ref="notifications"/>
+<!--
+  where this renders depends on the kind of notification we get. so,
+  im keeping it out of the main layout. it'll be display none until it isnt
+  and when it isn't it'll display as a modal, dead center on the screen,
+  or a toaster popup from the bottom of the screen. it'll be fixed positionally, either way
+ -->
+  <NotificationBox ref="notifications" />
 
   <div class="frame">
     <div class="page">
@@ -35,6 +41,9 @@ export default {
         {{ $t('hello') }} <span style="font-weight: bold"> {{ mogul }} </span>!
       </div>
 
+      <!--      <div class="notifications">
+
+            </div>-->
 
       <div class="toolbar">
         <router-link to="/">{{ $t('app.menu.home') }}</router-link>
@@ -63,7 +72,8 @@ export default {
       </div>
     </div>
     <div class="footer">
-      <span v-html="$t('app.made-with-love', {'josh':'<a href=\'https://youtube.com/@coffeesoftware\'>Josh Long</a>'})"></span>
+      <span
+        v-html="$t('app.made-with-love', {'josh':'<a href=\'https://youtube.com/@coffeesoftware\'>Josh Long</a>'})"></span>
     </div>
   </div>
 </template>

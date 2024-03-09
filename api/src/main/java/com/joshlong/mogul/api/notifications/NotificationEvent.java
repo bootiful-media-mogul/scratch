@@ -8,6 +8,7 @@ import java.util.Date;
  * describes an event - any event - that should be communicated to a particular,
  * logged-in, user.
  *
+ * @param modal does this notification require user acknowledgment, or can it sort of appear briefly and then fade away?
  * @param when when the message was published. <EM>Not</EM> when (or if) the message has
  * been routed, delivered, or read.
  * @param key some extra information that, when paired with the category, tells us a thing
@@ -26,7 +27,8 @@ import java.util.Date;
  * if this is meant to be a system wide notification intended for all users logged into
  * the system
  */
-public record NotificationEvent(Long mogulId, String category, String key, Date when, String context) {
+public record NotificationEvent(Long mogulId, String category, String key, Date when, String context ,
+								boolean modal) {
 
 	public static String categoryFromClassName(Class<?> clazz) {
 		Assert.notNull(clazz, "the class must be non-null");

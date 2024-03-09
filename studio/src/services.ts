@@ -324,10 +324,12 @@ export class Notification {
   readonly category: string
   readonly context: string
   readonly mogulId: number
+  readonly modal: boolean
 
-  constructor(mogulId: number, key: string, context: string, category: string, when: Date) {
+  constructor(mogulId: number, key: string, context: string, category: string, when: Date,modal:boolean) {
     this.context = context
     this.mogulId = mogulId
+    this.modal = modal
     this.category = category
     this.when = when
     this.key = key
@@ -363,7 +365,8 @@ export class Notifications {
       const key = readString(data ['key'])
       const when = new Date (  data['when'])
       const context = readString(data['context'])
-      callback(new Notification(mogulId, key, context, category, when))
+      const modal = data['modal']
+      callback(new Notification(mogulId, key, context, category, when , modal ))
     }
     eventSource.onerror = function(sseME: Event) {
       console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))

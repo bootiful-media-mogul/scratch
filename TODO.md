@@ -24,6 +24,12 @@ toastbox notifications for any component in the system to be routed to the user�
 
 you need to rip out and replace the SSE stuff in EpisodesView.vue with this new generic notification mechanism
 
+add a boolean for `urgent` or `modal` or something so you can distinguish between pasive notifications vs something that must interrupt the user and force them to acknowledge (click OK)
+
+what happens if multiple events overlap each other
+
+right now ive got the modal dialog setup ok, but i need to refactor to go back to the popup toaster style that we had earflier. i think the toaster should popup from the bottom of the screen, above the `mogul, made with love`. the bottom of the toaster should be flush with the top of the botom of the view port, but the tops of the the toaster should be rounded. the popup should eventually just disappear (fade out) 
+
 ## publications
 
 show all the publications underneath the publish button. it should show the contents of the publication table, and in particular: the date, the plugin used, and - if possible - a button that allows the user to delete the publication. or, at least try. maybe its greyed out if the user has already deleted that publication or if the plugin indicates it can’t delete a givne publication (mybe the tech doesn’t allow it?) who knows. ALSO; should there a publication_URL field in the DB that the user can click to visit it? like, right now i still dont feeel 100% comfortable having the plugin make the Podbean podcast _live_. i want it to be draft so i can do one more quality check there, sort of a staging thing. so i want to knmow which url to visit to edit, preview, whatever, the final thing on podbean before i push the button to go 'live'

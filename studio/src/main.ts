@@ -12,11 +12,11 @@ const translations = {
   en: {
     labels: {
       'required-value': 'this is a required value!',
-      'ok' : 'OK',
-      'close' : 'Close',
-      'cancel' : 'Cancel',
-      'save' : 'Save',
-      'create' : 'Create',
+      'ok': 'OK',
+      'close': 'Close',
+      'cancel': 'Cancel',
+      'save': 'Save',
+      'create': 'Create'
     },
 
     hello: 'hello',
@@ -24,9 +24,10 @@ const translations = {
     github: 'GitHub',
 
     // notifications
-    notifications :{
-      'podcast-created-event' :  `  The podcast "{context}", with ID #{key}, has been created.   `.trim()
-    } ,
+    notifications: {
+      'podcast-created-event': `The podcast "{context}", with ID #{key}, has been created.   `.trim(),
+      'podcast-deleted-event': `The podcast "{context}", with ID #{key}, has been deleted.   `.trim()
+    },
 
     // previews
 
@@ -81,7 +82,7 @@ const i18n = createI18n({
   messages: translations,
   // warnHtmlInMessage : false
 
-  warnHtmlInMessage: "off"
+  warnHtmlInMessage: 'off'
 })
 
 const app = createApp(App)

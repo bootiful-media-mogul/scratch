@@ -1,19 +1,31 @@
 <template>
-  <div v-if="showNotification">
+  <div v-if="showModalNotification">
     <div class="body-overlay"></div>
-    <div class="notification-panel">
+    <div class="modal-notification-panel">
 
       {{ latestNotification }}
       <div class="buttons">
-        <button @click.prevent="ok()" type="submit">
+        <button @click.prevent="dismiss()" type="submit">
           {{ $t('ok') }}
         </button>
       </div>
     </div>
   </div>
+
+  <div v-if="showToasterNotification">
+
+ <div class="toaster-notification-panel">
+   {{latestNotification}}
+ </div>
+
+  </div>
 </template>
 <style scoped>
 
+.toaster-notification-panel {
+ position: fixed;
+  bottom: 0;
+}
 
 .body-overlay {
   height: 100%;
@@ -26,56 +38,22 @@
   left: 0
 }
 
-.notification-panel {
-  /* */
+.modal-notification-panel {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  /* */
   z-index: 20001;
-
   border-radius: var(--gutter-space);
   color: white;
   padding: var(--gutter-space);
   background-color: black;
 }
 
-.notification-panel .buttons a {
+.modal-notification-panel .buttons a {
   color: white;
 }
 
-/*
-
-#notification {
-  background-color: white;
-  padding: var(--gutter-space);
-  text-align: center;
-  border-radius: 10px 10px 10px 10px;
-}
-
-.notification-text {
-
-}
-
-.notification-visible {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 20px;
-  background-color: white;
-  border: 1px solid #ccc;
-
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  opacity: 1;
-  transition: opacity 0.5s ease;
-}
-
-.notification-hidden {
-  opacity: 0;
-}
-*/
 
 </style>
 
@@ -88,19 +66,16 @@ export default {
   computed: {},
   methods: {
 
-    hide() {
-
-    },
-    ok() {
-
-      this.showNotification = false
-      console.log(`let me guess: you want me to stop showing this dialog?`)
+    dismiss() {
+      this.showToasterNotification = false
+      this.showModalNotification = false
     }
   },
 
   data() {
     return {
-      showNotification: false,
+      showToasterNotification: false,
+      showModalNotification: false,
       notification: ref(null),
       latestNotification: '' as string
     }
@@ -119,7 +94,9 @@ export default {
         context: notification.context
       })
 
-      that.showNotification = true
+
+      that.showModalNotification = notification.modal
+      that.showToasterNotification = !notification.modal
 
     }
 

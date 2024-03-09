@@ -185,20 +185,21 @@ html {
 .page {
   display: grid;
   grid-template-areas:
+
     'welcome welcome welcome'
     'toolbar toolbar toolbar'
     'main . sidebar';
-  grid-template-rows: auto  auto auto ;
+  /*todo fix this extra row so its a fixed */
+  grid-template-rows:   auto  auto auto ;
   grid-template-columns: auto calc(3 * var(--gutter-space)) minmax(min-content, var(--sidebar-width));
 }
-/*
 
 .notifications {
   grid-area: notifications;
   padding-top: var(--gutter-space);
   padding-bottom: var(--gutter-space);
 }
-*/
+
 
 .welcome {
   grid-area: welcome;

@@ -237,10 +237,18 @@ class DefaultPodcastService implements PodcastService {
 	}
 
 	@ApplicationModuleListener
+	void podcastDeletedEventNotifyingListener(PodcastDeletedEvent event) {
+		this.publisher.publishEvent(new NotificationEvent(event.podcast().mogulId(),
+				NotificationEvent.categoryFromClassName(event.getClass()), Long.toString(event.podcast().id()),
+				new Date(), event.podcast().title() , true
+		));
+	}
+
+	@ApplicationModuleListener
 	void podcastCreatedEventNotifyingListener(PodcastCreatedEvent event) {
 		this.publisher.publishEvent(new NotificationEvent(event.podcast().mogulId(),
 				NotificationEvent.categoryFromClassName(event.getClass()), Long.toString(event.podcast().id()),
-				new Date(),  event.podcast().title()
+				new Date(),  event.podcast().title() ,false
 		));
 	}
 
