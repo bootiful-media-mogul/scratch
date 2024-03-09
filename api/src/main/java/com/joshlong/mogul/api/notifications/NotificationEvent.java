@@ -41,6 +41,9 @@ public record NotificationEvent(Long mogulId, String category, String key, Date 
 				buffer.append(c);
 			}
 		}
-		return buffer.toString();
+        var tos = buffer.toString();
+        if (tos.startsWith("-"))
+            tos = tos.substring(1);
+        return tos;
 	}
 }

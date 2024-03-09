@@ -1,6 +1,8 @@
 :root {
   --sidebar-width: 250px;
   --gutter-space: 20px;
+  --radius: var(--gutter-space);
+  --button-radius: calc(var(--gutter-space) / 3 );
   --small-gutter-space: calc(0.5 * var(--gutter-space));
   --form-buttons-gutter-space: calc(0.3 * var(--gutter-space));
   --icon-width: 20px;
@@ -55,7 +57,7 @@ a {
 
 .pure-button {
   border-color: var(--bg-color);
-  border-radius: calc(var(--gutter-space) / 3);
+  border-radius: var(--button-radius);
 }
 
 .pure-form-stacked .pure-button {
@@ -186,8 +188,17 @@ html {
     'welcome welcome welcome'
     'toolbar toolbar toolbar'
     'main . sidebar';
+  grid-template-rows: auto  auto auto ;
   grid-template-columns: auto calc(3 * var(--gutter-space)) minmax(min-content, var(--sidebar-width));
 }
+/*
+
+.notifications {
+  grid-area: notifications;
+  padding-top: var(--gutter-space);
+  padding-bottom: var(--gutter-space);
+}
+*/
 
 .welcome {
   grid-area: welcome;
@@ -224,7 +235,7 @@ html {
 .pure-form legend {
   box-sizing: unset;
   display: inline-block;
-  border-radius: 10px 10px 10px 10px;
+  border-radius: var(--radius) var(--radius) var(--radius)  var(--radius) ;
   font-weight: bold;
   background-color: black;
   color: white;

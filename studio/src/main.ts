@@ -23,6 +23,11 @@ const translations = {
     podbean: 'Podbean',
     github: 'GitHub',
 
+    // notifications
+    notifications :{
+      'podcast-created-event' :  `  The podcast "{context}", with ID #{key}, has been created.   `.trim()
+    } ,
+
     // previews
 
     // managed files
@@ -31,7 +36,7 @@ const translations = {
     'app.menu.home': 'home',
     'app.menu.settings': 'settings',
     'app.menu.podcasts': 'podcasts',
-    'app.made-with-love': ` Mogul, made with love ❤️ by {josh}  (and with Spring 🍃) `,
+    'app.made-with-love': ` Mogul, made with love ❤️ by {josh} (and with Spring 🍃) `,
 
     // episodes
     'episodes.title': 'all episodes',

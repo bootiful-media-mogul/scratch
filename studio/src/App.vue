@@ -26,14 +26,15 @@ export default {
 </script>
 <style></style>
 <template>
+
+  <NotificationBox ref="notifications"/>
+
   <div class="frame">
     <div class="page">
       <div class="welcome">
         {{ $t('hello') }} <span style="font-weight: bold"> {{ mogul }} </span>!
       </div>
-      <div>
-        <NotificationBox/>
-      </div>
+
 
       <div class="toolbar">
         <router-link to="/">{{ $t('app.menu.home') }}</router-link>

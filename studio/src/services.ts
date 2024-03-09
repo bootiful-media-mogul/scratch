@@ -340,17 +340,36 @@ export class Notifications {
 
   listen(callback: (notification: Notification) => void): EventSource {
     const uri = '/api/notifications'
-    const es = new EventSource(uri)
-    es.onmessage = (sseEvent: MessageEvent) => {
+    const eventSource = new EventSource(uri)
+    eventSource.onmessage = (sseEvent: MessageEvent) => {
       console.log('got the following SSE event: ' + sseEvent.data)
-      callback(new Notification(1, 'key',
-        'context:{' + sseEvent.data + '}', 'category', new Date()))
+
+      const data = JSON.parse(sseEvent.data)
+
+      function readString(input: any): string {
+        return input + ''
+      }
+
+      function readMogulId(id: any): number {
+        if (id == null || (typeof id == 'string' && id.trim() == ''))
+          return -1
+        if (typeof id == 'number')
+          return id
+        return parseInt(id)
+      }
+
+      const mogulId = readMogulId(data['mogulId'])
+      const category = readString(data ['category'])
+      const key = readString(data ['key'])
+      const when = new Date (  data['when'])
+      const context = readString(data['context'])
+      callback(new Notification(mogulId, key, context, category, when))
     }
-    es.onerror = function(sseME: Event) {
+    eventSource.onerror = function(sseME: Event) {
       console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
     }
 
-    return es
+    return eventSource
 
   }
 
