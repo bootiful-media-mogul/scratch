@@ -31,12 +31,12 @@
   <form class="pure-form">
     <fieldset>
       <legend>Podcasts</legend>
-      <div class="pure-g form-row" v-for="podcast in podcasts" v-bind:key="podcast.id">
-        <div class="pure-u-1-24 id-column">
+      <div class="pure-g form-row podcast-rows" v-for="podcast in podcasts" v-bind:key="podcast.id">
+        <div class="  id-column">
           #<b>{{ podcast.id }}</b>
         </div>
 
-        <div class="pure-u-6-24">
+        <div class="links-column">
           <a href="#" @click="navigateToEpisodesPageForPodcast(podcast.id, $event)">
             {{ $t('podcasts.podcasts.episodes') }}
           </a>
@@ -48,13 +48,37 @@
             {{ $t('podcasts.podcasts.delete') }}
           </a>
         </div>
-        <div class="pure-u-17-24">
+        <div class="title-column">
           {{ podcast.title }}
         </div>
       </div>
     </fieldset>
   </form>
 </template>
+
+<style>
+.id-column {
+  font-weight: normal;
+  font-size: smaller;
+
+}
+
+.links-column {
+}
+
+.title-column {   }
+
+.id-column b {
+  font-weight: bold;
+  font-size: medium;
+}
+
+.podcast-rows {
+  display: grid;
+  grid-template-areas: 'id   links  title ';
+  grid-template-columns: 50px    200px   auto ;
+}
+</style>
 <script lang="ts">
 import { Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'

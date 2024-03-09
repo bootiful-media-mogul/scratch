@@ -8,17 +8,10 @@
   --icon-width: 20px;
   --bg-color: cadetblue;
   --icon-column: calc(var(--gutter-space) * 1.5);
+  --footer-height: calc(var(--gutter-space) * 1.5)
 }
 
-.id-column {
-  font-weight: normal;
-  font-size: smaller;
-}
 
-.id-column b {
-  font-weight: bold;
-  font-size: medium;
-}
 
 .managed-file-preview-image {
   max-width: 100%;
@@ -254,8 +247,7 @@ html {
   background-color: black;
   color: white;
   text-align: center;
-
-  height: calc(var(--gutter-space) * 1.5);
+  height: var(--footer-height);
   margin-left: calc(-2 * var(--gutter-space));
   padding-left: calc(2 * var(--gutter-space));
   padding-top: calc(var(--gutter-space) / 2);

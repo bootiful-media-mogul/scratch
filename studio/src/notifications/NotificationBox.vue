@@ -12,19 +12,34 @@
     </div>
   </div>
 
-  <div v-if="showToasterNotification">
-
- <div class="toaster-notification-panel">
-   {{latestNotification}}
- </div>
-
+  <div v-if="showToasterNotification" :class="toasterNotificationCss">
+    {{ latestNotification }}
   </div>
 </template>
-<style scoped>
+<style>
+
 
 .toaster-notification-panel {
- position: fixed;
-  bottom: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, .5); /* horizontal-offset vertical-offset blur-radius color */
+  border-radius: 0 0 var(--gutter-space) var(--gutter-space);
+  background-color: white;
+  padding: var(--gutter-space);
+  position: fixed;
+  width: 40%;
+  transition: transform 2s ease;
+  top: 0;
+  left: 30%;
+  transform: translate(-50%);
+  text-align: center;
+}
+
+
+.animated-element-visible {
+  transform: translateY(0);
+}
+
+.animated-element-hidden {
+  transform: translateY(-100px);
 }
 
 .body-overlay {
@@ -61,30 +76,47 @@
 import { notifications, Notification } from '@/services'
 import { ref } from 'vue'
 
+
 export default {
   components: {},
   computed: {},
   methods: {
-
     dismiss() {
       this.showToasterNotification = false
       this.showModalNotification = false
+    },
+    show() {
+      this.toasterNotificationCss = {
+        'toaster-notification-panel': true,
+        'animated-element-visible': true,
+        'animated-element-hidden': false
+      }
+    },
+    hide() {
+      this.toasterNotificationCss = {
+        'toaster-notification-panel': true,
+        'animated-element-visible': false,
+        'animated-element-hidden': true
+      }
     }
   },
 
   data() {
     return {
-      showToasterNotification: false,
+      nextTimeoutId :  0  ,
+      toasterNotificationCss: {},
+      showToasterNotification: true,
       showModalNotification: false,
       notification: ref(null),
       latestNotification: '' as string
     }
   },
   async created() {
-
     const that = this
-
-
+    this.toasterNotificationCss = {
+      'toaster-notification-panel': true,
+      'animated-element-hidden': true
+    }
     function processor(notification: Notification) {
 
       that.latestNotification = that.$t('notifications.' + notification.category, {
@@ -94,15 +126,20 @@ export default {
         context: notification.context
       })
 
-
       that.showModalNotification = notification.modal
       that.showToasterNotification = !notification.modal
 
+      const displayForNMilliseconds = 1000 * 5 // 2 seconds
+      if (that.showToasterNotification) {
+        that.show()
+        clearTimeout( that.nextTimeoutId )
+        that.nextTimeoutId = setTimeout(function(e: Event) {
+          that.hide()
+        }, displayForNMilliseconds)
+      }
     }
-
     const processorRef: (notification: Notification) => void = processor
     notifications.listen(processorRef)
-
   }
 }
 </script>

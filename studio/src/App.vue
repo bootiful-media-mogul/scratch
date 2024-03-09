@@ -24,7 +24,7 @@ export default {
   }
 }
 </script>
-<style></style>
+
 <template>
 
 <!--
@@ -41,9 +41,6 @@ export default {
         {{ $t('hello') }} <span style="font-weight: bold"> {{ mogul }} </span>!
       </div>
 
-      <!--      <div class="notifications">
-
-            </div>-->
 
       <div class="toolbar">
         <router-link to="/">{{ $t('app.menu.home') }}</router-link>

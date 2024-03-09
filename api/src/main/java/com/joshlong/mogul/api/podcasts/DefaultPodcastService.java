@@ -240,7 +240,7 @@ class DefaultPodcastService implements PodcastService {
 	void podcastDeletedEventNotifyingListener(PodcastDeletedEvent event) {
 		this.publisher.publishEvent(new NotificationEvent(event.podcast().mogulId(),
 				NotificationEvent.categoryFromClassName(event.getClass()), Long.toString(event.podcast().id()),
-				new Date(), event.podcast().title() , true
+				new Date(), event.podcast().title() , false
 		));
 	}
 
