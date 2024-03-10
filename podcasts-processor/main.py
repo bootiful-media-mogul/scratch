@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import json
+import logging
 import os
+import typing
 import uuid
 
 import boto3
@@ -11,18 +13,18 @@ import rmq
 import utils
 
 
-def download(s3, s3p: str) -> str:
+def download(s3, s3p: str, output_file: str) -> str:
     import typing
-    utils.log("going to download %s" % s3p)
     parts: typing.List[str] = s3p.split("/")
     bucket, folder, fn = parts[2:]
-    local_fn: str = os.path.join(os.environ['HOME'], "podcast-episode-s3-downloads", bucket, folder, fn)
+    local_fn: str = output_file
     the_directory: str = os.path.dirname(local_fn)
     if not os.path.exists(the_directory):
         os.makedirs(the_directory)
     assert os.path.exists(the_directory), f"the directory {the_directory} should exist but does not."
     utils.log("going to download %s to %s" % (s3p, local_fn))
     try:
+        print(f'going to download {bucket}/{folder}/{fn}')
         s3_download(s3, bucket, os.path.join(folder, fn), local_fn)
         assert os.path.exists(local_fn), (
                 "the file should be downloaded to %s, but was not." % local_fn
@@ -43,17 +45,27 @@ def s3_download(s3, bucket_name: str, key: str, local_fn: str):
     return local_fn
 
 
-def handle_podcast_episode_creation_request(s3, request: str):
+def handle_podcast_episode_creation_request(s3, request: str, uid: str):
     incoming_json_request = json.loads(request)
     segment_s3_uris = incoming_json_request['segments']
-    tmp_dir = os.path.join(os.environ['HOME'], 'podcast-production', str(uuid.uuid4()))
+    tmp_dir = os.path.join(os.environ['HOME'], 'podcast-production', uid)
     os.makedirs(tmp_dir, exist_ok=True)
-    local_files = [download(s3, s3_uri) for s3_uri in segment_s3_uris]
-    local_files_segments = [podcast.Segment(lf, os.path.splitext(lf)[1], crossfade_time=100) for lf in local_files]
-    print(local_files_segments)
+    local_files = [download(s3, s3_uri, os.path.join(tmp_dir, s3_uri.split('/')[-1])) for s3_uri in segment_s3_uris]
+    local_files_segments = [podcast.Segment(lf, os.path.splitext(lf)[1][1:], crossfade_time=100) for lf in local_files]
+    output_podcast_audio_local_fn = podcast.create_podcast(local_files_segments,
+                                                           os.path.join(tmp_dir, 'output.mp3'),
+                                                           output_extension='mp3')
+
+    logging.log(logging.INFO, f'the produced audio is stored locally {output_podcast_audio_local_fn}')
+    output_media = incoming_json_request['output_s3_uri']
+    s3_parts = output_media[len('s3://'):]
+    logging.debug(s3_parts)
+    bucket, folder, file = s3_parts.split('/')
+    s3.meta.client.upload_file(output_podcast_audio_local_fn, bucket, f'{folder}/{file}')
+    # todo upload this back to S3
 
 
-def build_s3_client() -> boto3.Session:
+def build_s3_client() -> typing.Any:
     aws_region = os.environ["AWS_REGION"]
     aws_key_id = os.environ['AWS_ACCESS_KEY_ID']
     aws_key_secret = os.environ['AWS_ACCESS_KEY_SECRET']
@@ -82,56 +94,8 @@ def background_thread():
     requests_q = 'podcast-processor-requests'
     rmq_uri = utils.parse_uri(os.environ['RMQ_ADDRESS'])
     s3 = build_s3_client()
-    utils.log('-' * 50)
-    for b in s3.buckets.all():
-        utils.log(b)
-    utils.log('-' * 50)
 
-    # def old_handle_job(properties, request):
-    #     json_request = json.loads(request)
-    #     uid = str(uuid.uuid4())
-    #     intro_media = json_request['introduction']
-    #     interview_media = json_request['interview']
-    #     output_media = json_request['output']
-    #
-    #     simple_request = {
-    #         'intro': intro_media,
-    #         'interview': interview_media,
-    #         'output': output_media
-    #     }
-    #     utils.log(f'processing: {simple_request}')
-    #     normalized_uid_str = normalize_string(uid)
-    #
-    #     tmpdir = os.path.join(tempfile.gettempdir(), normalized_uid_str)
-    #     output_dir = os.path.join(tmpdir, "output")
-    #
-    #     def build_full_s3_asset_path_for(fn: str):
-    #         return s3_uri(assets_s3_bucket, f'{assets_s3_bucket_folder}/{fn}')
-    #
-    #     asset_closing = build_full_s3_asset_path_for("closing.mp3")
-    #     asset_intro = build_full_s3_asset_path_for("intro.mp3")
-    #     asset_music_segue = build_full_s3_asset_path_for("music-segue.mp3")
-    #
-    #     downloaded_files = {}
-    #
-    #     for s3_path in [
-    #         asset_closing,
-    #         asset_intro,
-    #         asset_music_segue,
-    #         intro_media,
-    #         interview_media,
-    #     ]:
-    #         downloaded_files[s3_path] = download(s3_path)
-    #
-    #     utils.reset_and_recreate_directory(output_dir)
-    #     results = podcast.create_podcast(
-    #         downloaded_files[asset_intro],
-    #         downloaded_files[asset_music_segue],
-    #         downloaded_files[asset_closing],
-    #         downloaded_files[intro_media],
-    #         downloaded_files[interview_media],
-    #         output_dir,
-    #     )
+    # if __name__ == '__main__':
     #     utils.log(f'results: {results}')
     #     upload_local_fn = results['export']
     #     print('output s3 url: ', output_media)
@@ -189,17 +153,16 @@ if __name__ == "__main__":
         utils.log("Exhausted retry count of %s times." % max_retries)
 
 
+    # the rabbitmq client needs to send:
+    #   { segments: [ s3_uris ...] , output_s3_uri: 's3://bucket/folder/file' }
+
     base = os.path.join('podcast-assets-bucket-dev', '062019')
-    assets = ['intro.mp3', '1.aiff', '2.aiff'  'music-segue.mp3', '3.aiff', '4.aiff', 'closing.mp3']
+    assets = ['intro.mp3', '1.aiff', '2.aiff', 'music-segue.mp3', '3.aiff', '4.aiff', 'closing.mp3']
     s3_uris = [f's3://{base}/{p}' for p in assets]
-    json_request = json.dumps({
-        'segments': s3_uris
-    })
-    print(json_request)
-    handle_podcast_episode_creation_request(json_request)
+    my_uid = str(uuid.uuid4())
+    json_request = json.dumps(
+        {'segments': s3_uris, 'output_s3_uri': f's3://podcast-output-bucket-dev/{my_uid}/output.mp3'})
+    s3 = build_s3_client()
+    handle_podcast_episode_creation_request(s3, json_request, my_uid)
 
-    # todo restore this
-    # for f in [run_flask, run_rmq]:
-    #     threading.Thread(target=f).start()
 
-    utils.log("launched RabbitMQ and Flask threads.")
