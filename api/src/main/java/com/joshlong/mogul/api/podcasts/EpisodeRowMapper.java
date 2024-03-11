@@ -13,7 +13,6 @@ class EpisodeRowMapper implements RowMapper<Episode> {
 
 	private final Function<Long, ManagedFile> managedFileFunction;
 
-
 	EpisodeRowMapper(Function<Long, Podcast> podcastFunction, Function<Long, ManagedFile> managedFileFunction) {
 		this.podcastFunction = podcastFunction;
 		this.managedFileFunction = managedFileFunction;

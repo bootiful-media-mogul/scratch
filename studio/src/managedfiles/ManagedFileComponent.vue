@@ -8,8 +8,6 @@
   />
 
   <div class="managed-file-row">
-
-
     <span class="controls">
       <slot></slot>
     </span>
@@ -40,7 +38,7 @@
     </span>
 
     <span class="filename">
-      <span  class="form-prompt" v-if="filename">{{ filename }} </span>
+      <span class="form-prompt" v-if="filename">{{ filename }} </span>
       <span class="form-prompt" v-else>{{ $t('managedfiles.please-upload-a-file') }}</span>
     </span>
   </div>
@@ -57,9 +55,9 @@
     auto;
   display: grid;
 }
- .managed-file-row .controls {
-   grid-area: controls  ;
- }
+.managed-file-row .controls {
+  grid-area: controls;
+}
 .managed-file-row .filename {
   grid-area: filename;
 }

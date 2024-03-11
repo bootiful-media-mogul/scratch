@@ -3,7 +3,6 @@ import { mogul, Setting, Settings, settings, SettingsPage } from '@/services'
 
 export default {
   methods: {
-
     async reloadSettings() {
       this.settings = await settings.settings()
 

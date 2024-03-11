@@ -12,11 +12,11 @@ const translations = {
   en: {
     labels: {
       'required-value': 'this is a required value!',
-      'ok': 'OK',
-      'close': 'Close',
-      'cancel': 'Cancel',
-      'save': 'Save',
-      'create': 'Create'
+      ok: 'OK',
+      close: 'Close',
+      cancel: 'Cancel',
+      save: 'Save',
+      create: 'Create'
     },
 
     hello: 'hello',
@@ -25,8 +25,10 @@ const translations = {
 
     // notifications
     notifications: {
-      'podcast-created-event': `The podcast "{context}", with ID #{key}, has been created.   `.trim(),
-      'podcast-deleted-event': `The podcast "{context}", with ID #{key}, has been deleted.   `.trim()
+      'podcast-created-event':
+        `The podcast "{context}", with ID #{key}, has been created.   `.trim(),
+      'podcast-deleted-event':
+        `The podcast "{context}", with ID #{key}, has been deleted.   `.trim()
     },
 
     // previews
@@ -40,9 +42,9 @@ const translations = {
     'app.made-with-love': ` Mogul, made with love ❤️ by {josh} (and with Spring 🍃) `,
 
     // episode segments
-    'episodes.episode.segments.number' : 'segment {order} ',
-    'episodes.episode.graphic' : 'graphic',
-    'episodes.buttons.add-segment' :'add a new segment' ,
+    'episodes.episode.segments.number': 'segment {order} ',
+    'episodes.episode.graphic': 'graphic',
+    'episodes.buttons.add-segment': 'add a new segment',
 
     // episodes
     'episodes.title': 'all episodes',

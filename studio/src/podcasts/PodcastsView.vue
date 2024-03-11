@@ -32,7 +32,7 @@
     <fieldset>
       <legend>Podcasts</legend>
       <div class="pure-g form-row podcast-rows" v-for="podcast in podcasts" v-bind:key="podcast.id">
-        <div class="  id-column">
+        <div class="id-column">
           #<b>{{ podcast.id }}</b>
         </div>
 
@@ -60,13 +60,13 @@
 .id-column {
   font-weight: normal;
   font-size: smaller;
-
 }
 
 .links-column {
 }
 
-.title-column {   }
+.title-column {
+}
 
 .id-column b {
   font-weight: bold;
@@ -76,7 +76,7 @@
 .podcast-rows {
   display: grid;
   grid-template-areas: 'id   links  title ';
-  grid-template-columns: 50px    200px   auto ;
+  grid-template-columns: 50px 200px auto;
 }
 </style>
 <script lang="ts">

@@ -8,9 +8,8 @@
     --icon-width: 20px;
     --bg-color: cadetblue;
     --icon-column: calc(var(--gutter-space) * 1.5);
-    --footer-height: calc(var(--gutter-space) * 1.5)
+    --footer-height: calc(var(--gutter-space) * 1.5);
 }
-
 
 .managed-file-preview-image {
     max-width: 100%;
@@ -118,6 +117,55 @@ html {
     background-size: var(--icon-width) var(--icon-width);
 }
 
+.down-arrow-icon {
+    background: url('../assets/images/down-highlight.png');
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.down-arrow-icon:hover {
+    background: url('../assets/images/down.png');
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.up-arrow-icon.disabled {
+    background: url('../assets/images/up.png');
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.down-arrow-icon.disabled {
+    background: url('../assets/images/down.png');
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+
+}
+
+.up-arrow-icon {
+    background: url('../assets/images/up-highlight.png');
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
+.up-arrow-icon:hover {
+    background: url('../assets/images/up.png');
+    height: var(--icon-width);
+    display: inline-block;
+    width: var(--icon-width);
+    background-size: var(--icon-width) var(--icon-width);
+}
+
 .edit-icon {
     background: url('../assets/images/edit-highlight.png');
     height: var(--icon-width);
@@ -178,13 +226,15 @@ html {
 .page {
     display: grid;
     grid-template-areas:
-
     'welcome welcome welcome'
     'toolbar toolbar toolbar'
     'main . sidebar';
     /*todo fix this extra row so its a fixed */
-    grid-template-rows:   auto  auto auto;
-    grid-template-columns: auto calc(3 * var(--gutter-space)) minmax(min-content, var(--sidebar-width));
+    grid-template-rows: auto auto auto;
+    grid-template-columns: auto calc(3 * var(--gutter-space)) minmax(
+      min-content,
+      var(--sidebar-width)
+    );
 }
 
 .notifications {
@@ -192,7 +242,6 @@ html {
     padding-top: var(--gutter-space);
     padding-bottom: var(--gutter-space);
 }
-
 
 .welcome {
     grid-area: welcome;
@@ -214,7 +263,6 @@ html {
 
 .sidebar textarea {
 }
-
 
 .sidebar .pure-form legend {
     color: black;
@@ -259,12 +307,12 @@ html {
 
 .form-section {
     border: 0;
-    padding-top: calc(var(--gutter-space) /2 );
+    padding-top: calc(var(--gutter-space) / 2);
 }
+
 .form-section .form-section-title {
     font-size: x-large;
     border-bottom: 1px solid black;
-
 
     margin-bottom: var(--gutter-space);
 }

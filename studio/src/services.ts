@@ -67,8 +67,6 @@ export class Podcast {
 }
 
 class Podcasts {
-
-
   private readonly client: Client
 
   constructor(client: Client) {
@@ -119,7 +117,7 @@ class Podcasts {
       description: description
     })
 
-    const res = (await result.data['updatePodcastEpisode'])
+    const res = await result.data['updatePodcastEpisode']
     console.log('updated results: ', res)
     return await this.podcastEpisodeById(res['id'])
   }
@@ -190,7 +188,6 @@ class Podcasts {
       id: id
     })
     return (await result.data['deletePodcastEpisodeSegment']) as Number
-
   }
 
   async deletePodcastEpisode(id: number) {
@@ -269,7 +266,6 @@ class Podcasts {
   }
 
   async movePodcastEpisodeSegmentDown(episodeId: number, episodeSegmentId: number) {
-
     const mutation = `
          mutation MovePodcastEpisodeSegmentDown ($episodeId: ID, $episodeSegmentId: Int  ){ 
           movePodcastEpisodeSegmentDown(  episodeId: $episodeId,  episodeSegmentId: $episodeSegmentId  ) 
@@ -284,7 +280,6 @@ class Podcasts {
   }
 
   async movePodcastEpisodeSegmentUp(episodeId: number, episodeSegmentId: number) {
-
     const mutation = `
     
     
@@ -414,7 +409,14 @@ export class Notification {
   readonly mogulId: number
   readonly modal: boolean
 
-  constructor(mogulId: number, key: string, context: string, category: string, when: Date, modal: boolean) {
+  constructor(
+    mogulId: number,
+    key: string,
+    context: string,
+    category: string,
+    when: Date,
+    modal: boolean
+  ) {
     this.context = context
     this.mogulId = mogulId
     this.modal = modal
@@ -422,12 +424,9 @@ export class Notification {
     this.when = when
     this.key = key
   }
-
 }
 
-
 export class Notifications {
-
   listen(callback: (notification: Notification) => void): EventSource {
     const uri = '/api/notifications'
     const eventSource = new EventSource(uri)
@@ -441,37 +440,31 @@ export class Notifications {
       }
 
       function readMogulId(id: any): number {
-        if (id == null || (typeof id == 'string' && id.trim() == ''))
-          return -1
-        if (typeof id == 'number')
-          return id
+        if (id == null || (typeof id == 'string' && id.trim() == '')) return -1
+        if (typeof id == 'number') return id
         return parseInt(id)
       }
 
       const mogulId = readMogulId(data['mogulId'])
-      const category = readString(data ['category'])
-      const key = readString(data ['key'])
+      const category = readString(data['category'])
+      const key = readString(data['key'])
       const when = new Date(data['when'])
       const context = readString(data['context'])
       const modal = data['modal']
       callback(new Notification(mogulId, key, context, category, when, modal))
     }
-    eventSource.onerror = function(sseME: Event) {
+    eventSource.onerror = function (sseME: Event) {
       console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
     }
 
     return eventSource
-
   }
-
-
 }
 
 /**
  * handles updating and inspecting all the configuration values.
  */
 export class Settings {
-
   private readonly client: Client
 
   constructor(client: Client) {
@@ -513,7 +506,6 @@ export class Settings {
 }
 
 export class ManagedFiles {
-
   private readonly client: Client
 
   constructor(client: Client) {

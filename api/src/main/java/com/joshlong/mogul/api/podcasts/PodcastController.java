@@ -81,11 +81,10 @@ class PodcastController {
 	}
 
 	@MutationMapping
-	boolean addPodcastEpisodeSegment (@Argument Long episodeId) {
-		var mogul = this.mogulService.getCurrentMogul() .id();
+	boolean addPodcastEpisodeSegment(@Argument Long episodeId) {
+		var mogul = this.mogulService.getCurrentMogul().id();
 
-		this.podcastService.createEpisodeSegment(mogul, episodeId,
-				 "" , 0 ) ;
+		this.podcastService.createEpisodeSegment(mogul, episodeId, "", 0);
 
 		return true;
 	}
@@ -106,8 +105,8 @@ class PodcastController {
 	}
 
 	@SchemaMapping
-	List<Segment> segments (Episode episode) {
-		return this.podcastService.getEpisodeSegmentsByEpisode(episode.id()) ;
+	List<Segment> segments(Episode episode) {
+		return this.podcastService.getEpisodeSegmentsByEpisode(episode.id());
 	}
 
 	@SchemaMapping

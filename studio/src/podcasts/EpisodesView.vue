@@ -29,22 +29,26 @@ export default {
     },
 
     async movePodcastEpisodeSegmentDown(
-      episode: PodcastEpisode, episodeSegment: PodcastEpisodeSegment) {
-
+      episode: PodcastEpisode,
+      episodeSegment: PodcastEpisodeSegment
+    ) {
       console.log('you want to move segment [', episodeSegment, '] down one, eh?')
       await podcasts.movePodcastEpisodeSegmentDown(episode.id, episodeSegment.id)
       await this.loadEpisodeSegments(episode)
-
     },
 
     async movePodcastEpisodeSegmentUp(
-      episode: PodcastEpisode, episodeSegment: PodcastEpisodeSegment) {
+      episode: PodcastEpisode,
+      episodeSegment: PodcastEpisodeSegment
+    ) {
       await podcasts.movePodcastEpisodeSegmentUp(episode.id, episodeSegment.id)
       await this.loadEpisodeSegments(episode)
     },
 
-    async deletePodcastEpisodeSegment(episode: PodcastEpisode,
-                                      episodeSegment: PodcastEpisodeSegment) {
+    async deletePodcastEpisodeSegment(
+      episode: PodcastEpisode,
+      episodeSegment: PodcastEpisodeSegment
+    ) {
       await podcasts.deletePodcastEpisodeSegment(episodeSegment.id)
       await this.loadEpisodeSegments(episode)
     },
@@ -52,7 +56,6 @@ export default {
       await podcasts.deletePodcastEpisode(episode.id)
       await this.cancel(new Event(''))
     },
-
 
     async addNewPodcastEpisodeSegment(episode: PodcastEpisode) {
       console.log('add a new podcast episode segment')
@@ -127,6 +130,20 @@ export default {
         await this.loadEpisode(episode)
       }
     },
+    downArrowClasses(episode: PodcastEpisode, segment: PodcastEpisodeSegment) {
+      return {
+        'down-arrow-icon': true,
+        'disabled': this.draftEpisodeSegments[this.draftEpisodeSegments.length - 1].id == segment.id
+      }
+    },
+
+    upArrowClasses(episode: PodcastEpisode, segment: PodcastEpisodeSegment) {
+      return {
+        'up-arrow-icon': true,
+        // 'disabled': this.draftEpisodeSegments[this.draftEpisodeSegments.length - 1].id == segment.id
+        'disabled': this.draftEpisodeSegments && (this.draftEpisodeSegments[0].id == segment.id)
+      }
+    },
 
     async publish(e: Event) {
       e.preventDefault()
@@ -137,7 +154,6 @@ export default {
       e.preventDefault()
       console.log('so you selected a plugin, didja ? it is ' + JSON.stringify(this.selectedPlugin))
     },
-
 
     /**
      * returns true if the buttons should be disabled because there's no change in the data in the form.
@@ -216,7 +232,6 @@ export default {
     {{ $t('episodes.episodes', { title: currentPodcast.title }) }}
   </h1>
 
-
   <form class="pure-form pure-form-stacked">
     <fieldset>
       <legend>
@@ -227,8 +242,7 @@ export default {
       </legend>
 
       <div class="form-section">
-        <div class="form-section-title"> Basics</div>
-
+        <div class="form-section-title">Basics</div>
 
         <label for="episodeTitle">
           {{ $t('episodes.episode.title') }}
@@ -252,61 +266,50 @@ export default {
         <textarea id="episodeDescription" rows="10" required v-model="description" />
 
         <div class="podcast-episode-controls-row">
-        <span class="save">
-          <button
-            @click="save"
-            :disabled="buttonsDisabled()"
-            type="submit"
-            class="pure-button pure-button-primary"
-          >
-            {{ $t('episodes.buttons.save') }}
-          </button>
-        </span>
+          <span class="save">
+            <button
+              @click="save"
+              :disabled="buttonsDisabled()"
+              type="submit"
+              class="pure-button pure-button-primary"
+            >
+              {{ $t('episodes.buttons.save') }}
+            </button>
+          </span>
           <span class="cancel">
-          <button
-            @click="cancel"
-            type="submit"
-            :disabled="description == '' && title == ''"
-            class="pure-button pure-button-primary"
-          >
-            {{ $t('episodes.buttons.cancel') }}
-          </button>
-        </span>
-
-
+            <button
+              @click="cancel"
+              type="submit"
+              :disabled="description == '' && title == ''"
+              class="pure-button pure-button-primary"
+            >
+              {{ $t('episodes.buttons.cancel') }}
+            </button>
+          </span>
         </div>
-
-
       </div>
 
-
       <div class="form-section">
-        <div class="form-section-title">
-          Segments
-        </div>
+        <div class="form-section-title">Segments</div>
 
         <div v-if="draftEpisode">
           <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
-            <div class="pure-u-3-24"><label>{{ $t('episodes.episode.graphic') }}</label></div>
+            <div class="pure-u-3-24">
+              <label>{{ $t('episodes.episode.graphic') }}</label>
+            </div>
             <div class="pure-u-21-24">
               <ManagedFileComponent
                 accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
                 v-model:managed-file-id="draftEpisode.graphic.id"
               >
-                <div class="segment-controls">
-
-                </div>
-
+                <div class="segment-controls"></div>
               </ManagedFileComponent>
             </div>
           </div>
 
-
           <div v-bind:key="segment.id" v-for="segment in draftEpisodeSegments">
-
             <div class="pure-g episode-managed-file-row">
               <div class="pure-u-3-24">
-
                 <label>
                   {{ $t('episodes.episode.segments.number', { order: segment.order }) }}
                 </label>
@@ -316,45 +319,44 @@ export default {
                   accept=".mp3,audio/mpeg"
                   v-model:managed-file-id="segment.audio.id"
                 >
-
                   <div class="segment-controls">
-                    <a @click.prevent="movePodcastEpisodeSegmentUp(draftEpisode,segment)" href="#"
-                       class="up-arrow-icon">&uarr;</a>
-                    <a @click.prevent="movePodcastEpisodeSegmentDown(draftEpisode,segment)" href="#"
-                       class="down-arrow-icon">&darr;</a>
-                    <a @click.prevent="deletePodcastEpisodeSegment( draftEpisode ,segment )" href="#"
-                       class="delete-icon"></a>
-                  </div>
+                    <a
+                      @click.prevent="movePodcastEpisodeSegmentUp(draftEpisode, segment)"
+                      href="#"
+                      :class=" upArrowClasses(draftEpisode ,segment) "
+                    ></a>
 
+                    <a
+                      @click.prevent="movePodcastEpisodeSegmentDown(draftEpisode, segment)"
+                      href="#"
+                      :class="downArrowClasses(draftEpisode ,segment) "
+                    ></a>
+                    <a
+                      @click.prevent="deletePodcastEpisodeSegment(draftEpisode, segment)"
+                      href="#"
+                      class="delete-icon"
+                    ></a>
+                  </div>
                 </ManagedFileComponent>
               </div>
             </div>
-
-
           </div>
-
 
           <div class="podcast-episode-controls-row">
-                  <span class="save">
-                    <button
-                      @click.prevent="addNewPodcastEpisodeSegment(draftEpisode)"
-                      type="submit"
-                      class="pure-button pure-button-primary"
-                    >
-                      {{ $t('episodes.buttons.add-segment') }}
-                    </button>
-                  </span>
-
-
+            <span class="save">
+              <button
+                @click.prevent="addNewPodcastEpisodeSegment(draftEpisode)"
+                type="submit"
+                class="pure-button pure-button-primary"
+              >
+                {{ $t('episodes.buttons.add-segment') }}
+              </button>
+            </span>
           </div>
-
-
         </div>
 
         <div class="form-section">
-          <div class="form-section-title">
-            Publications
-          </div>
+          <div class="form-section-title">Publications</div>
           <div>
             <div class="publish-menu">
               <select
@@ -387,7 +389,6 @@ export default {
           </div>
         </div>
       </div>
-
     </fieldset>
   </form>
 
@@ -468,11 +469,10 @@ export default {
   padding-right: var(--gutter-space);
 }
 
-
 div.segment-controls {
   font-size: smaller;
   display: grid;
   grid-template-areas: 'up down delete ';
-  grid-template-columns: var(--icon-column)  var(--icon-column)  var(--icon-column);
+  grid-template-columns: var(--icon-column) var(--icon-column) var(--icon-column);
 }
 </style>
