@@ -410,8 +410,6 @@ class DefaultPodcastService implements PodcastService {
 		var id = JdbcUtils.getIdFromKeyHolder(gkh);
 
 		reorderSegments(getEpisodeSegmentsByEpisode(episodeId));
-		//todo
-//		this.movePodcastEpisodeSegmentDown(episodeId, id.longValue());
 
 		return this.getEpisodeSegmentById(id.longValue());
 	}
@@ -442,8 +440,9 @@ class DefaultPodcastService implements PodcastService {
 				CommonMediaTypes.MP3);
 		var episode = createPodcastEpisode(podcastId, title, description, image, producedGraphic,
 				producedAudio);
-		for (var i = 0; i < 3; i++)
-			this.createEpisodeSegment(currentMogulId, episode.id(), "", 0);
+
+		this.createEpisodeSegment(currentMogulId, episode.id(), "", 0); // create the one mandatory required segment
+
 		return getEpisodeById(episode.id());
 	}
 
