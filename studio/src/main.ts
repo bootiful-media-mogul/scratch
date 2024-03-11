@@ -39,6 +39,9 @@ const translations = {
     'app.menu.podcasts': 'podcasts',
     'app.made-with-love': ` Mogul, made with love ❤️ by {josh} (and with Spring 🍃) `,
 
+    // episode segments
+    'episodes.episode.segments.number' : 'segment no. {order} ',
+
     // episodes
     'episodes.title': 'all episodes',
     'episodes.episodes': 'episodes for {title}',

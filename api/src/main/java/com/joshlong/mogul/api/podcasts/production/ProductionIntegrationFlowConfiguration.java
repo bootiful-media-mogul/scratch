@@ -63,18 +63,23 @@ class ProductionIntegrationFlowConfiguration {
 			.transform(new AbstractTransformer() {
 				@Override
 				protected Object doTransform(Message<?> message) {
+					// todo
 					Assert.state(message.getPayload() instanceof Episode, "the payload must be an instance of Episode");
 					var source = (Episode) message.getPayload();
 					var map = Map.of(//
-							"introduction", source.producedIntroduction().s3Uri().toString(), //
-							"interview", source.producedInterview().s3Uri().toString(), //
+							// todo we no longer have these references
+							// "introduction",
+							// source.producedIntroduction().s3Uri().toString(), //
+							// "interview", source.producedInterview().s3Uri().toString(),
+							// //
 							"output", source.producedAudio().s3Uri().toString(), //
 							"uid", UUID.randomUUID().toString(), //
 							"episodeId", Long.toString(source.id())//
 					);//
-					return MessageBuilder.withPayload(map)
-						.copyHeadersIfAbsent(message.getHeaders())
-						.setHeader(episodeIdHeaderName, source.id())
+					return MessageBuilder//
+						.withPayload(map)//
+						.copyHeadersIfAbsent(message.getHeaders())//
+						.setHeader(episodeIdHeaderName, source.id())//
 						.build();
 				}
 			})

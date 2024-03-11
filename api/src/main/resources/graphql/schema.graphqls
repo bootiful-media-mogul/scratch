@@ -73,9 +73,17 @@ type Episode {
     valid: Boolean
     graphic: ManagedFile
     complete: Boolean
-    introduction: ManagedFile
-    interview: ManagedFile
     created: Float
+    segments : [Segment]
+}
+
+type Segment {
+    id : ID
+    name :String
+    audio: ManagedFile
+    producedAudio: ManagedFile
+    order : Int
+    crossFadeDuration : Int
 }
 
 type Podcast {

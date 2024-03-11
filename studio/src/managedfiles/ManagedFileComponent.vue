@@ -8,6 +8,10 @@
   />
 
   <div class="managed-file-row">
+
+
+    <div class="controls"><slot></slot></div>
+
     <a class="choose" href="#" @click="launchFileUpload">
       <span class="folder-icon"></span>
     </a>
@@ -41,8 +45,9 @@
 </template>
 <style>
 .managed-file-row {
-  grid-template-areas: 'choose   written  preview   contentType   filename';
+  grid-template-areas: 'controls choose written  preview   contentType   filename';
   grid-template-columns:
+    auto
     var(--icon-column)
     var(--icon-column)
     var(--icon-column)

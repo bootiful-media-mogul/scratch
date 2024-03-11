@@ -97,25 +97,31 @@ class Podcasts {
     const mutation = `
          mutation UpdatePodcastEpisode  ($episode: ID, $title: String, $description: String ){ 
           updatePodcastEpisode ( episodeId: $episode, title: $title, description: $description) { 
-           availablePlugins,   created, id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
+             id 
           }
          }
         `
-    console.log(episodeId + ':' + title + ':' + description)
+    console.debug(episodeId + ':' + title + ':' + description)
     const result = await this.client.mutation(mutation, {
       episode: episodeId,
       title: title,
       description: description
     })
 
-    return (await result.data['updatePodcastEpisode']) as Episode
+    const res = (await result.data['updatePodcastEpisode'])
+    console.log('updated results: ', res)
+    return await this.podcastEpisodeById(res['id'])
   }
 
   async podcastEpisodeById(id: number): Promise<Episode> {
     const q = `
            query GetPodcastEpisode ( $id: ID){
                 podcastEpisodeById ( id : $id) {
-                availablePlugins,   created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
+                availablePlugins,   created,   id , title, description, complete,  graphic { id  },
+                  segments { 
+                    id, name, audio { id } , order , crossFadeDuration 
+                  }
+            
                 }
         }
         `
@@ -140,15 +146,27 @@ class Podcasts {
 
   async podcastEpisodes(podcastId: number): Promise<Array<Episode>> {
     const q = `
-           query GetPodcastEpisodesByPodcast( $podcastId: ID){
-                podcastEpisodesByPodcast ( podcastId : $podcastId) {
-                 availablePlugins,  created, id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
-                }
+        query GetPodcastEpisodesByPodcast( $podcastId: ID){
+            podcastEpisodesByPodcast ( podcastId : $podcastId) {
+                availablePlugins,  
+                created, 
+                id , 
+                title, 
+                description, 
+                complete, 
+                graphic { id  } ,
+                segments { 
+                  id, 
+                  name, 
+                  audio { id } , 
+                  order , 
+                  crossFadeDuration 
+                } 
+            }
         }
         `
     const res = await this.client.query(q, { podcastId: podcastId })
-
-    return (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
+    return  (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
   }
 
   async deleteEpisode(id: number) {
@@ -195,7 +213,7 @@ class Podcasts {
     const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
-            availablePlugins,    created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
+               id  
           }
          }
         `
@@ -206,7 +224,10 @@ class Podcasts {
       description: description
     })
 
-    return (await result.data['createPodcastEpisodeDraft']) as Episode
+    const idBag = (await result.data['createPodcastEpisodeDraft'])['id']
+    const episode = await this.podcastEpisodeById(idBag)
+    console.log('the episode is ', episode)
+    return episode
   }
 
   async podcastById(podcastId: number): Promise<Podcast> {
@@ -279,44 +300,55 @@ export class ManagedFile {
   }
 }
 
+export class EpisodeSegment {
+  id: number
+  name: string
+  audio: ManagedFile
+  order: number
+
+  constructor(id: number, name: string, audio: ManagedFile, order: number) {
+    console.log(id, name, audio, order)
+    this.id = id
+    this.name = name
+    this.audio = audio
+    this.order = order
+  }
+}
+
 export class Episode {
   availablePlugins: Array<string>
   id: number
   title: string
   description: string
   graphic: ManagedFile
-  interview: ManagedFile
-  introduction: ManagedFile
   complete: boolean = false
   created: number = 0
+  segments: Array<EpisodeSegment>
 
   constructor(
     id: number,
     title: string,
     description: string,
     graphic: ManagedFile,
-    interview: ManagedFile,
-    introduction: ManagedFile,
     complete: boolean,
     created: number,
-    availablePlugins: Array<string>
+    availablePlugins: Array<string>,
+    segments: Array<EpisodeSegment>
   ) {
     this.availablePlugins = availablePlugins
     this.id = id
     this.title = title
     this.description = description
     this.graphic = graphic
-    this.interview = interview
-    this.introduction = introduction
     this.complete = complete
     this.created = created
+    this.segments = segments
   }
 }
 
 /**
  * handles consuming and displaying notifications to the user
  */
-
 
 export class Notification {
   readonly when: Date
@@ -326,7 +358,7 @@ export class Notification {
   readonly mogulId: number
   readonly modal: boolean
 
-  constructor(mogulId: number, key: string, context: string, category: string, when: Date,modal:boolean) {
+  constructor(mogulId: number, key: string, context: string, category: string, when: Date, modal: boolean) {
     this.context = context
     this.mogulId = mogulId
     this.modal = modal
@@ -363,10 +395,10 @@ export class Notifications {
       const mogulId = readMogulId(data['mogulId'])
       const category = readString(data ['category'])
       const key = readString(data ['key'])
-      const when = new Date (  data['when'])
+      const when = new Date(data['when'])
       const context = readString(data['context'])
       const modal = data['modal']
-      callback(new Notification(mogulId, key, context, category, when , modal ))
+      callback(new Notification(mogulId, key, context, category, when, modal))
     }
     eventSource.onerror = function(sseME: Event) {
       console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))

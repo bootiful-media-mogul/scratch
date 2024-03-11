@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Episode, Podcast, podcasts } from '@/services'
+import { Episode, EpisodeSegment, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
 import { reactive } from 'vue'
@@ -35,8 +35,6 @@ export default {
 
     async loadEpisode(episode: Episode) {
       this.draftEpisode.id = episode.id
-      this.draftEpisode.interview = episode.interview
-      this.draftEpisode.introduction = episode.introduction
       this.draftEpisode.graphic = episode.graphic
       this.draftEpisode.title = episode.title
       this.draftEpisode.description = episode.description
@@ -47,6 +45,7 @@ export default {
       this.title = this.draftEpisode.title
       this.created = this.draftEpisode.created
       this.dirtyKey = this.computeDirtyKey()
+      this.draftEpisodeSegments = episode.segments
 
       const plugins = episode.availablePlugins
       if (plugins && plugins.length == 1) this.selectedPlugin = plugins[0]
@@ -57,8 +56,8 @@ export default {
       if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
         console.log(
           'going to install a listener for completion events for podcast episode [' +
-            this.draftEpisode.id +
-            ']'
+          this.draftEpisode.id +
+          ']'
         )
 
         const uri: string =
@@ -74,7 +73,7 @@ export default {
           this.draftEpisode.complete = true
           this.completionEventListenersEventSource.close()
         }
-        this.completionEventListenersEventSource.onerror = function (sseME: Event) {
+        this.completionEventListenersEventSource.onerror = function(sseME: Event) {
           console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
         }
       }
@@ -148,6 +147,7 @@ export default {
   },
 
   created() {
+
     this.dirtyKey = this.computeDirtyKey()
     console.log('the dirty key is ' + this.dirtyKey)
   },
@@ -159,6 +159,7 @@ export default {
 
   data() {
     return {
+      draftEpisodeSegments: [] as Array<EpisodeSegment>,
       completionEventListenersEventSource: null as any as EventSource,
       completionEventListeners: [],
       selectedPlugin: '',
@@ -211,33 +212,45 @@ export default {
       <textarea id="episodeDescription" rows="10" required v-model="description" />
 
       <div v-if="draftEpisode">
-        <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
+        <div  v-if="draftEpisode.graphic"   class="pure-g episode-managed-file-row">
           <div class="pure-u-3-24"><label>graphic</label></div>
           <div class="pure-u-21-24">
             <ManagedFileComponent
               accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
               v-model:managed-file-id="draftEpisode.graphic.id"
-            />
+            >
+
+
+            </ManagedFileComponent>
           </div>
         </div>
-        <div v-if="draftEpisode.introduction" class="pure-g episode-managed-file-row">
-          <div class="pure-u-3-24"><label>introduction</label></div>
-          <div class="pure-u-21-24">
-            <ManagedFileComponent
-              accept=".mp3,audio/mpeg"
-              v-model:managed-file-id="draftEpisode.introduction.id"
-            />
-          </div>
+
+
+        <div v-bind:key="segment.id" v-for="segment in draftEpisodeSegments">
+
+                <div  class="pure-g episode-managed-file-row">
+                <div class="pure-u-3-24"><label> {{$t('episodes.episode.segments.number',{order:segment.order})}}  </label></div>
+                <div class="pure-u-21-24">
+                  <ManagedFileComponent
+                      accept=".mp3,audio/mpeg"
+                    v-model:managed-file-id="segment.audio.id"
+                  >
+
+                    <div style="width : 150px">
+                      up | down | delete
+                    </div>
+
+                  </ManagedFileComponent>
+                </div>
+              </div>
+
+
         </div>
-        <div v-if="draftEpisode.interview" class="pure-g episode-managed-file-row">
-          <div class="pure-u-3-24"><label>interview</label></div>
-          <div class="pure-u-21-24">
-            <ManagedFileComponent
-              v-model:managed-file-id="draftEpisode.interview.id"
-              accept=".mp3,audio/mpeg"
-            />
-          </div>
-        </div>
+
+
+
+
+
       </div>
       <div class="podcast-episode-controls-row">
         <span class="save">

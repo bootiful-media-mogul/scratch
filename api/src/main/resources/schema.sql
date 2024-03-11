@@ -68,6 +68,8 @@ create table if not exists publication
     payload_class text      not null
 );
 
+
+
 create table if not exists podcast_episode
 (
     podcast_id     bigint             not null references podcast (id),
@@ -77,12 +79,6 @@ create table if not exists podcast_episode
     graphic        bigint             not null references managed_file (id),
     produced_graphic      bigint null references managed_file (id),
 
-    interview      bigint             not null references managed_file (id),
-    produced_interview    bigint null references managed_file (id),
-
-    introduction   bigint             not null references managed_file (id),
-    produced_introduction bigint null references managed_file (id),
-
     produced_audio bigint             null references managed_file (id),
     produced_audio_updated        timestamp null,
     produced_audio_assets_updated timestamp null,
@@ -91,4 +87,15 @@ create table if not exists podcast_episode
 
     id             serial primary key not null,
     created        timestamp          not null default now()
+);
+
+create table if not exists podcast_episode_segment
+(
+    id                                     serial primary key,
+    podcast_episode_id                     bigint not null references podcast_episode (id),
+    segment_audio_managed_file_id          bigint not null references managed_file (id),
+    produced_segment_audio_managed_file_id bigint not null references managed_file (id),
+    cross_fade_duration                    bigint not null default 0,
+    name                                   text   not null,
+    sequence_number                        int    not null default 0
 );

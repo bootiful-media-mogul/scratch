@@ -20,10 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
@@ -87,6 +84,11 @@ class PodcastController {
 	}
 
 	@SchemaMapping
+	List<Segment> segments (Episode episode) {
+		return this.podcastService.getEpisodeSegmentsByEpisode(episode.id()) ;
+	}
+
+	@SchemaMapping
 	long created(Episode episode) {
 		return episode.created().getTime();
 	}
@@ -101,7 +103,7 @@ class PodcastController {
 		return this.podcastService.getAllPodcastsByMogul(mogulService.getCurrentMogul().id());
 	}
 
-	@SchemaMapping(typeName = "Podcast")
+	@SchemaMapping
 	Collection<Episode> episodes(Podcast podcast) {
 		this.mogulService.assertAuthorizedMogul(podcast.mogulId());
 		return this.podcastService.getEpisodesByPodcast(podcast.id());
