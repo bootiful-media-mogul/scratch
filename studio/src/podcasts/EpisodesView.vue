@@ -208,6 +208,7 @@ export default {
     {{ $t('episodes.episodes', { title: currentPodcast.title }) }}
   </h1>
 
+
   <form class="pure-form pure-form-stacked">
     <fieldset>
       <legend>
@@ -217,26 +218,64 @@ export default {
         <span v-else> {{ $t('episodes.new-episode') }} </span>
       </legend>
 
-      <label for="episodeTitle">
-        {{ $t('episodes.episode.title') }}
-        <AiWorkshopItIconComponent
-          :prompt="$t('episodes.episode.title.ai-prompt')"
-          :text="title"
-          @ai-workshop-completed="title = $event.text"
-        />
-      </label>
-      <input id="episodeTitle" required v-model="title" type="text" />
+      <div class="form-section">
+        <div class="form-section-title"> Basics</div>
 
-      <label for="episodeDescription">
-        {{ $t('episodes.episode.description') }}
 
-        <AiWorkshopItIconComponent
-          :prompt="$t('episodes.episode.description.ai-prompt')"
-          :text="description"
-          @ai-workshop-completed="description = $event.text"
-        />
-      </label>
-      <textarea id="episodeDescription" rows="10" required v-model="description" />
+        <label for="episodeTitle">
+          {{ $t('episodes.episode.title') }}
+          <AiWorkshopItIconComponent
+            :prompt="$t('episodes.episode.title.ai-prompt')"
+            :text="title"
+            @ai-workshop-completed="title = $event.text"
+          />
+        </label>
+        <input id="episodeTitle" required v-model="title" type="text" />
+
+        <label for="episodeDescription">
+          {{ $t('episodes.episode.description') }}
+
+          <AiWorkshopItIconComponent
+            :prompt="$t('episodes.episode.description.ai-prompt')"
+            :text="description"
+            @ai-workshop-completed="description = $event.text"
+          />
+        </label>
+        <textarea id="episodeDescription" rows="10" required v-model="description" />
+
+        <div class="podcast-episode-controls-row">
+        <span class="save">
+          <button
+            @click="save"
+            :disabled="buttonsDisabled()"
+            type="submit"
+            class="pure-button pure-button-primary"
+          >
+            {{ $t('episodes.buttons.save') }}
+          </button>
+        </span>
+          <span class="cancel">
+          <button
+            @click="cancel"
+            type="submit"
+            :disabled="description == '' && title == ''"
+            class="pure-button pure-button-primary"
+          >
+            {{ $t('episodes.buttons.cancel') }}
+          </button>
+        </span>
+
+
+        </div>
+
+
+      </div>
+
+
+      <div class="form-section">
+        <div class="form-section-title">
+          Segments
+        </div>
 
       <div v-if="draftEpisode">
         <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
@@ -284,60 +323,45 @@ export default {
 
 
         </div>
-
-
       </div>
-      <div class="podcast-episode-controls-row">
-        <span class="save">
-          <button
-            @click="save"
-            :disabled="buttonsDisabled()"
-            type="submit"
-            class="pure-button pure-button-primary"
-          >
-            {{ $t('episodes.buttons.save') }}
-          </button>
-        </span>
-        <span class="cancel">
-          <button
-            @click="cancel"
-            type="submit"
-            :disabled="description == '' && title == ''"
-            class="pure-button pure-button-primary"
-          >
-            {{ $t('episodes.buttons.cancel') }}
-          </button>
-        </span>
 
-        <div class="publish-menu">
-          <select
-            v-model="selectedPlugin"
-            @change="pluginSelected"
-            :disabled="!draftEpisode.complete"
-          >
-            <option disabled value="">
-              {{ $t('episodes.plugins.please-select-a-plugin') }}
-            </option>
-
-            <option
-              v-for="(option, index) in draftEpisode.availablePlugins"
-              :key="index"
-              :value="option"
+        <div class="form-section">
+          <div class="form-section-title">
+          Publications
+          </div>
+          <div>
+          <div class="publish-menu">
+            <select
+              v-model="selectedPlugin"
+              @change="pluginSelected"
+              :disabled="!draftEpisode.complete"
             >
-              {{ option }}
-            </option>
-          </select>
+              <option disabled value="">
+                {{ $t('episodes.plugins.please-select-a-plugin') }}
+              </option>
 
-          <button
-            :disabled="!draftEpisode.complete"
-            @click="publish"
-            type="submit"
-            class="pure-button pure-button-primary publish-button"
-          >
-            {{ $t('episodes.buttons.publish') }}
-          </button>
+              <option
+                v-for="(option, index) in draftEpisode.availablePlugins"
+                :key="index"
+                :value="option"
+              >
+                {{ option }}
+              </option>
+            </select>
+
+            <button
+              :disabled="!draftEpisode.complete"
+              @click="publish"
+              type="submit"
+              class="pure-button pure-button-primary publish-button"
+            >
+              {{ $t('episodes.buttons.publish') }}
+            </button>
+          </div>
+        </div>
         </div>
       </div>
+
     </fieldset>
   </form>
 
