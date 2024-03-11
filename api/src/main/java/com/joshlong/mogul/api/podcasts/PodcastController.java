@@ -83,7 +83,8 @@ class PodcastController {
 	@MutationMapping
 	boolean addPodcastEpisodeSegment (@Argument Long episodeId) {
 		var mogul = this.mogulService.getCurrentMogul() .id();
-		var sg =this.podcastService.createEpisodeSegment( mogul , episodeId ,
+
+		this.podcastService.createEpisodeSegment(mogul, episodeId,
 				 "" , 0 ) ;
 
 		return true;

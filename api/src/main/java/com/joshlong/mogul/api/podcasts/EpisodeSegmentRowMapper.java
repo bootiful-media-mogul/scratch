@@ -10,14 +10,17 @@ import java.util.function.Function;
 class EpisodeSegmentRowMapper implements RowMapper<Segment> {
 
     private final Function<Long, ManagedFile> managedFileFunction;
+    private final Function <Long, Episode> episodeFunction;
 
-    EpisodeSegmentRowMapper(Function<Long, ManagedFile> managedFileFunction) {
+    EpisodeSegmentRowMapper(Function<Long, ManagedFile> managedFileFunction, Function<Long, Episode> episodeFunction) {
         this.managedFileFunction = managedFileFunction;
+        this.episodeFunction = episodeFunction;
     }
 
     @Override
     public Segment mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new Segment(
+        var episode = episodeFunction .apply( rs.getLong("podcast_episode_id"));
+        return new Segment(episode,
                 rs.getLong("id"),
                 managedFileFunction.apply(rs.getLong("segment_audio_managed_file_id")),
                 managedFileFunction.apply(rs.getLong("produced_segment_audio_managed_file_id")),

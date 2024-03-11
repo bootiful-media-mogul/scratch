@@ -58,7 +58,7 @@ class DefaultPodcastService implements PodcastService {
 		return this.db
 				.sql(sql)
 				.params(episodeId)
-				.query(new EpisodeSegmentRowMapper(this.managedFileService::getManagedFile))
+				.query(new EpisodeSegmentRowMapper(this.managedFileService::getManagedFile, this::getEpisodeById))
 				.list();
 	}
 
@@ -78,7 +78,7 @@ class DefaultPodcastService implements PodcastService {
 
 	@ApplicationModuleListener
 	void podcastEpisodeManagedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
-		// TODO
+
 
 		  var episode =
 		  findUpdatedEpisodeForManagedFile(managedFileUpdatedEvent.managedFile()); var
@@ -239,8 +239,8 @@ class DefaultPodcastService implements PodcastService {
 		return res.isEmpty() ? null : res.getFirst();
 	}
 
-	@Override
-	public void updateEpisodeSegmentOrder(Long episodeSegmentId, int order) {
+
+	private void updateEpisodeSegmentOrder(Long episodeSegmentId, int order) {
 		log.info("updating podcast_episode_segment [" + episodeSegmentId +
 				"] to sequence_number : " + order);
 		this.db.sql("update podcast_episode_segment set sequence_number = ? where id = ?")
@@ -303,7 +303,7 @@ class DefaultPodcastService implements PodcastService {
 				.update();
 		for (var managedFileId : managedFilesToDelete)
 			this.managedFileService.deleteManagedFile(managedFileId);
-
+		this.reorderSegments(getEpisodeSegmentsByEpisode(segment.episode().id()));
 	}
 
 	@Override
@@ -330,7 +330,7 @@ class DefaultPodcastService implements PodcastService {
 
 		var episode = getEpisodeById(episodeId);
 
-		// todo
+		// todo delete podcast episode
 		var ids = new HashSet<Long>();
 		func.accept(episode.graphic(), ids);
 		func.accept(episode.producedAudio(), ids);
@@ -418,7 +418,7 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public Segment getEpisodeSegmentById(Long episodeSegmentId) {
-		var rowMapper = new EpisodeSegmentRowMapper(this.managedFileService::getManagedFile);
+		var rowMapper = new EpisodeSegmentRowMapper(this.managedFileService::getManagedFile, this::getEpisodeById);
 		return this.db//
 				.sql("select * from podcast_episode_segment where id =?")//
 				.params(episodeSegmentId)

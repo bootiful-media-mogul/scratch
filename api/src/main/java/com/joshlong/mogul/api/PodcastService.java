@@ -10,47 +10,46 @@ import java.util.List;
 
 public interface PodcastService {
 
-	String PODCAST_EPISODES_BUCKET = "mogul-podcast-episodes";
+    String PODCAST_EPISODES_BUCKET = "mogul-podcast-episodes";
 
 
+    Segment createEpisodeSegment(
+            Long mogulId, Long episodeId,
+            String name, long crossfade
+    );
 
-	Segment createEpisodeSegment(
-			Long mogulId, Long episodeId,
-			String name, long crossfade
-	);
+    void movePodcastEpisodeSegmentUp(Long episode, Long segment);
 
-  void movePodcastEpisodeSegmentUp(Long episode, Long segment)  ;
-  void movePodcastEpisodeSegmentDown(Long episode, Long segment)  ;
+    void movePodcastEpisodeSegmentDown(Long episode, Long segment);
 
-	void deletePodcastEpisodeSegment(Long episodeSegmentId);
+    void deletePodcastEpisodeSegment(Long episodeSegmentId);
 
-	void updateEpisodeSegmentOrder(Long episodeSegmentId, int order);
 
-	Segment getEpisodeSegmentById(Long episodeSegmentId);
+    Segment getEpisodeSegmentById(Long episodeSegmentId);
 
-	List<Segment> getEpisodeSegmentsByEpisode(Long id);
+    List<Segment> getEpisodeSegmentsByEpisode(Long id);
 
-	Collection<Podcast> getAllPodcastsByMogul(Long mogulId);
+    Collection<Podcast> getAllPodcastsByMogul(Long mogulId);
 
-	Collection<Episode> getEpisodesByPodcast(Long podcastId);
+    Collection<Episode> getEpisodesByPodcast(Long podcastId);
 
-	Podcast createPodcast(Long mogulId, String title);
+    Podcast createPodcast(Long mogulId, String title);
 
-	Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
-								 ManagedFile producedGraphic, ManagedFile producedAudio);
+    Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
+                                 ManagedFile producedGraphic, ManagedFile producedAudio);
 
-	Podcast getPodcastById(Long podcastId);
+    Podcast getPodcastById(Long podcastId);
 
-	Episode getEpisodeById(Long episodeId);
+    Episode getEpisodeById(Long episodeId);
 
-	void deletePodcast(Long podcastId);
+    void deletePodcast(Long podcastId);
 
-	void deletePodcastEpisode(Long episodeId);
+    void deletePodcastEpisode(Long episodeId);
 
-	Episode createPodcastEpisodeDraft(Long currentMogulId, Long podcastId, String title, String description);
+    Episode createPodcastEpisodeDraft(Long currentMogulId, Long podcastId, String title, String description);
 
-	Episode updatePodcastEpisodeDraft(Long episodeId, String title, String description);
+    Episode updatePodcastEpisodeDraft(Long episodeId, String title, String description);
 
-	Episode writePodcastEpisodeProducedAudio(Long episodeId, Long managedFileId);
+    Episode writePodcastEpisodeProducedAudio(Long episodeId, Long managedFileId);
 
 }

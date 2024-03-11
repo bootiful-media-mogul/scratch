@@ -171,6 +171,7 @@ export default {
       this.draftEpisode = reactive({} as PodcastEpisode)
       this.title = ''
       this.description = ''
+      this.draftEpisodeSegments = []
       await this.loadPodcast()
     },
 
