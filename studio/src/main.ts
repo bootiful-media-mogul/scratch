@@ -32,7 +32,7 @@ const translations = {
     // previews
 
     // managed files
-    'managedfiles.please-upload-a-file': 'please upload a file',
+    'managedfiles.please-upload-a-file': '(please upload a file.)',
     // app
     'app.menu.home': 'home',
     'app.menu.settings': 'settings',
