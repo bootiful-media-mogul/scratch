@@ -75,6 +75,17 @@ class Podcasts {
     this.client = client
   }
 
+  async addPodcastEpisodeSegment(episodeId: number) {
+    const mutation = ` 
+          mutation AddPodcastEpisodeSegment($episodeId: ID  ){ 
+            addPodcastEpisodeSegment(episodeId:$episodeId  ) 
+          }
+        `
+    await this.client.mutation(mutation, {
+      episodeId: episodeId
+    })
+    return true
+  }
 
   async publishPodcastEpisode(episodeId: number, pluginName: string): Promise<boolean> {
     const mutation = ` 

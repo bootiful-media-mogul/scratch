@@ -53,6 +53,13 @@ export default {
       await this.cancel(new Event(''))
     },
 
+
+    async addNewPodcastEpisodeSegment(episode: PodcastEpisode) {
+      console.log('add a new podcast episode segment')
+      await podcasts.addPodcastEpisodeSegment(episode.id)
+      await this.loadEpisodeSegments(episode)
+    },
+
     async loadEpisode(episode: PodcastEpisode) {
       this.draftEpisode.id = episode.id
       this.draftEpisode.graphic = episode.graphic
@@ -277,44 +284,16 @@ export default {
           Segments
         </div>
 
-      <div v-if="draftEpisode">
-        <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
-          <div class="pure-u-3-24"><label>{{ $t('episodes.episode.graphic') }}</label></div>
-          <div class="pure-u-21-24">
-            <ManagedFileComponent
-              accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
-              v-model:managed-file-id="draftEpisode.graphic.id"
-            >
-              <div class="segment-controls">
-
-              </div>
-
-            </ManagedFileComponent>
-          </div>
-        </div>
-
-
-        <div v-bind:key="segment.id" v-for="segment in draftEpisodeSegments">
-
-          <div class="pure-g episode-managed-file-row">
-            <div class="pure-u-3-24">
-
-              <label>
-                {{ $t('episodes.episode.segments.number', { order: segment.order }) }}
-              </label>
-            </div>
+        <div v-if="draftEpisode">
+          <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
+            <div class="pure-u-3-24"><label>{{ $t('episodes.episode.graphic') }}</label></div>
             <div class="pure-u-21-24">
               <ManagedFileComponent
-                accept=".mp3,audio/mpeg"
-                v-model:managed-file-id="segment.audio.id"
+                accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
+                v-model:managed-file-id="draftEpisode.graphic.id"
               >
-
                 <div class="segment-controls">
-                  <a @click.prevent="movePodcastEpisodeSegmentUp(draftEpisode,segment)" href="#" class="up-arrow-icon">&uarr;</a>
-                  <a @click.prevent="movePodcastEpisodeSegmentDown(draftEpisode,segment)" href="#"
-                     class="down-arrow-icon">&darr;</a>
-                  <a @click.prevent="deletePodcastEpisodeSegment( draftEpisode ,segment )" href="#"
-                     class="delete-icon"></a>
+
                 </div>
 
               </ManagedFileComponent>
@@ -322,43 +301,89 @@ export default {
           </div>
 
 
+          <div v-bind:key="segment.id" v-for="segment in draftEpisodeSegments">
+
+            <div class="pure-g episode-managed-file-row">
+              <div class="pure-u-3-24">
+
+                <label>
+                  {{ $t('episodes.episode.segments.number', { order: segment.order }) }}
+                </label>
+              </div>
+              <div class="pure-u-21-24">
+                <ManagedFileComponent
+                  accept=".mp3,audio/mpeg"
+                  v-model:managed-file-id="segment.audio.id"
+                >
+
+                  <div class="segment-controls">
+                    <a @click.prevent="movePodcastEpisodeSegmentUp(draftEpisode,segment)" href="#"
+                       class="up-arrow-icon">&uarr;</a>
+                    <a @click.prevent="movePodcastEpisodeSegmentDown(draftEpisode,segment)" href="#"
+                       class="down-arrow-icon">&darr;</a>
+                    <a @click.prevent="deletePodcastEpisodeSegment( draftEpisode ,segment )" href="#"
+                       class="delete-icon"></a>
+                  </div>
+
+                </ManagedFileComponent>
+              </div>
+            </div>
+
+
+          </div>
+
+
+          <div class="podcast-episode-controls-row">
+                  <span class="save">
+                    <button
+                      @click.prevent="addNewPodcastEpisodeSegment(draftEpisode)"
+                      type="submit"
+                      class="pure-button pure-button-primary"
+                    >
+                      {{ $t('episodes.buttons.add-segment') }}
+                    </button>
+                  </span>
+
+
+          </div>
+
+
         </div>
-      </div>
 
         <div class="form-section">
           <div class="form-section-title">
-          Publications
+            Publications
           </div>
           <div>
-          <div class="publish-menu">
-            <select
-              v-model="selectedPlugin"
-              @change="pluginSelected"
-              :disabled="!draftEpisode.complete"
-            >
-              <option disabled value="">
-                {{ $t('episodes.plugins.please-select-a-plugin') }}
-              </option>
-
-              <option
-                v-for="(option, index) in draftEpisode.availablePlugins"
-                :key="index"
-                :value="option"
+            <div class="publish-menu">
+              <select
+                v-model="selectedPlugin"
+                @change="pluginSelected"
+                :disabled="!draftEpisode.complete"
               >
-                {{ option }}
-              </option>
-            </select>
+                <option disabled value="">
+                  {{ $t('episodes.plugins.please-select-a-plugin') }}
+                </option>
 
-            <button
-              :disabled="!draftEpisode.complete"
-              @click="publish"
-              type="submit"
-              class="pure-button pure-button-primary publish-button"
-            >
-              {{ $t('episodes.buttons.publish') }}
-            </button>
+                <option
+                  v-for="(option, index) in draftEpisode.availablePlugins"
+                  :key="index"
+                  :value="option"
+                >
+                  {{ option }}
+                </option>
+              </select>
+
+              <button
+                :disabled="!draftEpisode.complete"
+                @click="publish"
+                type="submit"
+                class="pure-button pure-button-primary publish-button"
+              >
+                {{ $t('episodes.buttons.publish') }}
+              </button>
+            </div>
           </div>
-        </div>
         </div>
       </div>
 

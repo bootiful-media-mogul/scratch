@@ -16,7 +16,7 @@ public interface PodcastService {
 
 	Segment createEpisodeSegment(
 			Long mogulId, Long episodeId,
-			String name, long crossfade, int order
+			String name, long crossfade
 	);
 
   void movePodcastEpisodeSegmentUp(Long episode, Long segment)  ;

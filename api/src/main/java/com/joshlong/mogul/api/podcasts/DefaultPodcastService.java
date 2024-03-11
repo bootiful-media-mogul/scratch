@@ -258,17 +258,23 @@ class DefaultPodcastService implements PodcastService {
 		var positionOfSegment = segments.indexOf(segment);
 		var newPositionOfSegment = positionOfSegment + position;
 
-		System.out.println("current:" + positionOfSegment);
-		System.out.println("new:" + newPositionOfSegment);
+		log.debug("current:" + positionOfSegment);
+		log.debug("new:" + newPositionOfSegment);
 
 		if (newPositionOfSegment < 0 || newPositionOfSegment > (segments.size() - 1)) {
-			log.info("you're trying to move out of bounds");
+			log.debug(
+					"you're trying to move out of bounds");
 			return;
 		}
 		segments.remove( segment) ;
 		segments.add (newPositionOfSegment, segment);
 
-		System.out.println(segments);
+
+		this.reorderSegments(segments);
+	}
+
+	private void reorderSegments(List<Segment> segments) {
+
 		var ctr = 0;
 		for (var s : segments) {
 			ctr += 1;
@@ -352,7 +358,14 @@ class DefaultPodcastService implements PodcastService {
 
 
 	@Override
-	public Segment createEpisodeSegment(Long mogulId, Long episodeId, String name, long crossfade, int order) {
+	public Segment createEpisodeSegment(Long mogulId, Long episodeId, String name, long crossfade) {
+		var maxOrder = (db
+				.sql("select  max( sequence_number) from podcast_episode_segment where podcast_episode_id = ? ")
+				.params(episodeId)
+				.query(Number.class)
+				.optional()
+				.orElse(0).longValue())
+				+ 1;
 		var uid = UUID.randomUUID().toString();
 		var bucket = PodcastService.PODCAST_EPISODES_BUCKET;
 		this.mogulService.assertAuthorizedMogul(mogulId);
@@ -391,10 +404,15 @@ class DefaultPodcastService implements PodcastService {
 						producedSegmentAudioManagedFile.id(),
 						crossfade,
 						name,
-						order
+						maxOrder
 				)
 				.update(gkh);
 		var id = JdbcUtils.getIdFromKeyHolder(gkh);
+
+		reorderSegments(getEpisodeSegmentsByEpisode(episodeId));
+		//todo
+//		this.movePodcastEpisodeSegmentDown(episodeId, id.longValue());
+
 		return this.getEpisodeSegmentById(id.longValue());
 	}
 
@@ -425,7 +443,7 @@ class DefaultPodcastService implements PodcastService {
 		var episode = createPodcastEpisode(podcastId, title, description, image, producedGraphic,
 				producedAudio);
 		for (var i = 0; i < 3; i++)
-			this.createEpisodeSegment(currentMogulId, episode.id(), "segment#" +i , 0, i);
+			this.createEpisodeSegment(currentMogulId, episode.id(), "", 0);
 		return getEpisodeById(episode.id());
 	}
 

@@ -42,6 +42,7 @@ const translations = {
     // episode segments
     'episodes.episode.segments.number' : 'segment {order} ',
     'episodes.episode.graphic' : 'graphic',
+    'episodes.buttons.add-segment' :'add a new segment' ,
 
     // episodes
     'episodes.title': 'all episodes',
