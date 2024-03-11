@@ -103,7 +103,7 @@ export default {
   methods: {
     async deletePodcast(id: number) {
       console.log('trying to delete ' + id)
-      const deleted = await podcasts.delete(id)
+      const deleted = await podcasts.deletePodcast(id)
       // nb: i tried just setting the variable podcasts to a new array, but vue.js didn't 'see' that
       // so it's safer to modify the existing collection
       this.podcasts = this.podcasts.filter((p) => p.id != deleted)

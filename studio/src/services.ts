@@ -93,7 +93,7 @@ class Podcasts {
     episodeId: number,
     title: string,
     description: string
-  ): Promise<Episode> {
+  ): Promise<PodcastEpisode> {
     const mutation = `
          mutation UpdatePodcastEpisode  ($episode: ID, $title: String, $description: String ){ 
           updatePodcastEpisode ( episodeId: $episode, title: $title, description: $description) { 
@@ -113,7 +113,7 @@ class Podcasts {
     return await this.podcastEpisodeById(res['id'])
   }
 
-  async podcastEpisodeById(id: number): Promise<Episode> {
+  async podcastEpisodeById(id: number): Promise<PodcastEpisode> {
     const q = `
            query GetPodcastEpisode ( $id: ID){
                 podcastEpisodeById ( id : $id) {
@@ -127,7 +127,7 @@ class Podcasts {
         `
     const res = await this.client.query(q, { id: id })
 
-    return (await res.data['podcastEpisodeById']) as Episode
+    return (await res.data['podcastEpisodeById']) as PodcastEpisode
   }
 
   async create(title: string): Promise<Podcast> {
@@ -144,7 +144,7 @@ class Podcasts {
     return (await result.data['createPodcast']) as Podcast
   }
 
-  async podcastEpisodes(podcastId: number): Promise<Array<Episode>> {
+  async podcastEpisodes(podcastId: number): Promise<Array<PodcastEpisode>> {
     const q = `
         query GetPodcastEpisodesByPodcast( $podcastId: ID){
             podcastEpisodesByPodcast ( podcastId : $podcastId) {
@@ -166,10 +166,23 @@ class Podcasts {
         }
         `
     const res = await this.client.query(q, { podcastId: podcastId })
-    return  (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
+    return (await res.data['podcastEpisodesByPodcast']) as Array<PodcastEpisode>
   }
 
-  async deleteEpisode(id: number) {
+  async deletePodcastEpisodeSegment(id: number) {
+    const mutation = `
+         mutation DeletePodcastEpisodeSegment ($id: ID ){ 
+          deletePodcastEpisodeSegment(id: $id)  
+         }
+        `
+    const result = await this.client.mutation(mutation, {
+      id: id
+    })
+    return (await result.data['deletePodcastEpisodeSegment']) as Number
+
+  }
+
+  async deletePodcastEpisode(id: number) {
     const mutation = `
          mutation DeletePodcastEpisode ($id: ID ){ 
           deletePodcastEpisode(id: $id)  
@@ -181,7 +194,7 @@ class Podcasts {
     return (await result.data['deletePodcastEpisode']) as Number
   }
 
-  async delete(id: number) {
+  async deletePodcast(id: number) {
     const mutation = `
          mutation DeletePodcast ($id: ID ){ 
           deletePodcast(id: $id)  
@@ -209,7 +222,7 @@ class Podcasts {
     podcastId: number,
     title: string,
     description: string
-  ): Promise<Episode> {
+  ): Promise<PodcastEpisode> {
     const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
@@ -242,6 +255,38 @@ class Podcasts {
         `
     const result = await this.client.query(q, { id: podcastId })
     return (await result.data['podcastById']) as Podcast
+  }
+
+  async movePodcastEpisodeSegmentDown(episodeId: number, episodeSegmentId: number) {
+
+    const mutation = `
+         mutation MovePodcastEpisodeSegmentDown ($episodeId: ID, $episodeSegmentId: Int  ){ 
+          movePodcastEpisodeSegmentDown(  episodeId: $episodeId,  episodeSegmentId: $episodeSegmentId  ) 
+         }
+        `
+    const result = await this.client.mutation(mutation, {
+      episodeId: episodeId,
+      episodeSegmentId: episodeSegmentId
+    })
+    const id = await result.data
+    console.log('id', id)
+  }
+
+  async movePodcastEpisodeSegmentUp(episodeId: number, episodeSegmentId: number) {
+
+    const mutation = `
+    
+    
+         mutation MovePodcastEpisodeSegmentUp ($episodeId: ID, $episodeSegmentId: Int  ){ 
+          movePodcastEpisodeSegmentUp(  episodeId: $episodeId,  episodeSegmentId: $episodeSegmentId )  
+         }
+        `
+    const result = await this.client.mutation(mutation, {
+      episodeId: episodeId,
+      episodeSegmentId: episodeSegmentId
+    })
+    const id = await result.data
+    console.log('id', id)
   }
 }
 
@@ -300,7 +345,7 @@ export class ManagedFile {
   }
 }
 
-export class EpisodeSegment {
+export class PodcastEpisodeSegment {
   id: number
   name: string
   audio: ManagedFile
@@ -315,7 +360,7 @@ export class EpisodeSegment {
   }
 }
 
-export class Episode {
+export class PodcastEpisode {
   availablePlugins: Array<string>
   id: number
   title: string
@@ -323,7 +368,7 @@ export class Episode {
   graphic: ManagedFile
   complete: boolean = false
   created: number = 0
-  segments: Array<EpisodeSegment>
+  segments: Array<PodcastEpisodeSegment>
 
   constructor(
     id: number,
@@ -333,7 +378,7 @@ export class Episode {
     complete: boolean,
     created: number,
     availablePlugins: Array<string>,
-    segments: Array<EpisodeSegment>
+    segments: Array<PodcastEpisodeSegment>
   ) {
     this.availablePlugins = availablePlugins
     this.id = id

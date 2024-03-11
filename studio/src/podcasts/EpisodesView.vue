@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Episode, EpisodeSegment, Podcast, podcasts } from '@/services'
+import { PodcastEpisode, PodcastEpisodeSegment, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
 import { reactive } from 'vue'
@@ -28,12 +28,32 @@ export default {
       this.episodes = await podcasts.podcastEpisodes(newPodcastId)
     },
 
-    async deleteEpisode(episode: Episode) {
-      await podcasts.deleteEpisode(episode.id)
+    async movePodcastEpisodeSegmentDown(
+      episode: PodcastEpisode, episodeSegment: PodcastEpisodeSegment) {
+
+      console.log('you want to move segment [', episodeSegment, '] down one, eh?')
+      await podcasts.movePodcastEpisodeSegmentDown(episode.id, episodeSegment.id)
+      await this.loadEpisodeSegments(episode)
+
+    },
+
+    async movePodcastEpisodeSegmentUp(
+      episode: PodcastEpisode, episodeSegment: PodcastEpisodeSegment) {
+      await podcasts.movePodcastEpisodeSegmentUp(episode.id, episodeSegment.id)
+      await this.loadEpisodeSegments(episode)
+    },
+
+    async deletePodcastEpisodeSegment(episode: PodcastEpisode,
+                                      episodeSegment: PodcastEpisodeSegment) {
+      await podcasts.deletePodcastEpisodeSegment(episodeSegment.id)
+      await this.loadEpisodeSegments(episode)
+    },
+    async deletePodcastEpisode(episode: PodcastEpisode) {
+      await podcasts.deletePodcastEpisode(episode.id)
       await this.cancel(new Event(''))
     },
 
-    async loadEpisode(episode: Episode) {
+    async loadEpisode(episode: PodcastEpisode) {
       this.draftEpisode.id = episode.id
       this.draftEpisode.graphic = episode.graphic
       this.draftEpisode.title = episode.title
@@ -105,10 +125,12 @@ export default {
       e.preventDefault()
       await podcasts.publishPodcastEpisode(this.draftEpisode.id, this.selectedPlugin)
     },
+
     pluginSelected(e: Event) {
       e.preventDefault()
       console.log('so you selected a plugin, didja ? it is ' + JSON.stringify(this.selectedPlugin))
     },
+
 
     /**
      * returns true if the buttons should be disabled because there's no change in the data in the form.
@@ -139,15 +161,20 @@ export default {
 
     async cancel(e: Event) {
       e.preventDefault()
-      this.draftEpisode = reactive({} as Episode)
+      this.draftEpisode = reactive({} as PodcastEpisode)
       this.title = ''
       this.description = ''
       await this.loadPodcast()
+    },
+
+    async loadEpisodeSegments(episode: PodcastEpisode) {
+      const ep = await podcasts.podcastEpisodeById(episode.id)
+      this.draftEpisodeSegments = ep.segments
+      console.log('reloaded the segments')
     }
   },
 
   created() {
-
     this.dirtyKey = this.computeDirtyKey()
     console.log('the dirty key is ' + this.dirtyKey)
   },
@@ -159,13 +186,13 @@ export default {
 
   data() {
     return {
-      draftEpisodeSegments: [] as Array<EpisodeSegment>,
+      draftEpisodeSegments: [] as Array<PodcastEpisodeSegment>,
       completionEventListenersEventSource: null as any as EventSource,
       completionEventListeners: [],
       selectedPlugin: '',
       created: -1,
-      draftEpisode: reactive({} as Episode),
-      episodes: [] as Array<Episode>,
+      draftEpisode: reactive({} as PodcastEpisode),
+      episodes: [] as Array<PodcastEpisode>,
       currentPodcast: null as any as Podcast,
       selectedPodcastId: this.id,
       title: '',
@@ -212,14 +239,16 @@ export default {
       <textarea id="episodeDescription" rows="10" required v-model="description" />
 
       <div v-if="draftEpisode">
-        <div  v-if="draftEpisode.graphic"   class="pure-g episode-managed-file-row">
-          <div class="pure-u-3-24"><label>graphic</label></div>
+        <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
+          <div class="pure-u-3-24"><label>{{ $t('episodes.episode.graphic') }}</label></div>
           <div class="pure-u-21-24">
             <ManagedFileComponent
               accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
               v-model:managed-file-id="draftEpisode.graphic.id"
             >
+              <div class="segment-controls">
 
+              </div>
 
             </ManagedFileComponent>
           </div>
@@ -228,27 +257,33 @@ export default {
 
         <div v-bind:key="segment.id" v-for="segment in draftEpisodeSegments">
 
-                <div  class="pure-g episode-managed-file-row">
-                <div class="pure-u-3-24"><label> {{$t('episodes.episode.segments.number',{order:segment.order})}}  </label></div>
-                <div class="pure-u-21-24">
-                  <ManagedFileComponent
-                      accept=".mp3,audio/mpeg"
-                    v-model:managed-file-id="segment.audio.id"
-                  >
+          <div class="pure-g episode-managed-file-row">
+            <div class="pure-u-3-24">
 
-                    <div style="width : 150px">
-                      up | down | delete
-                    </div>
+              <label>
+                {{ $t('episodes.episode.segments.number', { order: segment.order }) }}
+              </label>
+            </div>
+            <div class="pure-u-21-24">
+              <ManagedFileComponent
+                accept=".mp3,audio/mpeg"
+                v-model:managed-file-id="segment.audio.id"
+              >
 
-                  </ManagedFileComponent>
+                <div class="segment-controls">
+                  <a @click.prevent="movePodcastEpisodeSegmentUp(draftEpisode,segment)" href="#" class="up-arrow-icon">&uarr;</a>
+                  <a @click.prevent="movePodcastEpisodeSegmentDown(draftEpisode,segment)" href="#"
+                     class="down-arrow-icon">&darr;</a>
+                  <a @click.prevent="deletePodcastEpisodeSegment( draftEpisode ,segment )" href="#"
+                     class="delete-icon"></a>
                 </div>
-              </div>
+
+              </ManagedFileComponent>
+            </div>
+          </div>
 
 
         </div>
-
-
-
 
 
       </div>
@@ -319,7 +354,7 @@ export default {
         <div class="created">{{ dateTimeFormatter().format(new Date(episode.created)) }}</div>
         <div class="edit"><a href="#" @click="loadEpisode(episode)" class="edit-icon"> </a></div>
         <div class="delete">
-          <a href="#" @click="deleteEpisode(episode)" class="delete-icon"></a>
+          <a href="#" @click="deletePodcastEpisode(episode)" class="delete-icon"></a>
         </div>
         <div class="title">{{ episode.title }}</div>
       </div>
@@ -379,8 +414,15 @@ export default {
 }
 
 .episode-managed-file-row label {
-  padding: 0;
   text-align: right;
-  margin: 0 var(--gutter-space) 0 0;
+  padding-right: var(--gutter-space);
+}
+
+
+div.segment-controls {
+  font-size: smaller;
+  display: grid;
+  grid-template-areas: 'up down delete ';
+  grid-template-columns: var(--icon-column)  var(--icon-column)  var(--icon-column);
 }
 </style>

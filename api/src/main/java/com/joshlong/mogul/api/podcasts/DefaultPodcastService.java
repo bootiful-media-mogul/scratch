@@ -54,7 +54,7 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public List<Segment> getEpisodeSegmentsByEpisode(Long episodeId) {
-		var sql = " select * from podcast_episode_segment where podcast_episode_id = ? ";
+		var sql = " select * from podcast_episode_segment where podcast_episode_id = ?  order by sequence_number asc  ";
 		return this.db
 				.sql(sql)
 				.params(episodeId)
@@ -240,6 +240,67 @@ class DefaultPodcastService implements PodcastService {
 	}
 
 	@Override
+	public void updateEpisodeSegmentOrder(Long episodeSegmentId, int order) {
+		log.info("updating podcast_episode_segment [" + episodeSegmentId +
+				"] to sequence_number : " + order);
+		this.db.sql("update podcast_episode_segment set sequence_number = ? where id = ?")
+				.params(order, episodeSegmentId)
+				.update();
+
+	}
+
+	/**
+	 * @param position the delta in position: -1 if the item is to be moved earlier in the collection, +1 if it's to be moved later.
+	 */
+	private void moveEpisodeSegment(Long episodeId, Long segmentId, int position) {
+		var segments = getEpisodeSegmentsByEpisode(episodeId);
+		var segment = getEpisodeSegmentById(segmentId);
+		var positionOfSegment = segments.indexOf(segment);
+		var newPositionOfSegment = positionOfSegment + position;
+
+		System.out.println("current:" + positionOfSegment);
+		System.out.println("new:" + newPositionOfSegment);
+
+		if (newPositionOfSegment < 0 || newPositionOfSegment > (segments.size() - 1)) {
+			log.info("you're trying to move out of bounds");
+			return;
+		}
+		segments.remove( segment) ;
+		segments.add (newPositionOfSegment, segment);
+
+		System.out.println(segments);
+		var ctr = 0;
+		for (var s : segments) {
+			ctr += 1;
+			updateEpisodeSegmentOrder(s.id(), ctr);
+		}
+	}
+
+	@Override
+	public void movePodcastEpisodeSegmentDown(Long episode, Long segment) {
+		moveEpisodeSegment(episode, segment, 1);
+	}
+
+	@Override
+	public void movePodcastEpisodeSegmentUp(Long episode, Long segment) {
+		moveEpisodeSegment(episode, segment, -1);
+
+	}
+
+	@Override
+	public void deletePodcastEpisodeSegment(Long episodeSegmentId) {
+		var segment = getEpisodeSegmentById(episodeSegmentId);
+		Assert.state(segment != null, "you must specify a valid " + Segment.class.getName());
+		var managedFilesToDelete = Set.of(segment.audio().id(), segment.producedAudio().id());
+		this.db.sql("delete from podcast_episode_segment where id =?")
+				.params(episodeSegmentId)
+				.update();
+		for (var managedFileId : managedFilesToDelete)
+			this.managedFileService.deleteManagedFile(managedFileId);
+
+	}
+
+	@Override
 	public void deletePodcast(Long podcastId) {
 		var podcast = getPodcastById(podcastId);
 
@@ -282,6 +343,7 @@ class DefaultPodcastService implements PodcastService {
 
 		this.publisher.publishEvent(new PodcastEpisodeDeletedEvent(episode));
 	}
+
 
 	@Override
 	public Podcast getPodcastById(Long podcastId) {
@@ -336,13 +398,7 @@ class DefaultPodcastService implements PodcastService {
 		return this.getEpisodeSegmentById(id.longValue());
 	}
 
-	@Override
-	public void updateEpisodeSegmentOrder(Long episodeSegmentId, int order) {
-		this.db.sql("update podcast_episode_segment set sequence_number = ? where id = ?")
-				.params(order, episodeSegmentId)
-				.update();
 
-	}
 
 	@Override
 	public Segment getEpisodeSegmentById(Long episodeSegmentId) {

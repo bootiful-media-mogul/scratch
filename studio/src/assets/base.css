@@ -215,11 +215,6 @@ html {
 .sidebar textarea {
 }
 
-.pure-form legend {
-  /*display: block;*/
-  /*top: var(--gutter-space);*/
-  height: calc(var(--gutter-space) * 1);
-}
 
 .sidebar .pure-form legend {
   color: black;
@@ -227,6 +222,7 @@ html {
 }
 
 .pure-form legend {
+  height: calc(var(--gutter-space) * 1);
   box-sizing: unset;
   display: inline-block;
   border-radius: var(--radius) var(--radius) var(--radius)  var(--radius) ;
@@ -255,4 +251,8 @@ html {
 
 .footer a {
   color: white;
+}
+
+.pure-form label {
+  margin-top: 0 ;
 }

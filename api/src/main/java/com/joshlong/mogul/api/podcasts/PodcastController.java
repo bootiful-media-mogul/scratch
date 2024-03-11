@@ -3,9 +3,9 @@ package com.joshlong.mogul.api.podcasts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
-import com.joshlong.mogul.api.settings.Settings;
 import com.joshlong.mogul.api.podcasts.publication.PodcastEpisodePublisherPlugin;
 import com.joshlong.mogul.api.publications.PublicationService;
+import com.joshlong.mogul.api.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -56,6 +56,18 @@ class PodcastController {
 	@QueryMapping
 	Collection<Episode> podcastEpisodesByPodcast(@Argument Long podcastId) {
 		return this.podcastService.getEpisodesByPodcast(podcastId);
+	}
+
+	@MutationMapping
+	boolean movePodcastEpisodeSegmentDown(@Argument Long episodeId, @Argument Long episodeSegmentId) {
+		this.podcastService.movePodcastEpisodeSegmentDown(episodeId, episodeSegmentId);
+		return true;
+	}
+
+	@MutationMapping
+	boolean movePodcastEpisodeSegmentUp(@Argument Long episodeId, @Argument Long episodeSegmentId) {
+		this.podcastService.movePodcastEpisodeSegmentUp(episodeId, episodeSegmentId);
+		return true;
 	}
 
 	@MutationMapping
@@ -114,6 +126,12 @@ class PodcastController {
 		var ep = podcastService.getEpisodeById(id);
 		this.mogulService.assertAuthorizedMogul(ep.podcast().mogulId());
 		podcastService.deletePodcastEpisode(id);
+		return id;
+	}
+
+	@MutationMapping
+	Long deletePodcastEpisodeSegment(@Argument Long id) {
+		this.podcastService.deletePodcastEpisodeSegment(id);
 		return id;
 	}
 

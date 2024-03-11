@@ -2,8 +2,8 @@ package com.joshlong.mogul.api;
 
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import com.joshlong.mogul.api.podcasts.Episode;
-import com.joshlong.mogul.api.podcasts.Segment;
 import com.joshlong.mogul.api.podcasts.Podcast;
+import com.joshlong.mogul.api.podcasts.Segment;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,6 +18,11 @@ public interface PodcastService {
 			Long mogulId, Long episodeId,
 			String name, long crossfade, int order
 	);
+
+  void movePodcastEpisodeSegmentUp(Long episode, Long segment)  ;
+  void movePodcastEpisodeSegmentDown(Long episode, Long segment)  ;
+
+	void deletePodcastEpisodeSegment(Long episodeSegmentId);
 
 	void updateEpisodeSegmentOrder(Long episodeSegmentId, int order);
 
