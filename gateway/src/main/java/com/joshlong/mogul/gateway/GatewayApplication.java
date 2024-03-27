@@ -21,10 +21,13 @@ public class GatewayApplication {
 	@Bean
 	RouteLocator gateway(RouteLocatorBuilder rlb) {
 		var apiPrefix = "/api/";
-		return rlb.routes()
-			.route(rs -> rs.path(apiPrefix + "**")
-				.filters(f -> f.tokenRelay().rewritePath(apiPrefix + "(?<segment>.*)", "/$\\{segment}"))
-				.uri("http://localhost:8080"))
+		return rlb//
+				.routes()
+				.route(rs -> rs
+						.path(apiPrefix + "**")
+						.filters(f -> f.tokenRelay().rewritePath(apiPrefix + "(?<segment>.*)", "/$\\{segment}"))
+						.uri("http://localhost:8080")
+				)
 			.route(rs -> rs.path("/**").uri("http://localhost:5173"))
 			.build();
 	}

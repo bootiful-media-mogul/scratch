@@ -1,318 +1,317 @@
 :root {
-    --sidebar-width: 250px;
-    --gutter-space: 20px;
-    --radius: var(--gutter-space);
-    --button-radius: calc(var(--gutter-space) / 3);
-    --small-gutter-space: calc(0.5 * var(--gutter-space));
-    --form-buttons-gutter-space: calc(0.3 * var(--gutter-space));
-    --icon-width: 20px;
-    --bg-color: cadetblue;
-    --icon-column: calc(var(--gutter-space) * 1.5);
-    --footer-height: calc(var(--gutter-space) * 1.5);
+  --sidebar-width: 250px;
+  --gutter-space: 20px;
+  --radius: var(--gutter-space);
+  --button-radius: calc(var(--gutter-space) / 3);
+  --small-gutter-space: calc(0.5 * var(--gutter-space));
+  --form-buttons-gutter-space: calc(0.3 * var(--gutter-space));
+  --icon-width: 20px;
+  --bg-color: cadetblue;
+  --icon-column: calc(var(--gutter-space) * 1.5);
+  --footer-height: calc(var(--gutter-space) * 1.5);
 }
 
 .managed-file-preview-image {
-    max-width: 100%;
+  max-width: 100%;
 }
 
 .disabled {
-    filter: grayscale(100%);
-    opacity: 30%;
-    cursor: text;
+  filter: grayscale(100%);
+  opacity: 30%;
+  cursor: text;
 }
 
 a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .panel {
-    border-radius: var(--gutter-space) 0 0 var(--gutter-space);
+  border-radius: var(--gutter-space) 0 0 var(--gutter-space);
 }
 
 input[type='text'] {
-    width: 100%;
+  width: 100%;
 }
 
 textarea {
-    width: 100%;
+  width: 100%;
 }
 
 a {
-    color: black;
-    text-decoration: none;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-family: 'Arial Black', sans-serif;
-    font-size: small;
+  color: black;
+  text-decoration: none;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-family: 'Arial Black', sans-serif;
+  font-size: small;
 }
 
 .pure-button {
-    border-color: var(--bg-color);
-    border-radius: var(--button-radius);
+  border-color: var(--bg-color);
+  border-radius: var(--button-radius);
 }
 
 .pure-form-stacked .pure-button {
-    /*margin-top: 0.5em;*/
-    box-sizing: content-box;
-    background-color: black;
+  /*margin-top: 0.5em;*/
+  box-sizing: content-box;
+  background-color: black;
 
-    color: white;
+  color: white;
 }
 
 .pure-form-stacked select {
 }
 
 .form-row {
-    height: calc(2 * var(--gutter-space));
-    vertical-align: bottom;
+  height: calc(2 * var(--gutter-space));
+  vertical-align: bottom;
 }
 
 .pure-form label {
-    text-transform: capitalize;
-    font-size: smaller;
-    margin-top: 1em;
+  text-transform: capitalize;
+  font-size: smaller;
+  margin-top: 1em;
 }
 
 .form-row .pure-button {
-    margin-left: calc(0.5 * var(--gutter-space));
-    right: 0;
+  margin-left: calc(0.5 * var(--gutter-space));
+  right: 0;
 }
 
 a.disabled {
-    color: lightgrey;
-    text-decoration: none;
+  color: lightgrey;
+  text-decoration: none;
 }
 
 html {
-    background-color: var(--bg-color);
-    margin-left: calc(2 * var(--gutter-space));
-    margin-top: var(--gutter-space);
+  background-color: var(--bg-color);
+  margin-left: calc(2 * var(--gutter-space));
+  margin-top: var(--gutter-space);
 }
 
 .form-prompt {
-    font-size: small;
-    opacity: 70%;
+  font-size: small;
+  opacity: 70%;
 }
 
 .icon {
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .delete-icon {
-    background: url('../assets/images/delete-highlight.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/delete-highlight.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .delete-icon:hover {
-    background: url('../assets/images/delete.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/delete.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .down-arrow-icon {
-    background: url('../assets/images/down-highlight.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/down-highlight.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .down-arrow-icon:hover {
-    background: url('../assets/images/down.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/down.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .up-arrow-icon.disabled {
-    background: url('../assets/images/up.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/up.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .down-arrow-icon.disabled {
-    background: url('../assets/images/down.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
-
+  background: url('../assets/images/down.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .up-arrow-icon {
-    background: url('../assets/images/up-highlight.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/up-highlight.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .up-arrow-icon:hover {
-    background: url('../assets/images/up.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/up.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .edit-icon {
-    background: url('../assets/images/edit-highlight.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/edit-highlight.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .edit-icon:hover {
-    background: url('../assets/images/edit.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/edit.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .preview-icon {
-    background: url('../assets/images/preview-highlight.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/preview-highlight.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .preview-icon:hover:not(.disabled) {
-    background: url('../assets/images/preview.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/preview.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .checkbox-icon {
-    background: url('../assets/images/checkbox.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/checkbox.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .folder-icon {
-    background: url('../assets/images/folder-highlight.png');
+  background: url('../assets/images/folder-highlight.png');
 
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .folder-icon:hover {
-    background: url('../assets/images/folder.png');
-    height: var(--icon-width);
-    display: inline-block;
-    width: var(--icon-width);
-    background-size: var(--icon-width) var(--icon-width);
+  background: url('../assets/images/folder.png');
+  height: var(--icon-width);
+  display: inline-block;
+  width: var(--icon-width);
+  background-size: var(--icon-width) var(--icon-width);
 }
 
 .page {
-    display: grid;
-    grid-template-areas:
+  display: grid;
+  grid-template-areas:
     'welcome welcome welcome'
     'toolbar toolbar toolbar'
     'main . sidebar';
-    /*todo fix this extra row so its a fixed */
-    grid-template-rows: auto auto auto;
-    grid-template-columns: auto calc(3 * var(--gutter-space)) minmax(
+  /*todo fix this extra row so its a fixed */
+  grid-template-rows: auto auto auto;
+  grid-template-columns: auto calc(3 * var(--gutter-space)) minmax(
       min-content,
       var(--sidebar-width)
     );
 }
 
 .notifications {
-    grid-area: notifications;
-    padding-top: var(--gutter-space);
-    padding-bottom: var(--gutter-space);
+  grid-area: notifications;
+  padding-top: var(--gutter-space);
+  padding-bottom: var(--gutter-space);
 }
 
 .welcome {
-    grid-area: welcome;
-    padding-bottom: var(--gutter-space);
+  grid-area: welcome;
+  padding-bottom: var(--gutter-space);
 }
 
 .toolbar {
-    grid-area: toolbar;
-    padding-bottom: var(--gutter-space);
+  grid-area: toolbar;
+  padding-bottom: var(--gutter-space);
 }
 
 .view {
-    grid-area: main;
+  grid-area: main;
 }
 
 .sidebar {
-    grid-area: sidebar;
+  grid-area: sidebar;
 }
 
 .sidebar textarea {
 }
 
 .sidebar .pure-form legend {
-    color: black;
-    background-color: white;
+  color: black;
+  background-color: white;
 }
 
 .pure-form legend {
-    height: calc(var(--gutter-space) * 1);
-    box-sizing: unset;
-    display: inline-block;
-    border-radius: var(--radius) var(--radius) var(--radius) var(--radius);
-    font-weight: bold;
-    background-color: black;
-    color: white;
-    border-width: 0;
-    left: calc(-4 * var(--gutter-space));
-    padding-left: calc(4 * var(--gutter-space));
-    position: relative;
-    right: 0;
+  height: calc(var(--gutter-space) * 1);
+  box-sizing: unset;
+  display: inline-block;
+  border-radius: var(--radius) var(--radius) var(--radius) var(--radius);
+  font-weight: bold;
+  background-color: black;
+  color: white;
+  border-width: 0;
+  left: calc(-4 * var(--gutter-space));
+  padding-left: calc(4 * var(--gutter-space));
+  position: relative;
+  right: 0;
 }
 
 .footer {
-    bottom: 0;
-    position: fixed;
-    width: 100%;
-    background-color: black;
-    color: white;
-    text-align: center;
-    height: var(--footer-height);
-    margin-left: calc(-2 * var(--gutter-space));
-    padding-left: calc(2 * var(--gutter-space));
-    padding-top: calc(var(--gutter-space) / 2);
+  bottom: 0;
+  position: fixed;
+  width: 100%;
+  background-color: black;
+  color: white;
+  text-align: center;
+  height: var(--footer-height);
+  margin-left: calc(-2 * var(--gutter-space));
+  padding-left: calc(2 * var(--gutter-space));
+  padding-top: calc(var(--gutter-space) / 2);
 }
 
 .footer a {
-    color: white;
+  color: white;
 }
 
 .pure-form label {
-    margin-top: 0;
+  margin-top: 0;
 }
 
 .form-section {
-    border: 0;
-    padding-top: calc(var(--gutter-space) / 2);
+  border: 0;
+  padding-top: calc(var(--gutter-space) / 2);
 }
 
 .form-section .form-section-title {
-    font-size: x-large;
-    border-bottom: 1px solid black;
+  font-size: x-large;
+  border-bottom: 1px solid black;
 
-    margin-bottom: var(--gutter-space);
+  margin-bottom: var(--gutter-space);
 }

@@ -6,6 +6,7 @@ import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
 import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
+import com.joshlong.mogul.api.managedfiles.ManagedFileUpdatedEvent;
 import com.joshlong.mogul.api.notifications.NotificationEvent;
 import com.joshlong.mogul.api.podcasts.production.MediaNormalizer;
 import com.joshlong.mogul.api.utils.JdbcUtils;
@@ -59,67 +60,40 @@ class DefaultPodcastService implements PodcastService {
 			.list();
 	}
 
-	/*
-	 * // todo this has to be deleted too as part of the refactoring to episode_segments
-	 * private Episode findUpdatedEpisodeForManagedFile(ManagedFile managedFile) { var id
-	 * = managedFile.id(); var allEpisodes = this.db//
-	 * .sql("select  * from podcast_episode where interview =  ? or introduction = ?  or graphic = ?"
-	 * )// .params(id, id, id)// .query(this.episodeRowMapper)// .list(); if
-	 * (!allEpisodes.isEmpty()) return allEpisodes.getFirst(); return null; }
-	 *
-	 * @ApplicationModuleListener void
-	 * podcastEpisodeManagedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
-	 *
-	 *
-	 * var episode =
-	 * findUpdatedEpisodeForManagedFile(managedFileUpdatedEvent.managedFile()); var
-	 * idOfUpdatedManagedFile = managedFileUpdatedEvent.managedFile().id(); if (episode ==
-	 * null) { log.debug("could not find a podcast episode where the managedFile is " +
-	 * managedFileUpdatedEvent.managedFile()); return; } var mappings =
-	 * Map.of("produced_interview", Objects.requireNonNull(episode).interview(), //
-	 * "produced_graphic", Objects.requireNonNull(episode).graphic(), //
-	 * "produced_introduction", Objects.requireNonNull(episode).introduction()// ); for
-	 * (var colName : mappings.keySet()) { var importantManagedFile =
-	 * mappings.get(colName); if
-	 * (importantManagedFile.id().equals(idOfUpdatedManagedFile)) {
-	 * normalizeManagedFile(colName, importantManagedFile, episode); } } // make sure we
-	 * have the latest state. episode = getEpisodeById(episode.id()); var complete = true;
-	 * for (var managedFile : new ManagedFile[] {// episode.introduction(), //
-	 * episode.producedIntroduction(), // episode.interview(), //
-	 * episode.producedInterview(), // episode.graphic(), // episode.producedGraphic()//
-	 * }) { var written = managedFile != null && managedFile.written(); if (!written) {
-	 * log.debug("oh no! " + managedFile +
-	 * " is either null or not written, so marking the whole episode as incomplete");
-	 * complete = false; break; } }
-	 * this.db.sql(" update podcast_episode set complete = ?  where id =? ")//
-	 * .params(complete, episode.id())// .update();
-	 *
-	 * this.publisher.publishEvent(new
-	 * PodcastEpisodeUpdatedEvent(getEpisodeById(episode.id())));
-	 *
-	 * }
-	 *
-	 * private void normalizeManagedFile(String colName, ManagedFile importantManagedFile,
-	 * Episode episode) { var normalized =
-	 * this.mediaNormalizer.normalize(importantManagedFile);
-	 *
-	 * log.debug("you just changed the " + colName +
-	 * ", going to normalize it. the new normalized managed file is " + normalized.id() +
-	 * " for podcast episode " + episode.id());
-	 *
-	 * // preserve the last managed_file id if it exists. we need to delete this one. var
-	 * existingValue = db// .sql("select " + colName +
-	 * " from podcast_episode where id =? ")// .params(episode.id())// .query((rs, rowNum)
-	 * -> rs.getLong(colName))// .list();//
-	 *
-	 * db.sql("update podcast_episode set " + colName + " = ? where id =?")
-	 * .params(normalized.id(), episode.id()) .update();
-	 *
-	 * // now we want to officially delete off the old managed file for (var value :
-	 * existingValue) if (value != 0) this.managedFileService.deleteManagedFile(value);
-	 *
-	 * }
-	 */
+	// todo we need something that, whenever a managedfile has been updated, allows us to mark an episode as being completed
+	@ApplicationModuleListener
+	void podcastManagedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
+		var mf = managedFileUpdatedEvent.managedFile();
+		// now find the episode to which this managedFile belongs by looking at the graphic or segments and working backwards
+
+		var sql = """
+				select pes.podcast_episode_id as id 
+				from podcast_episode_segment pes
+				where pes.segment_audio_managed_file_id = ?
+				UNION
+				select pe.id as id 
+				from podcast_episode pe
+				where pe.graphic = ?
+								
+				""";
+
+		var all = db.sql(sql).params(mf.id(), mf.id()).query((rs, rowNum) -> rs.getLong("id")).set();
+		if (!all.isEmpty()) {
+			var episodeId = all.iterator().next();
+			refreshPodcastEpisodeCompleteness(episodeId);
+		}
+	}
+
+	private void refreshPodcastEpisodeCompleteness(Long episodeId) {
+		var episode = getEpisodeById(episodeId);
+		var written = episode.graphic().written();
+		for (var s : getEpisodeSegmentsByEpisode(episodeId)) {
+			if (!s.audio().written()) written = false;
+		}
+		db.sql("update podcast_episode set complete = ? where id = ? ").params(written, episode.id()).update();
+		this.publisher.publishEvent(new PodcastEpisodeUpdatedEvent(getEpisodeById(episode.id())));
+	}
+
 	@ApplicationModuleListener
 	void podcastEpisodeUpdated(PodcastEpisodeUpdatedEvent updatedEvent) {
 		if (updatedEvent.episode().complete()) {
@@ -338,6 +312,7 @@ class DefaultPodcastService implements PodcastService {
 		return db.sql("select * from podcast where id = ?").param(podcastId).query(new PodcastRowMapper()).single();
 	}
 
+
 	@Override
 	public Segment createEpisodeSegment(Long mogulId, Long episodeId, String name, long crossfade) {
 		var maxOrder = (db
@@ -379,9 +354,7 @@ class DefaultPodcastService implements PodcastService {
 					maxOrder)
 			.update(gkh);
 		var id = JdbcUtils.getIdFromKeyHolder(gkh);
-
 		reorderSegments(getEpisodeSegmentsByEpisode(episodeId));
-
 		return this.getEpisodeSegmentById(id.longValue());
 	}
 

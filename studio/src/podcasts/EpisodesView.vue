@@ -52,6 +52,7 @@ export default {
       await podcasts.deletePodcastEpisodeSegment(episodeSegment.id)
       await this.loadEpisodeSegments(episode)
     },
+
     async deletePodcastEpisode(episode: PodcastEpisode) {
       await podcasts.deletePodcastEpisode(episode.id)
       await this.cancel(new Event(''))
@@ -77,17 +78,20 @@ export default {
       this.dirtyKey = this.computeDirtyKey()
       this.draftEpisodeSegments = episode.segments
 
+
       const plugins = episode.availablePlugins
-      if (plugins && plugins.length == 1) this.selectedPlugin = plugins[0]
+      if (plugins && plugins.length == 1)
+        this.selectedPlugin = plugins[0]
+
 
       await this.loadPodcast()
 
       // todo remove all of this since we're going to have a generic notification substrait
       if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
         console.log(
-          'going to install a listener for completion events for podcast episode [' +
-          this.draftEpisode.id +
-          ']'
+          'going to install a listener for ' +
+          'completion events for podcast episode [' +
+            this.draftEpisode.id +  ']'
         )
 
         const uri: string =
@@ -103,7 +107,7 @@ export default {
           this.draftEpisode.complete = true
           this.completionEventListenersEventSource.close()
         }
-        this.completionEventListenersEventSource.onerror = function(sseME: Event) {
+        this.completionEventListenersEventSource.onerror = function (sseME: Event) {
           console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
         }
       }
@@ -133,7 +137,7 @@ export default {
     downArrowClasses(episode: PodcastEpisode, segment: PodcastEpisodeSegment) {
       return {
         'down-arrow-icon': true,
-        'disabled': this.draftEpisodeSegments[this.draftEpisodeSegments.length - 1].id == segment.id
+        disabled: this.draftEpisodeSegments[this.draftEpisodeSegments.length - 1].id == segment.id
       }
     },
 
@@ -141,7 +145,7 @@ export default {
       return {
         'up-arrow-icon': true,
         // 'disabled': this.draftEpisodeSegments[this.draftEpisodeSegments.length - 1].id == segment.id
-        'disabled': this.draftEpisodeSegments && (this.draftEpisodeSegments[0].id == segment.id)
+        disabled: this.draftEpisodeSegments && this.draftEpisodeSegments[0].id == segment.id
       }
     },
 
@@ -174,11 +178,7 @@ export default {
 
     computeDirtyKey(): string {
       return (
-        '' +
-        (this.draftEpisode.id ? this.draftEpisode.id : '') +
-        this.description +
-        ':' +
-        this.title
+        '' +  (this.draftEpisode.id ? this.draftEpisode.id : '') +  this.description + ':' + this.title
       )
     },
 
@@ -323,13 +323,13 @@ export default {
                     <a
                       @click.prevent="movePodcastEpisodeSegmentUp(draftEpisode, segment)"
                       href="#"
-                      :class=" upArrowClasses(draftEpisode ,segment) "
+                      :class="upArrowClasses(draftEpisode, segment)"
                     ></a>
 
                     <a
                       @click.prevent="movePodcastEpisodeSegmentDown(draftEpisode, segment)"
                       href="#"
-                      :class="downArrowClasses(draftEpisode ,segment) "
+                      :class="downArrowClasses(draftEpisode, segment)"
                     ></a>
                     <a
                       @click.prevent="deletePodcastEpisodeSegment(draftEpisode, segment)"
