@@ -78,39 +78,36 @@ export default {
       this.dirtyKey = this.computeDirtyKey()
       this.draftEpisodeSegments = episode.segments
 
-
       const plugins = episode.availablePlugins
-      if (plugins && plugins.length == 1)
-        this.selectedPlugin = plugins[0]
-
+      if (plugins && plugins.length == 1) this.selectedPlugin = plugins[0]
 
       await this.loadPodcast()
 
       // todo remove all of this since we're going to have a generic notification substrait
-      if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
-        console.log(
-          'going to install a listener for ' +
+      //if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
+      console.log(
+        'going to install a listener for ' +
           'completion events for podcast episode [' +
-            this.draftEpisode.id +  ']'
-        )
-
-        const uri: string =
-          '/api/podcasts/' +
-          this.currentPodcast.id +
-          '/episodes/' +
           this.draftEpisode.id +
-          '/completions'
-        console.log('the uri is ' + uri)
-        this.completionEventListenersEventSource = new EventSource(uri)
-        this.completionEventListenersEventSource.onmessage = (sseEvent: MessageEvent) => {
-          console.log('got the following SSE event: ' + sseEvent.data)
-          this.draftEpisode.complete = true
-          this.completionEventListenersEventSource.close()
-        }
-        this.completionEventListenersEventSource.onerror = function (sseME: Event) {
-          console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
-        }
+          ']'
+      )
+
+      const uri: string =
+        '/api/podcasts/' +
+        this.currentPodcast.id +
+        '/episodes/' +
+        this.draftEpisode.id +
+        '/completions'
+      console.log('the uri is ' + uri)
+      const de = this.draftEpisode
+      this.completionEventListenersEventSource = new EventSource(uri)
+      this.completionEventListenersEventSource.onmessage = (sseEvent: MessageEvent) => {
+        de.complete = JSON.parse(sseEvent.data)['complete']
       }
+      this.completionEventListenersEventSource.onerror = function (sseME: Event) {
+        console.error('something went wrong in the SSE: ', sseME)
+      }
+      // }
     },
 
     async save(e: Event) {
@@ -178,7 +175,11 @@ export default {
 
     computeDirtyKey(): string {
       return (
-        '' +  (this.draftEpisode.id ? this.draftEpisode.id : '') +  this.description + ':' + this.title
+        '' +
+        (this.draftEpisode.id ? this.draftEpisode.id : '') +
+        this.description +
+        ':' +
+        this.title
       )
     },
 
@@ -376,6 +377,8 @@ export default {
                   {{ option }}
                 </option>
               </select>
+
+              <b>complete? {{ draftEpisode.complete }}</b>
 
               <button
                 :disabled="!draftEpisode.complete"

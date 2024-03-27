@@ -194,7 +194,6 @@ class PodcastController {
 	// mechanism!
 	@GetMapping("/podcasts/{podcastId}/episodes/{episodeId}/completions")
 	SseEmitter streamPodcastEpisodeCompletionEvents(@PathVariable Long podcastId, @PathVariable Long episodeId) {
-
 		log.debug("creating SSE watchdog for episode [" + episodeId + "]");
 		var peEmitter = new PodcastEpisodeSseEmitter(podcastId, episodeId, new SseEmitter());
 		var episode = podcastService.getEpisodeById(episodeId);
@@ -210,7 +209,7 @@ class PodcastController {
 		log.debug("installing an SseEmitter for episode [" + episode + "]");
 		var cleanup = (Runnable) () -> {
 			this.episodeCompleteEventSseEmitters.remove(episodeId);
-			log.debug("removing sse listener for episode [" + episodeId + "]");
+			log.info("removing sse listener for episode [" + episodeId + "]");
 		};
 		peEmitter.sseEmitter().onCompletion(cleanup);
 		peEmitter.sseEmitter().onTimeout(cleanup);
@@ -218,8 +217,9 @@ class PodcastController {
 	}
 
 	@ApplicationModuleListener
-	void broadcastPodcastEpisodeCompletedEventToClients(PodcastEpisodeCompletedEvent podcastEpisodeCompletedEvent) {
-		var id = podcastEpisodeCompletedEvent.episode().id();
+	void broadcastPodcastEpisodeCompletionEventToClients(PodcastEpisodeCompletionEvent podcastEpisodeCompletionEvent) {
+		var episode = podcastEpisodeCompletionEvent.episode();
+		var id = episode.id();
 		log.debug("going to send an event to the" + " clients listening for episode [" + id + "]");
 
 		var emitter = this.episodeCompleteEventSseEmitters.get(id);
@@ -230,9 +230,10 @@ class PodcastController {
 		}
 
 		try {
-			var json = om.writeValueAsString(Map.of("id", id));
+			var map = Map.of("id", id, "complete", episode.complete());
+			var json = om.writeValueAsString(map);
 			emitter.sseEmitter().send(json, MediaType.APPLICATION_JSON);
-			log.debug("sent an event to clients listening for " + podcastEpisodeCompletedEvent.episode());
+			log.debug("sent an event to clients listening for " + episode);
 		} //
 		catch (Exception e) {
 			log.warn("experienced an exception when trying to emit a podcast completed event via SSE for id # " + id);

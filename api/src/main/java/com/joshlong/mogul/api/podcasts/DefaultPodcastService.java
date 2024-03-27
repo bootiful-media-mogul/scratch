@@ -60,21 +60,23 @@ class DefaultPodcastService implements PodcastService {
 			.list();
 	}
 
-	// todo we need something that, whenever a managedfile has been updated, allows us to mark an episode as being completed
+	// todo we need something that, whenever a managedfile has been updated, allows us to
+	// mark an episode as being completed
 	@ApplicationModuleListener
 	void podcastManagedFileUpdated(ManagedFileUpdatedEvent managedFileUpdatedEvent) {
 		var mf = managedFileUpdatedEvent.managedFile();
-		// now find the episode to which this managedFile belongs by looking at the graphic or segments and working backwards
+		// now find the episode to which this managedFile belongs by looking at the
+		// graphic or segments and working backwards
 
 		var sql = """
-				select pes.podcast_episode_id as id 
+				select pes.podcast_episode_id as id
 				from podcast_episode_segment pes
 				where pes.segment_audio_managed_file_id = ?
 				UNION
-				select pe.id as id 
+				select pe.id as id
 				from podcast_episode pe
 				where pe.graphic = ?
-								
+
 				""";
 
 		var all = db.sql(sql).params(mf.id(), mf.id()).query((rs, rowNum) -> rs.getLong("id")).set();
@@ -86,22 +88,17 @@ class DefaultPodcastService implements PodcastService {
 
 	private void refreshPodcastEpisodeCompleteness(Long episodeId) {
 		var episode = getEpisodeById(episodeId);
-		var written = episode.graphic().written();
-		for (var s : getEpisodeSegmentsByEpisode(episodeId)) {
-			if (!s.audio().written()) written = false;
-		}
-		db.sql("update podcast_episode set complete = ? where id = ? ").params(written, episode.id()).update();
-		this.publisher.publishEvent(new PodcastEpisodeUpdatedEvent(getEpisodeById(episode.id())));
-	}
+		var segments = getEpisodeSegmentsByEpisode(episodeId);
+		// there must be a graphic managed file, at least one segment, and all segments
+		// must have been written
+		var written = episode.graphic().written() && !segments.isEmpty()
+				&& (segments.stream().allMatch(se -> se.audio().written()));
+		this.db.sql("update podcast_episode set complete = ? where id = ? ").params(written, episode.id()).update();
+		var episodeById = getEpisodeById(episode.id());
+		for (var e : Set.of(new PodcastEpisodeUpdatedEvent(episodeById),
+				new PodcastEpisodeCompletionEvent(episodeById)))
+			this.publisher.publishEvent(e);
 
-	@ApplicationModuleListener
-	void podcastEpisodeUpdated(PodcastEpisodeUpdatedEvent updatedEvent) {
-		if (updatedEvent.episode().complete()) {
-			this.db.sql("update podcast_episode set produced_audio_assets_updated =NOW() where id =? ")
-				.params(updatedEvent.episode().id())
-				.update();
-			this.publisher.publishEvent(new PodcastEpisodeCompletedEvent(updatedEvent.episode()));
-		}
 	}
 
 	@ApplicationModuleListener
@@ -113,7 +110,8 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public Collection<Podcast> getAllPodcastsByMogul(Long mogulId) {
-		return this.db.sql("select * from podcast where mogul_id = ? order by created")
+		return this.db//
+			.sql("select * from podcast where mogul_id = ? order by created")
 			.param(mogulId)
 			.query(new PodcastRowMapper())
 			.list();
@@ -312,7 +310,6 @@ class DefaultPodcastService implements PodcastService {
 		return db.sql("select * from podcast where id = ?").param(podcastId).query(new PodcastRowMapper()).single();
 	}
 
-
 	@Override
 	public Segment createEpisodeSegment(Long mogulId, Long episodeId, String name, long crossfade) {
 		var maxOrder = (db
@@ -355,6 +352,7 @@ class DefaultPodcastService implements PodcastService {
 			.update(gkh);
 		var id = JdbcUtils.getIdFromKeyHolder(gkh);
 		reorderSegments(getEpisodeSegmentsByEpisode(episodeId));
+		refreshPodcastEpisodeCompleteness(episodeId);
 		return this.getEpisodeSegmentById(id.longValue());
 	}
 
