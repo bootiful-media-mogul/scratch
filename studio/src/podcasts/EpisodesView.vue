@@ -84,31 +84,34 @@ export default {
       await this.loadPodcast()
 
       // todo remove all of this since we're going to have a generic notification substrait
-      //if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
-      console.log(
-        'going to install a listener for ' +
-          'completion events for podcast episode [' +
-          this.draftEpisode.id +
-          ']'
-      )
+      console.log('going to install a listener for completion events for podcast episode [' + this.draftEpisode.id + ']')
 
-      const uri: string =
-        '/api/podcasts/' +
-        this.currentPodcast.id +
-        '/episodes/' +
-        this.draftEpisode.id +
-        '/completions'
-      console.log('the uri is ' + uri)
+      const uri: string = '/api/podcasts/' + this.currentPodcast.id + '/episodes/' + this.draftEpisode.id + '/completions'
+      console.debug('the SSE completion event uri is ' + uri)
+
       const de = this.draftEpisode
+
+      const that = this
       this.completionEventListenersEventSource = new EventSource(uri)
-      this.completionEventListenersEventSource.onmessage = (sseEvent: MessageEvent) => {
-        de.complete = JSON.parse(sseEvent.data)['complete']
+
+      this.completionEventListenersEventSource.onmessage = async (sse: MessageEvent) => {
+        const state = JSON.parse(sse.data)['complete']
+        console.log('draftEpisode.complete=' + state)
+        de.complete = state
+        if (de.complete == true) {
+          console.log( `its complete, so we will force a reload`)
+          await that.loadEpisode(await podcasts.podcastEpisodeById(this.draftEpisode.id))
+
+        }
       }
-      this.completionEventListenersEventSource.onerror = function (sseME: Event) {
-        console.error('something went wrong in the SSE: ', sseME)
+
+      this.completionEventListenersEventSource.onerror = function(sse: Event) {
+        console.error('something went wrong in the SSE: ', sse)
+
       }
-      // }
+
     },
+
 
     async save(e: Event) {
       e.preventDefault()
@@ -377,9 +380,6 @@ export default {
                   {{ option }}
                 </option>
               </select>
-
-              <b>complete? {{ draftEpisode.complete }}</b>
-
               <button
                 :disabled="!draftEpisode.complete"
                 @click="publish"
