@@ -84,9 +84,18 @@ export default {
       await this.loadPodcast()
 
       // todo remove all of this since we're going to have a generic notification substrait
-      console.log('going to install a listener for completion events for podcast episode [' + this.draftEpisode.id + ']')
+      console.log(
+        'going to install a listener for completion events for podcast episode [' +
+          this.draftEpisode.id +
+          ']'
+      )
 
-      const uri: string = '/api/podcasts/' + this.currentPodcast.id + '/episodes/' + this.draftEpisode.id + '/completions'
+      const uri: string =
+        '/api/podcasts/' +
+        this.currentPodcast.id +
+        '/episodes/' +
+        this.draftEpisode.id +
+        '/completions'
       console.debug('the SSE completion event uri is ' + uri)
 
       const de = this.draftEpisode
@@ -99,19 +108,15 @@ export default {
         console.log('draftEpisode.complete=' + state)
         de.complete = state
         if (de.complete == true) {
-          console.log( `its complete, so we will force a reload`)
+          console.log(`its complete, so we will force a reload`)
           await that.loadEpisode(await podcasts.podcastEpisodeById(this.draftEpisode.id))
-
         }
       }
 
-      this.completionEventListenersEventSource.onerror = function(sse: Event) {
+      this.completionEventListenersEventSource.onerror = function (sse: Event) {
         console.error('something went wrong in the SSE: ', sse)
-
       }
-
     },
-
 
     async save(e: Event) {
       e.preventDefault()

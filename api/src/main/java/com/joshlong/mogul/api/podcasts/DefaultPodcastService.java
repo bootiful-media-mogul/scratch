@@ -82,19 +82,19 @@ class DefaultPodcastService implements PodcastService {
 		var all = db.sql(sql).params(mf.id(), mf.id()).query((rs, rowNum) -> rs.getLong("id")).set();
 		if (!all.isEmpty()) {
 			var episodeId = all.iterator().next();
-			refreshPodcastEpisodeCompleteness(episodeId);
+			this.refreshPodcastEpisodeCompleteness(episodeId);
 		}
 	}
 
 	private void refreshPodcastEpisodeCompleteness(Long episodeId) {
-		var episode = getEpisodeById(episodeId);
-		var segments = getEpisodeSegmentsByEpisode(episodeId);
+		var episode = this.getEpisodeById(episodeId);
+		var segments = this.getEpisodeSegmentsByEpisode(episodeId);
 		// there must be a graphic managed file, at least one segment, and all segments
 		// must have been written
-		var written = episode.graphic().written() && !segments.isEmpty()
-				&& (segments.stream().allMatch(se -> se.audio().written()));
+		var written = episode.graphic().written() && !segments.isEmpty() && (segments.stream().allMatch(se -> se.audio().written()));
+		log.debug("written? " + written);
 		this.db.sql("update podcast_episode set complete = ? where id = ? ").params(written, episode.id()).update();
-		var episodeById = getEpisodeById(episode.id());
+		var episodeById = this.getEpisodeById(episode.id());
 		for (var e : Set.of(new PodcastEpisodeUpdatedEvent(episodeById),
 				new PodcastEpisodeCompletionEvent(episodeById)))
 			this.publisher.publishEvent(e);
@@ -103,9 +103,8 @@ class DefaultPodcastService implements PodcastService {
 
 	@ApplicationModuleListener
 	void mogulCreated(MogulCreatedEvent createdEvent) {
-		var podcast = createPodcast(createdEvent.mogul().id(), createdEvent.mogul().username() + "'s Podcast");
-		Assert.notNull(podcast,
-				"there should be a newly created podcast associated with the mogul [" + createdEvent.mogul() + "]");
+		var podcast = this.createPodcast(createdEvent.mogul().id(), createdEvent.mogul().username() + "'s Podcast");
+		Assert.notNull(podcast, "there should be a newly created podcast associated with the mogul [" + createdEvent.mogul() + "]");
 	}
 
 	@Override
@@ -119,7 +118,7 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public Collection<Episode> getEpisodesByPodcast(Long podcastId) {
-		var podcast = getPodcastById(podcastId);
+		var podcast = this.getPodcastById(podcastId);
 		Assert.notNull(podcast, "the podcast with id [" + podcastId + "] is null");
 		return this.db.sql("select * from podcast_episode where podcast_id =? order by created ")
 			.param(podcastId)
@@ -131,12 +130,11 @@ class DefaultPodcastService implements PodcastService {
 	public Podcast createPodcast(Long mogulId, String title) {
 		var kh = new GeneratedKeyHolder();
 		this.db
-			.sql("insert into podcast (mogul_id, title) values (?,?) on conflict on constraint "
-					+ " podcast_mogul_id_title_key do update set title =excluded.title")
+				.sql(" insert into podcast (mogul_id, title) values (?,?) on conflict on constraint podcast_mogul_id_title_key do update set title = excluded.title ")
 			.params(mogulId, title)
 			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);
-		var podcast = getPodcastById(id.longValue());
+		var podcast = this.getPodcastById(id.longValue());
 		this.publisher.publishEvent(new PodcastCreatedEvent(podcast));
 		return podcast;
 	}
@@ -174,7 +172,7 @@ class DefaultPodcastService implements PodcastService {
 			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);
 		var ep = this.getEpisodeById(id.longValue());
-		publisher.publishEvent(new PodcastEpisodeCreatedEvent(ep));
+		this.publisher.publishEvent(new PodcastEpisodeCreatedEvent(ep));
 		return ep;
 	}
 
@@ -230,7 +228,6 @@ class DefaultPodcastService implements PodcastService {
 	}
 
 	private void reorderSegments(List<Segment> segments) {
-
 		var ctr = 0;
 		for (var s : segments) {
 			ctr += 1;
@@ -245,36 +242,34 @@ class DefaultPodcastService implements PodcastService {
 
 	@Override
 	public void movePodcastEpisodeSegmentUp(Long episode, Long segment) {
-		moveEpisodeSegment(episode, segment, -1);
-
+		this.moveEpisodeSegment(episode, segment, -1);
 	}
 
 	@Override
 	public void deletePodcastEpisodeSegment(Long episodeSegmentId) {
-		var segment = getEpisodeSegmentById(episodeSegmentId);
+		var segment = this.getEpisodeSegmentById(episodeSegmentId);
 		Assert.state(segment != null, "you must specify a valid " + Segment.class.getName());
 		var managedFilesToDelete = Set.of(segment.audio().id(), segment.producedAudio().id());
 		this.db.sql("delete from podcast_episode_segment where id =?").params(episodeSegmentId).update();
 		for (var managedFileId : managedFilesToDelete)
 			this.managedFileService.deleteManagedFile(managedFileId);
-		this.reorderSegments(getEpisodeSegmentsByEpisode(segment.episode().id()));
+		this.reorderSegments(this.getEpisodeSegmentsByEpisode(segment.episode().id()));
+		this.refreshPodcastEpisodeCompleteness(segment.episode().id());
 	}
 
 	@Override
 	public void deletePodcast(Long podcastId) {
-		var podcast = getPodcastById(podcastId);
-
-		for (var episode : getEpisodesByPodcast(podcastId)) {
+		var podcast = this.getPodcastById(podcastId);
+		for (var episode : this.getEpisodesByPodcast(podcastId)) {
 			deletePodcastEpisode(episode.id());
 		}
-		db.sql("delete from podcast where id= ?").param(podcastId).update();
-
-		publisher.publishEvent(new PodcastDeletedEvent(podcast));
+		this.db.sql("delete from podcast where id= ?").param(podcastId).update();
+		this.publisher.publishEvent(new PodcastDeletedEvent(podcast));
 	}
 
 	@Override
 	public void deletePodcastEpisode(Long episodeId) {
-		var segmentsForEpisode = getEpisodeSegmentsByEpisode(episodeId);
+		var segmentsForEpisode = this.getEpisodeSegmentsByEpisode(episodeId);
 		if (segmentsForEpisode == null)
 			segmentsForEpisode = new ArrayList<>();
 
@@ -283,7 +278,7 @@ class DefaultPodcastService implements PodcastService {
 				ids.add(mf.id());
 		};
 
-		var episode = getEpisodeById(episodeId);
+		var episode = this.getEpisodeById(episodeId);
 
 		// todo delete podcast episode
 		var ids = new HashSet<Long>();

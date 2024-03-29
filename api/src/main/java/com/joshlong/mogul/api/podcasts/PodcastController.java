@@ -196,9 +196,9 @@ class PodcastController {
 	SseEmitter streamPodcastEpisodeCompletionEvents(@PathVariable Long podcastId, @PathVariable Long episodeId) {
 		log.debug("creating SSE watchdog for episode [" + episodeId + "]");
 		var peEmitter = new PodcastEpisodeSseEmitter(podcastId, episodeId, new SseEmitter());
-		var episode = podcastService.getEpisodeById(episodeId);
+		var episode = this.podcastService.getEpisodeById(episodeId);
 		Assert.notNull(episode, "the episode is null");
-		mogulService.assertAuthorizedMogul(episode.podcast().mogulId());
+		this.mogulService.assertAuthorizedMogul(episode.podcast().mogulId());
 		Assert.state(episode.podcast().id().equals(podcastId),
 				"the podcast specified and the actual podcast are not the same");
 		Assert.state(episode.podcast().mogulId().equals(mogulService.getCurrentMogul().id()),
@@ -208,7 +208,7 @@ class PodcastController {
 		}
 		log.debug("installing an SseEmitter for episode [" + episode + "]");
 		var cleanup = (Runnable) () -> {
-			this.episodeCompleteEventSseEmitters.remove(episodeId);
+            this.episodeCompleteEventSseEmitters.remove(episodeId);
 			log.info("removing sse listener for episode [" + episodeId + "]");
 		};
 		peEmitter.sseEmitter().onCompletion(cleanup);
