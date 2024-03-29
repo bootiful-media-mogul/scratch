@@ -239,10 +239,8 @@ class PodcastController {
 			log.warn("experienced an exception when trying to emit a podcast completed event via SSE for id # " + id);
 			emitter.sseEmitter().completeWithError(e);
 		} //
-//		finally {
-//			log.debug("no need for this listener anymore, removing it.");
-//			emitter.sseEmitter().complete();
-//		}
+
+
 	}
 
 }
