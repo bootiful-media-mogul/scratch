@@ -26,24 +26,22 @@ import java.util.function.Function;
 @Configuration
 class MediaNormalizationIntegration {
 
-	static final String MEDIA_NORMALIZATION_FLOW = "mediaNormalizationFlow";
+	public static final String MEDIA_NORMALIZATION_FLOW = "mediaNormalizationFlow";
 
-	static final String REQUESTS = MEDIA_NORMALIZATION_FLOW + "Requests";
+	static final String MEDIA_NORMALIZATION_FLOW_CHANNEL = MEDIA_NORMALIZATION_FLOW + "Requests";
 
-	@Bean(REQUESTS)
+	@Bean(MEDIA_NORMALIZATION_FLOW_CHANNEL)
 	DirectChannelSpec mediaNormalizationFlowRequests() {
 		return MessageChannels.direct();
 	}
 
-	private ManagedFile readAndTransformManagedFile(ManagedFileService managedFileService, ManagedFile payload,
-			Function<File, File> normalizer, MediaType mediaType) {
-		var tmp = tempLocalFileForManagedFile(payload);
-		dump(managedFileService.read(payload.id()), tmp);
+	private MediaNormalizationIntegrationResponse readAndTransformManagedFile(ManagedFileService managedFileService, ManagedFile input,
+			Function<File, File> normalizer, MediaType mediaType , ManagedFile output) {
+		var tmp = tempLocalFileForManagedFile(input);
+		dump(managedFileService.read(input.id()), tmp);
 		var newFile = normalizer.apply(tmp);
-		var managedFile = managedFileService.createManagedFile(payload.mogulId(), payload.bucket(), payload.folder(),
-				"normalized-" + payload.filename(), newFile.length(), mediaType);
-		managedFileService.write(managedFile.id(), managedFile.filename(), mediaType, new FileSystemResource(newFile));
-		return managedFile;
+		managedFileService.write(output.id(), output.filename(), mediaType, new FileSystemResource(newFile));
+		return new MediaNormalizationIntegrationResponse(input, output);
 	}
 
 	private static File tempLocalFileForManagedFile(ManagedFile managedFile) {
@@ -66,21 +64,25 @@ class MediaNormalizationIntegration {
 	}
 
 	@Bean(MEDIA_NORMALIZATION_FLOW)
-	IntegrationFlow mediaNormalizationFlow(@Qualifier(REQUESTS) MessageChannel requests, ImageEncoder imageEncoder,
-			AudioEncoder audioEncoder, ManagedFileService managedFileService) {
+	IntegrationFlow mediaNormalizationFlow(@Qualifier(MEDIA_NORMALIZATION_FLOW_CHANNEL) MessageChannel requests, ImageEncoder imageEncoder,
+										   AudioEncoder audioEncoder, ManagedFileService managedFileService) {
 		var imgMediaType = MediaType.parseMediaType("image/*");
 		return IntegrationFlow//
 			.from(requests)//
-			.handle((GenericHandler<ManagedFile>) (payload, headers) -> {
-				var isImage = imgMediaType.isCompatibleWith(MediaType.parseMediaType(payload.contentType()));
+			.handle((GenericHandler<MediaNormalizationIntegrationRequest>) (io , headers) -> {
+				var input =  io.input() ;
+				var output = io.output() ;
+				var isImage = imgMediaType.isCompatibleWith(MediaType.parseMediaType(input.contentType()));
 				return (isImage)
-						? readAndTransformManagedFile(managedFileService, payload, imageEncoder::encode,
-								CommonMediaTypes.JPG)
-						: readAndTransformManagedFile(managedFileService, payload, audioEncoder::encode,
-								CommonMediaTypes.MP3);
+						? readAndTransformManagedFile(managedFileService, input, imageEncoder::encode,
+								CommonMediaTypes.JPG , output )
+						: readAndTransformManagedFile(managedFileService, input, audioEncoder::encode,
+								CommonMediaTypes.MP3 , output);
 
 			})
 			.get();
 	}
+
+
 
 }

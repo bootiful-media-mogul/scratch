@@ -8,7 +8,7 @@ import org.springframework.integration.annotation.MessagingGateway;
 public interface MediaNormalizer {
 
 	@SuppressWarnings("UnresolvedMessageChannel")
-	@Gateway(requestChannel = MediaNormalizationIntegration.REQUESTS)
-	ManagedFile normalize(ManagedFile input);
+	@Gateway(requestChannel = MediaNormalizationIntegration.MEDIA_NORMALIZATION_FLOW_CHANNEL)
+	MediaNormalizationIntegrationResponse normalize(MediaNormalizationIntegrationRequest request);
 
 }

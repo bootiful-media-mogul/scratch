@@ -43,13 +43,16 @@ def download(s3, s3p: str, output_file: str) -> str:
 def s3_uri(bucket_name: str, upload_key: str) -> str:
     return f's3://{bucket_name}/{upload_key}'
 
+
 def handle_podcast_episode_creation_request(s3,
                                             properties: pika.BasicProperties,
                                             incoming_json_request: typing.Any,
                                             uid: str):
     # incoming_json_request = json.loads(request)
-    output_s3_uri = incoming_json_request['output_s3_uri']
+    print(f'''incoming request: {incoming_json_request}''')
+    output_s3_uri = incoming_json_request['outputS3Uri']
     segments = incoming_json_request['segments']
+    segments = [a['s3Uri'] for a in segments]
     tmp_dir = os.path.join(os.environ['HOME'], 'podcast-production', uid)
     os.makedirs(tmp_dir, exist_ok=True)
     local_files = [download(s3, s3_uri, os.path.join(tmp_dir, s3_uri.split('/')[-1])) for s3_uri in segments]
@@ -57,13 +60,13 @@ def handle_podcast_episode_creation_request(s3,
     output_podcast_audio_local_fn = podcast.create_podcast(local_files_segments,
                                                            os.path.join(tmp_dir, 'output.mp3'),
                                                            output_extension='mp3')
-    utils.log (f'the produced audio is stored locally {output_podcast_audio_local_fn}')
+    utils.log(f'the produced audio is stored locally {output_podcast_audio_local_fn}')
 
     s3_parts = output_s3_uri[len('s3://'):]
-    utils.log (s3_parts)
+    utils.log(s3_parts)
     bucket, folder, file = s3_parts.split('/')
     s3.meta.client.upload_file(output_podcast_audio_local_fn, bucket, f'{folder}/{file}')
-    return output_s3_uri
+    return {'outputS3Uri': output_s3_uri}
     # todo upload this back to S3
 
 
@@ -95,21 +98,25 @@ def build_s3_client() -> typing.Any:
 if __name__ == "__main__":
 
     # todo remove this function and its use; it's just for prototyping and shouldn't be in the final code
-
-    def handle_sample_request():
-        base = os.path.join('podcast-assets-bucket-dev', '062019')
-        assets = ['intro.mp3', '1.aiff', '2.aiff', 'music-segue.mp3', '3.aiff', '4.aiff', 'closing.mp3']
-        s3_uris = [f's3://{base}/{p}' for p in assets]
-        my_uid = str(uuid.uuid4())
-        json_request = json.dumps(
-            {'segments': s3_uris, 'output_s3_uri': f's3://podcast-output-bucket-dev/{my_uid}/output.mp3'})
-        print(json_request)
-        # s3 = build_s3_client()
-        # handle_podcast_episode_creation_request(s3, json_request, my_uid)
-
-
-    handle_sample_request()
-
+    #
+    # def handle_sample_request():
+    #     '''
+    #     {'uid': '96fdf0d0-c4d0-40de-bf9b-fb3de00f61f6', 'episodeId': 28, 'outputUri': 's3://mogul-podcast-episodes/2a553674-5663-4175-8e7b-8e67eb13d7fc/173d0620-d917-44fd-84d9-c69967a4f3c0',
+    #      'segments': [{'index': 0, 's3Uri': 's3://mogul-podcast-episodes/a977015c-2668-459c-b56e-556ccf6bbae3/cac1f3c8-85ab-4cf3-bcc4-b51488888815', 'crossfade': 0}]}
+    #
+    #     '''
+    #     base = os.path.join('podcast-assets-bucket-dev', '062019')
+    #     assets = ['intro.mp3', '1.aiff', '2.aiff', 'music-segue.mp3', '3.aiff', '4.aiff', 'closing.mp3']
+    #     s3_uris = [f's3://{base}/{p}' for p in assets]
+    #     my_uid = str(uuid.uuid4())
+    #     json_request = json.dumps(
+    #         {'segments': s3_uris, 'output_s3_uri': f's3://podcast-output-bucket-dev/{my_uid}/output.mp3'})
+    #     print(json_request)
+    #     # s3 = build_s3_client()
+    #     # handle_podcast_episode_creation_request(s3, json_request, my_uid)
+    #
+    #
+    # handle_sample_request()
 
     def run_flask():
         app = Flask(__name__)

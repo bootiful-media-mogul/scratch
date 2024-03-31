@@ -8,6 +8,7 @@ import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import com.joshlong.mogul.api.managedfiles.ManagedFileUpdatedEvent;
 import com.joshlong.mogul.api.notifications.NotificationEvent;
+import com.joshlong.mogul.api.podcasts.production.MediaNormalizationIntegrationRequest;
 import com.joshlong.mogul.api.podcasts.production.MediaNormalizer;
 import com.joshlong.mogul.api.utils.JdbcUtils;
 import org.slf4j.Logger;
@@ -29,8 +30,6 @@ class DefaultPodcastService implements PodcastService {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final MediaNormalizer mediaNormalizer;
-
 	private final JdbcClient db;
 
 	private final EpisodeRowMapper episodeRowMapper;
@@ -39,6 +38,7 @@ class DefaultPodcastService implements PodcastService {
 
 	private final MogulService mogulService;
 
+	private final MediaNormalizer mediaNormalizer;
 	private final ApplicationEventPublisher publisher;
 
 	DefaultPodcastService(MediaNormalizer mediaNormalizer, MogulService mogulService, JdbcClient db,
@@ -82,6 +82,20 @@ class DefaultPodcastService implements PodcastService {
 		var all = db.sql(sql).params(mf.id(), mf.id()).query((rs, rowNum) -> rs.getLong("id")).set();
 		if (!all.isEmpty()) {
 			var episodeId = all.iterator().next();
+			var episode = getEpisodeById(episodeId);
+			var segments = getEpisodeSegmentsByEpisode(episodeId);
+			if (episode.graphic().id().equals(mf.id())) { // either its the graphic
+				this.mediaNormalizer.normalize(new MediaNormalizationIntegrationRequest(episode.graphic(), episode.producedGraphic()));
+			}//
+			else {
+				// or its one of the segments
+				segments
+						.stream()
+						.filter(s -> s.audio().id().equals(mf.id()))
+						.findAny()
+						.ifPresent(segment -> this.mediaNormalizer.normalize(new MediaNormalizationIntegrationRequest(segment.audio(), segment.producedAudio())));
+			}
+			// once the file has been normalized, we can worry about completeness
 			this.refreshPodcastEpisodeCompleteness(episodeId);
 		}
 	}
@@ -91,7 +105,9 @@ class DefaultPodcastService implements PodcastService {
 		var segments = this.getEpisodeSegmentsByEpisode(episodeId);
 		// there must be a graphic managed file, at least one segment, and all segments
 		// must have been written
-		var written = episode.graphic().written() && !segments.isEmpty() && (segments.stream().allMatch(se -> se.audio().written()));
+		var written = (episode.graphic().written() && episode.producedGraphic().written()) && !segments.isEmpty() &&
+				(segments.stream().allMatch(se -> se.audio().written() &&  se.producedAudio().written()));
+
 		log.debug("written? " + written);
 		this.db.sql("update podcast_episode set complete = ? where id = ? ").params(written, episode.id()).update();
 		var episodeById = this.getEpisodeById(episode.id());

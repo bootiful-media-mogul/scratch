@@ -35,14 +35,13 @@ class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProces
 		if (bean instanceof PodcastEpisodePublisherPlugin plugin) {
 			var proxyFactoryBean = new ProxyFactoryBean();
 			proxyFactoryBean.addAdvice((MethodInterceptor) invocation -> {
-				var podcastProducer = beanFactory.getBean(PodcastProducer.class);
-				var podcastService = beanFactory.getBean(PodcastService.class);
+				var podcastProducer = this.beanFactory.getBean(PodcastProducer.class);
+				var podcastService = this.beanFactory.getBean(PodcastService.class);
 				var publishMethod = invocation.getMethod().getName().equalsIgnoreCase("publish");
 				if (publishMethod) {
 					var context = (Map<String, String>) invocation.getArguments()[0];
 					var episode = (Episode) invocation.getArguments()[1];
-					Assert.notNull(episode.producedAudioAssetsUpdated(),
-							"the produced_audio_assets_updated field is null");
+
 					var shouldProduceAudio = episode.producedAudioUpdated() == null
 							|| episode.producedAudioUpdated().before(episode.producedAudioAssetsUpdated());
 					log.debug("should produce the audio for episode [" + episode + "] from scratch? ["
@@ -50,8 +49,11 @@ class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProces
 					if (shouldProduceAudio) {
 						var producedManagedFile = podcastProducer.produce(episode);
 						log.debug("produced the audio for episode [" + episode + "] from scratch to managedFile: ["
-								+ producedManagedFile + "]");
+								+ producedManagedFile + "] using producer [" + podcastProducer + "]");
 					}
+
+					Assert.notNull(episode.producedAudioAssetsUpdated(), "the produced_audio_assets_updated field is null");
+
 					var updatedEpisode = podcastService.getEpisodeById(episode.id());
 					plugin.publish(context, updatedEpisode);
 					return null;

@@ -156,6 +156,7 @@ export default {
 
     async publish(e: Event) {
       e.preventDefault()
+      console.log('publishing..')
       await podcasts.publishPodcastEpisode(this.draftEpisode.id, this.selectedPlugin)
     },
 
