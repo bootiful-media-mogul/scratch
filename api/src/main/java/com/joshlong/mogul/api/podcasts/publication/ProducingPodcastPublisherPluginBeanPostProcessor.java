@@ -51,7 +51,7 @@ class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProces
 								+ producedManagedFile + "] using producer [" + podcastProducer + "]");
 					}
 					var updatedEpisode = podcastService.getEpisodeById(episode.id());
-					Assert.notNull(updatedEpisode.producedAudioUpdated() , "the producedAudioUpdated field is null");
+					Assert.notNull(updatedEpisode.producedAudioUpdated(), "the producedAudioUpdated field is null");
 					plugin.publish(context, updatedEpisode);
 					return null;
 				}

@@ -39,6 +39,7 @@ class DefaultPodcastService implements PodcastService {
 	private final MogulService mogulService;
 
 	private final MediaNormalizer mediaNormalizer;
+
 	private final ApplicationEventPublisher publisher;
 
 	DefaultPodcastService(MediaNormalizer mediaNormalizer, MogulService mogulService, JdbcClient db,
@@ -85,21 +86,22 @@ class DefaultPodcastService implements PodcastService {
 			var episode = getEpisodeById(episodeId);
 			var segments = getEpisodeSegmentsByEpisode(episodeId);
 			if (episode.graphic().id().equals(mf.id())) { // either its the graphic
-				this.mediaNormalizer.normalize(new MediaNormalizationIntegrationRequest(episode.graphic(), episode.producedGraphic()));
-			}//
+				this.mediaNormalizer
+					.normalize(new MediaNormalizationIntegrationRequest(episode.graphic(), episode.producedGraphic()));
+			} //
 			else {
 				// or its one of the segments
-				segments
-						.stream()
-						.filter(s -> s.audio().id().equals(mf.id()))
-						.findAny()
-						.ifPresent(segment -> {
-							var response = this.mediaNormalizer.normalize(new MediaNormalizationIntegrationRequest(segment.audio(), segment.producedAudio()));
-							Assert.notNull( response, "the response should not be null");
-							var updated = new Date();
-							// if this is older than the last time we have produced any audio, then we won't reproduce the audio
-							db.sql("update podcast_episode  set produced_audio_assets_updated = ? where    id = ? ").params(updated, episodeId).update();
-						});
+				segments.stream().filter(s -> s.audio().id().equals(mf.id())).findAny().ifPresent(segment -> {
+					var response = this.mediaNormalizer
+						.normalize(new MediaNormalizationIntegrationRequest(segment.audio(), segment.producedAudio()));
+					Assert.notNull(response, "the response should not be null");
+					var updated = new Date();
+					// if this is older than the last time we have produced any audio,
+					// then we won't reproduce the audio
+					db.sql("update podcast_episode  set produced_audio_assets_updated = ? where    id = ? ")
+						.params(updated, episodeId)
+						.update();
+				});
 			}
 			// once the file has been normalized, we can worry about completeness
 			this.refreshPodcastEpisodeCompleteness(episodeId);
@@ -111,8 +113,8 @@ class DefaultPodcastService implements PodcastService {
 		var segments = this.getEpisodeSegmentsByEpisode(episodeId);
 		// there must be a graphic managed file, at least one segment, and all segments
 		// must have been written
-		var written = (episode.graphic().written() && episode.producedGraphic().written()) && !segments.isEmpty() &&
-				(segments.stream().allMatch(se -> se.audio().written() &&  se.producedAudio().written()));
+		var written = (episode.graphic().written() && episode.producedGraphic().written()) && !segments.isEmpty()
+				&& (segments.stream().allMatch(se -> se.audio().written() && se.producedAudio().written()));
 
 		log.debug("written? " + written);
 		this.db.sql("update podcast_episode set complete = ? where id = ? ").params(written, episode.id()).update();
@@ -126,7 +128,8 @@ class DefaultPodcastService implements PodcastService {
 	@ApplicationModuleListener
 	void mogulCreated(MogulCreatedEvent createdEvent) {
 		var podcast = this.createPodcast(createdEvent.mogul().id(), createdEvent.mogul().username() + "'s Podcast");
-		Assert.notNull(podcast, "there should be a newly created podcast associated with the mogul [" + createdEvent.mogul() + "]");
+		Assert.notNull(podcast,
+				"there should be a newly created podcast associated with the mogul [" + createdEvent.mogul() + "]");
 	}
 
 	@Override
@@ -151,8 +154,8 @@ class DefaultPodcastService implements PodcastService {
 	@Override
 	public Podcast createPodcast(Long mogulId, String title) {
 		var kh = new GeneratedKeyHolder();
-		this.db
-				.sql(" insert into podcast (mogul_id, title) values (?,?) on conflict on constraint podcast_mogul_id_title_key do update set title = excluded.title ")
+		this.db.sql(
+				" insert into podcast (mogul_id, title) values (?,?) on conflict on constraint podcast_mogul_id_title_key do update set title = excluded.title ")
 			.params(mogulId, title)
 			.update(kh);
 		var id = JdbcUtils.getIdFromKeyHolder(kh);

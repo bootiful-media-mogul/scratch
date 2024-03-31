@@ -35,8 +35,8 @@ class MediaNormalizationIntegration {
 		return MessageChannels.direct();
 	}
 
-	private MediaNormalizationIntegrationResponse readAndTransformManagedFile(ManagedFileService managedFileService, ManagedFile input,
-			Function<File, File> normalizer, MediaType mediaType , ManagedFile output) {
+	private MediaNormalizationIntegrationResponse readAndTransformManagedFile(ManagedFileService managedFileService,
+			ManagedFile input, Function<File, File> normalizer, MediaType mediaType, ManagedFile output) {
 		var tmp = tempLocalFileForManagedFile(input);
 		dump(managedFileService.read(input.id()), tmp);
 		var newFile = normalizer.apply(tmp);
@@ -64,25 +64,23 @@ class MediaNormalizationIntegration {
 	}
 
 	@Bean(MEDIA_NORMALIZATION_FLOW)
-	IntegrationFlow mediaNormalizationFlow(@Qualifier(MEDIA_NORMALIZATION_FLOW_CHANNEL) MessageChannel requests, ImageEncoder imageEncoder,
-										   AudioEncoder audioEncoder, ManagedFileService managedFileService) {
+	IntegrationFlow mediaNormalizationFlow(@Qualifier(MEDIA_NORMALIZATION_FLOW_CHANNEL) MessageChannel requests,
+			ImageEncoder imageEncoder, AudioEncoder audioEncoder, ManagedFileService managedFileService) {
 		var imgMediaType = MediaType.parseMediaType("image/*");
 		return IntegrationFlow//
 			.from(requests)//
-			.handle((GenericHandler<MediaNormalizationIntegrationRequest>) (io , headers) -> {
-				var input =  io.input() ;
-				var output = io.output() ;
+			.handle((GenericHandler<MediaNormalizationIntegrationRequest>) (io, headers) -> {
+				var input = io.input();
+				var output = io.output();
 				var isImage = imgMediaType.isCompatibleWith(MediaType.parseMediaType(input.contentType()));
 				return (isImage)
 						? readAndTransformManagedFile(managedFileService, input, imageEncoder::encode,
-								CommonMediaTypes.JPG , output )
+								CommonMediaTypes.JPG, output)
 						: readAndTransformManagedFile(managedFileService, input, audioEncoder::encode,
-								CommonMediaTypes.MP3 , output);
+								CommonMediaTypes.MP3, output);
 
 			})
 			.get();
 	}
-
-
 
 }

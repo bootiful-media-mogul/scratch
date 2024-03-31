@@ -32,7 +32,6 @@ class DefaultPublicationService implements PublicationService {
 
 	private final MogulService mogulService;
 
-
 	private final RowMapper<Publication> publicationRowMapper;
 
 	private final Logger log = LoggerFactory.getLogger(getClass());

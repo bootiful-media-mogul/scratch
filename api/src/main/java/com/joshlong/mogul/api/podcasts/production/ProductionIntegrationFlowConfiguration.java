@@ -53,75 +53,62 @@ class ProductionIntegrationFlowConfiguration {
 		return MessageChannels.direct();
 	}
 
-
 	record ProducerInputSegment(int index, String s3Uri, long crossfade) {
 	}
 
 	record ProducerInput(String uid, Long episodeId, String outputS3Uri, List<ProducerInputSegment> segments) {
 	}
 
-
-
 	@Bean
 	IntegrationFlow episodeProductionIntegrationFlow(ApiProperties properties, PodcastService podcastService,
-													 AmqpTemplate amqpTemplate, @Qualifier(PRODUCTION_FLOW_REQUESTS) MessageChannel channel
-	) {
+			AmqpTemplate amqpTemplate, @Qualifier(PRODUCTION_FLOW_REQUESTS) MessageChannel channel) {
 		var episodeIdHeaderName = "episodeId";
 
 		var q = properties.podcasts().production().amqp().requests();
 		return IntegrationFlow//
 			.from(channel)//
 			.handle(IntegrationUtils.debugHandler("got invoked by the gateway"))
-				/*	.split(new AbstractMessageSplitter() {
-
-                        @Override
-                        protected Object splitMessage(Message<?> message) {
-
-                            // todo we need to lazily produce (normalize) all the sub managed_files
-
-                            Assert.state(message.getPayload() instanceof Episode, "the payload must be an instance of Episode");
-                            var source = (Episode) message.getPayload();
-
-                            var all = new ArrayList<MediaNormalizationIntegrationRequest>();
-                            all.add(new MediaNormalizationIntegrationRequest(
-                                    source.graphic(),
-                                    source.producedGraphic()
-                            ));
-                            var segments = podcastService.getEpisodeSegmentsByEpisode(source.id());
-                            for (var s : segments) {
-                                all.add(new MediaNormalizationIntegrationRequest(
-                                        s.audio(), s.producedAudio()
-                                ));
-                            }
-
-                            return all
-                                    .stream()
-                                    .map(r -> MessageBuilder.withPayload(r).setHeaderIfAbsent(episodeIdHeaderName, source.id()).build())
-                                    .toList();
-                        }
-                    })
-                    .transform(mediaNormalizer::normalize)
-                    .aggregate(new AbstractAggregatingMessageGroupProcessor() {
-                        @Override
-                        protected Object aggregatePayloads(MessageGroup group, Map<String, Object> defaultHeaders) {
-                            var transformed = group.getMessages();// Collection<Message<MediaNormalizationIntegrationResponse>>
-                            var episodeId = new AtomicLong(0);
-                            for (var m : transformed) {
-                                Assert.state(m.getHeaders().containsKey(episodeIdHeaderName), "you must have a header called '" + episodeIdHeaderName +
-                                        "' " +
-                                        "so we know where to continue the processing.");
-                                episodeId.set((Long) m.getHeaders().get(episodeIdHeaderName));
-                                var reply = ((MediaNormalizationIntegrationResponse) m.getPayload());
-                                Assert.state(reply.output().written(), "the output file [" + reply.output() +
-                                        "] was not written");
-                                Assert.state(reply.input().written(), "the input file [" + reply.input() +
-                                        "] was not written");
-                            }
-                            log.debug("finished producing episode #" + episodeId + ".");
-                            return podcastService.getEpisodeById(episodeId.get());
-                        }
-                    })
-                // todo see github https://github.com/bootiful-media-mogul/scratch/issues/12*/
+			/*
+			 * .split(new AbstractMessageSplitter() {
+			 *
+			 * @Override protected Object splitMessage(Message<?> message) {
+			 *
+			 * // todo we need to lazily produce (normalize) all the sub managed_files
+			 *
+			 * Assert.state(message.getPayload() instanceof Episode,
+			 * "the payload must be an instance of Episode"); var source = (Episode)
+			 * message.getPayload();
+			 *
+			 * var all = new ArrayList<MediaNormalizationIntegrationRequest>();
+			 * all.add(new MediaNormalizationIntegrationRequest( source.graphic(),
+			 * source.producedGraphic() )); var segments =
+			 * podcastService.getEpisodeSegmentsByEpisode(source.id()); for (var s :
+			 * segments) { all.add(new MediaNormalizationIntegrationRequest( s.audio(),
+			 * s.producedAudio() )); }
+			 *
+			 * return all .stream() .map(r ->
+			 * MessageBuilder.withPayload(r).setHeaderIfAbsent(episodeIdHeaderName,
+			 * source.id()).build()) .toList(); } })
+			 * .transform(mediaNormalizer::normalize) .aggregate(new
+			 * AbstractAggregatingMessageGroupProcessor() {
+			 *
+			 * @Override protected Object aggregatePayloads(MessageGroup group,
+			 * Map<String, Object> defaultHeaders) { var transformed =
+			 * group.getMessages();//
+			 * Collection<Message<MediaNormalizationIntegrationResponse>> var episodeId =
+			 * new AtomicLong(0); for (var m : transformed) {
+			 * Assert.state(m.getHeaders().containsKey(episodeIdHeaderName),
+			 * "you must have a header called '" + episodeIdHeaderName + "' " +
+			 * "so we know where to continue the processing."); episodeId.set((Long)
+			 * m.getHeaders().get(episodeIdHeaderName)); var reply =
+			 * ((MediaNormalizationIntegrationResponse) m.getPayload());
+			 * Assert.state(reply.output().written(), "the output file [" + reply.output()
+			 * + "] was not written"); Assert.state(reply.input().written(),
+			 * "the input file [" + reply.input() + "] was not written"); }
+			 * log.debug("finished producing episode #" + episodeId + "."); return
+			 * podcastService.getEpisodeById(episodeId.get()); } }) // todo see github
+			 * https://github.com/bootiful-media-mogul/scratch/issues/12
+			 */
 			.transform(new AbstractTransformer() {
 				@Override
 				protected Object doTransform(Message<?> message) {
@@ -134,14 +121,15 @@ class ProductionIntegrationFlowConfiguration {
 					var segments = podcastService.getEpisodeSegmentsByEpisode(episodeId);
 					for (var i = 0; i < segments.size(); i++) {
 						var seg = segments.get(i);
-						listOfInputSegments.add(new ProducerInputSegment(i, seg.producedAudio().s3Uri().toString(), seg.crossFadeDuration()));
+						listOfInputSegments.add(new ProducerInputSegment(i, seg.producedAudio().s3Uri().toString(),
+								seg.crossFadeDuration()));
 					}
 					var input = new ProducerInput(uid, episodeId, outputS3Uri, listOfInputSegments);
 					return MessageBuilder//
-							.withPayload(input)//
-							.copyHeadersIfAbsent(message.getHeaders())//
-							.setHeader(episodeIdHeaderName, source.id())//
-							.build();
+						.withPayload(input)//
+						.copyHeadersIfAbsent(message.getHeaders())//
+						.setHeader(episodeIdHeaderName, source.id())//
+						.build();
 				}
 			})
 			.transform(new ObjectToJsonTransformer())
@@ -152,27 +140,27 @@ class ProductionIntegrationFlowConfiguration {
 			)//
 			.handle(IntegrationUtils.debugHandler("got a response from AMQP"))//
 			.transform(new AbstractTransformer() {
-					@Override
-					protected Object doTransform(Message<?> message) {
-						var payload = message.getPayload();
-						if (payload instanceof String jsonString) {
-							var map = JsonUtils.read(jsonString, Map.class);
-							Assert.state(map.containsKey("outputS3Uri"), "the AMQP reply must contain the header 'outputS3Uri'");
-							return map.get("outputS3Uri");
-						}
-						return null;
+				@Override
+				protected Object doTransform(Message<?> message) {
+					var payload = message.getPayload();
+					if (payload instanceof String jsonString) {
+						var map = JsonUtils.read(jsonString, Map.class);
+						Assert.state(map.containsKey("outputS3Uri"),
+								"the AMQP reply must contain the header 'outputS3Uri'");
+						return map.get("outputS3Uri");
 					}
+					return null;
+				}
 			})
 			.handle((GenericHandler<String>) (s3Uri, headers) -> {
-					var managedFile = this.doWrite(episodeIdHeaderName, podcastService, managedFileService, headers,
-							s3Uri);//
-					return MessageBuilder.withPayload(managedFile).copyHeadersIfAbsent(headers).build();
+				var managedFile = this.doWrite(episodeIdHeaderName, podcastService, managedFileService, headers, s3Uri);//
+				return MessageBuilder.withPayload(managedFile).copyHeadersIfAbsent(headers).build();
 			})
 			.get();
 	}
 
 	private ManagedFile doWrite(String episodeIdHeaderName, PodcastService podcastService,
-								ManagedFileService managedFileService, Map<String, Object> headers, String s3Uri) {
+			ManagedFileService managedFileService, Map<String, Object> headers, String s3Uri) {
 		log.debug("got the following S3 URI from the AMQP processor: " + s3Uri);
 		var episodeIdValue = headers.get(episodeIdHeaderName);
 		var episodeId = episodeIdValue instanceof String episodeIdString ? //

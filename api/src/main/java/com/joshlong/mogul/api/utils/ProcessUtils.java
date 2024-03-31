@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 
 public abstract class ProcessUtils {
 
-
 	public static int runCommand(String... command) throws IOException, InterruptedException {
 		var log = LoggerFactory.getLogger(ProcessUtils.class);
 		var processBuilder = new ProcessBuilder(command).inheritIO();

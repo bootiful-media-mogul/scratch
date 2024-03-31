@@ -208,7 +208,7 @@ class PodcastController {
 		}
 		log.debug("installing an SseEmitter for episode [" + episode + "]");
 		var cleanup = (Runnable) () -> {
-            this.episodeCompleteEventSseEmitters.remove(episodeId);
+			this.episodeCompleteEventSseEmitters.remove(episodeId);
 			log.info("removing sse listener for episode [" + episodeId + "]");
 		};
 		peEmitter.sseEmitter().onCompletion(cleanup);
@@ -239,7 +239,6 @@ class PodcastController {
 			log.warn("experienced an exception when trying to emit a podcast completed event via SSE for id # " + id);
 			emitter.sseEmitter().completeWithError(e);
 		} //
-
 
 	}
 
