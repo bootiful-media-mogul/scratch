@@ -93,7 +93,13 @@ class DefaultPodcastService implements PodcastService {
 						.stream()
 						.filter(s -> s.audio().id().equals(mf.id()))
 						.findAny()
-						.ifPresent(segment -> this.mediaNormalizer.normalize(new MediaNormalizationIntegrationRequest(segment.audio(), segment.producedAudio())));
+						.ifPresent(segment -> {
+							var response = this.mediaNormalizer.normalize(new MediaNormalizationIntegrationRequest(segment.audio(), segment.producedAudio()));
+							Assert.notNull( response, "the response should not be null");
+							var updated = new Date();
+							// if this is older than the last time we have produced any audio, then we won't reproduce the audio
+							db.sql("update podcast_episode  set produced_audio_assets_updated = ? where    id = ? ").params(updated, episodeId).update();
+						});
 			}
 			// once the file has been normalized, we can worry about completeness
 			this.refreshPodcastEpisodeCompleteness(episodeId);

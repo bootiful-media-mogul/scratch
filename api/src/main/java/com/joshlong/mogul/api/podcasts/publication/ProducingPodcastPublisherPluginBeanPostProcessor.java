@@ -41,7 +41,6 @@ class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProces
 				if (publishMethod) {
 					var context = (Map<String, String>) invocation.getArguments()[0];
 					var episode = (Episode) invocation.getArguments()[1];
-
 					var shouldProduceAudio = episode.producedAudioUpdated() == null
 							|| episode.producedAudioUpdated().before(episode.producedAudioAssetsUpdated());
 					log.debug("should produce the audio for episode [" + episode + "] from scratch? ["
@@ -51,10 +50,8 @@ class ProducingPodcastPublisherPluginBeanPostProcessor implements BeanPostProces
 						log.debug("produced the audio for episode [" + episode + "] from scratch to managedFile: ["
 								+ producedManagedFile + "] using producer [" + podcastProducer + "]");
 					}
-
-					Assert.notNull(episode.producedAudioAssetsUpdated(), "the produced_audio_assets_updated field is null");
-
 					var updatedEpisode = podcastService.getEpisodeById(episode.id());
+					Assert.notNull(updatedEpisode.producedAudioUpdated() , "the producedAudioUpdated field is null");
 					plugin.publish(context, updatedEpisode);
 					return null;
 				}
