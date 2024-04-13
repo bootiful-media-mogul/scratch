@@ -3,7 +3,6 @@ package com.joshlong.mogul.api.podcasts.publication;
 import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
 import com.joshlong.mogul.api.podcasts.Episode;
-import com.joshlong.mogul.api.publications.PublisherPlugin;
 import com.joshlong.mogul.api.utils.FileUtils;
 import com.joshlong.podbean.EpisodeStatus;
 import com.joshlong.podbean.EpisodeType;
@@ -69,9 +68,9 @@ class PodbeanPodcastEpisodePublisherPlugin implements PodcastEpisodePublisherPlu
 		// to make it available to the multitenant TokenProvider
 
 		var tempProducedAudioFile = download(this.managedFileService.read(payload.producedAudio().id()),
-				FileUtils.tempFile("mp3"));
+				FileUtils.tempFileWithExtension("mp3"));
 		var tempGraphicFile = download(this.managedFileService.read(payload.producedGraphic().id()),
-				FileUtils.tempFile("jpg"));
+				FileUtils.tempFileWithExtension("jpg"));
 
 		var producedAudioAuthorization = this.podbeanClient.upload(CommonMediaTypes.MP3, tempProducedAudioFile);
 		log.debug("got the podcast audio authorization: " + producedAudioAuthorization);

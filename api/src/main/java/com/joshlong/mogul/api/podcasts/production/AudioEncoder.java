@@ -18,33 +18,31 @@ class AudioEncoder implements Encoder, ApplicationListener<ApplicationReadyEvent
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	private void version() {
-		try (var cmd = new ProcessBuilder().command("ffmpeg", "-version").start().getInputStream();
-				var ow = new InputStreamReader(cmd)) {
-			var cmdOutput = FileCopyUtils.copyToString(ow);
+		try (var inputStream = new ProcessBuilder().command("ffmpeg", "-version").start().getInputStream();
+				var inputStreamReader = new InputStreamReader(inputStream)) {
+			var cmdOutput = FileCopyUtils.copyToString(inputStreamReader);
 			log.debug(cmdOutput);
 		}
 		catch (Throwable throwable) {
 			log.debug("couldn't get the ffmpeg version");
 		}
-
 	}
 
 	@Override
 	public File encode(File input) {
 		try {
-			var wavAbsolutePath = input.getAbsolutePath();
-			log.info("wav: " + wavAbsolutePath);
-
+			var inputAbsolutePath = input.getAbsolutePath();
+			log.debug("absolute path of audio file to encode: " + inputAbsolutePath);
 			Assert.state(input.exists() && input.isFile(),
-					"the input ['" + wavAbsolutePath + "'] must be a valid, existing file");
+					"the input ['" + inputAbsolutePath + "'] must be a valid, existing file");
 			var mp3Ext = "mp3";
-			if (wavAbsolutePath.endsWith(mp3Ext))
+			if (inputAbsolutePath.toLowerCase().endsWith(mp3Ext))
 				return input;
 			var mp3 = FileUtils.createRelativeTempFile(input, "." + mp3Ext);
 			var mp3AbsolutePath = mp3.getAbsolutePath();
 			log.info("mp3: " + mp3AbsolutePath);
 			var exit = Runtime.getRuntime()
-				.exec(new String[] { "ffmpeg", "-i", wavAbsolutePath, mp3AbsolutePath })
+				.exec(new String[] { "ffmpeg", "-i", inputAbsolutePath, mp3AbsolutePath })
 				.waitFor();
 			Assert.state(exit == 0, "the ffmpeg command ran successfully");
 			return mp3;

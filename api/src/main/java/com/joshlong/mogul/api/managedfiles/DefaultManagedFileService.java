@@ -73,7 +73,7 @@ class DefaultManagedFileService implements ManagedFileService {
 	public void refreshManagedFile(Long managedFileId) {
 		var managedFile = this.getManagedFile(managedFileId);
 		var resource = this.read(managedFile.id());
-		var tmp = FileUtils.tempFile();
+		var tmp = FileUtils.tempFileWithExtension();
 		try {
 			try (var in = (resource.getInputStream()); var out = (new FileOutputStream(tmp))) {
 				log.debug("starting download to local file [" + tmp.getAbsolutePath() + "]");

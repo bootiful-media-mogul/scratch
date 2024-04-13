@@ -2,7 +2,6 @@ package com.joshlong.mogul.api.podcasts.production;
 
 import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
-import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,34 +34,6 @@ class MediaNormalizationIntegration {
 		return MessageChannels.direct();
 	}
 
-	private MediaNormalizationIntegrationResponse readAndTransformManagedFile(ManagedFileService managedFileService,
-			ManagedFile input, Function<File, File> normalizer, MediaType mediaType, ManagedFile output) {
-		var tmp = tempLocalFileForManagedFile(input);
-		dump(managedFileService.read(input.id()), tmp);
-		var newFile = normalizer.apply(tmp);
-		managedFileService.write(output.id(), output.filename(), mediaType, new FileSystemResource(newFile));
-		return new MediaNormalizationIntegrationResponse(input, output);
-	}
-
-	private static File tempLocalFileForManagedFile(ManagedFile managedFile) {
-		try {
-			return File.createTempFile("managedFileNormalization", managedFile.filename());
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private static void dump(Resource resource, File file) {
-		try (var i = new BufferedInputStream(resource.getInputStream());
-				var o = new BufferedOutputStream(new FileOutputStream(file))) {
-			FileCopyUtils.copy(i, o);
-		} ///
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	@Bean(MEDIA_NORMALIZATION_FLOW)
 	IntegrationFlow mediaNormalizationFlow(@Qualifier(MEDIA_NORMALIZATION_FLOW_CHANNEL) MessageChannel requests,
 			ImageEncoder imageEncoder, AudioEncoder audioEncoder, ManagedFileService managedFileService) {
@@ -73,12 +44,21 @@ class MediaNormalizationIntegration {
 				var input = io.input();
 				var output = io.output();
 				var isImage = imgMediaType.isCompatibleWith(MediaType.parseMediaType(input.contentType()));
-				return (isImage)
-						? readAndTransformManagedFile(managedFileService, input, imageEncoder::encode,
-								CommonMediaTypes.JPG, output)
-						: readAndTransformManagedFile(managedFileService, input, audioEncoder::encode,
-								CommonMediaTypes.MP3, output);
-
+				var ext = isImage ? CommonMediaTypes.JPG : CommonMediaTypes.MP3;
+				var encodingFunction = isImage ? (Function<File, File>) imageEncoder::encode
+						: (Function<File, File>) audioEncoder::encode;
+				var localFile = input.uniqueLocalFile();
+				var resource = managedFileService.read(input.id());
+				try (var i = new BufferedInputStream(resource.getInputStream());
+						var o = new BufferedOutputStream(new FileOutputStream(localFile))) {
+					FileCopyUtils.copy(i, o);
+				} ///
+				catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				var newFile = encodingFunction.apply(localFile);
+				managedFileService.write(output.id(), output.filename(), ext, new FileSystemResource(newFile));
+				return new MediaNormalizationIntegrationResponse(input, output);
 			})
 			.get();
 	}
