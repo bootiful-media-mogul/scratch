@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Episode, Podcast, podcasts } from '@/services'
+import { PodcastEpisode, PodcastEpisodeSegment, Podcast, podcasts } from '@/services'
 import AiWorkshopItIconComponent from '@/ai/AiWorkshopItIconComponent.vue'
 import ManagedFileComponent from '@/managedfiles/ManagedFileComponent.vue'
 import { reactive } from 'vue'
@@ -28,15 +28,44 @@ export default {
       this.episodes = await podcasts.podcastEpisodes(newPodcastId)
     },
 
-    async deleteEpisode(episode: Episode) {
-      await podcasts.deleteEpisode(episode.id)
+    async movePodcastEpisodeSegmentDown(
+      episode: PodcastEpisode,
+      episodeSegment: PodcastEpisodeSegment
+    ) {
+      console.log('you want to move segment [', episodeSegment, '] down one, eh?')
+      await podcasts.movePodcastEpisodeSegmentDown(episode.id, episodeSegment.id)
+      await this.loadEpisodeSegments(episode)
+    },
+
+    async movePodcastEpisodeSegmentUp(
+      episode: PodcastEpisode,
+      episodeSegment: PodcastEpisodeSegment
+    ) {
+      await podcasts.movePodcastEpisodeSegmentUp(episode.id, episodeSegment.id)
+      await this.loadEpisodeSegments(episode)
+    },
+
+    async deletePodcastEpisodeSegment(
+      episode: PodcastEpisode,
+      episodeSegment: PodcastEpisodeSegment
+    ) {
+      await podcasts.deletePodcastEpisodeSegment(episodeSegment.id)
+      await this.loadEpisodeSegments(episode)
+    },
+
+    async deletePodcastEpisode(episode: PodcastEpisode) {
+      await podcasts.deletePodcastEpisode(episode.id)
       await this.cancel(new Event(''))
     },
 
-    async loadEpisode(episode: Episode) {
+    async addNewPodcastEpisodeSegment(episode: PodcastEpisode) {
+      console.log('add a new podcast episode segment')
+      await podcasts.addPodcastEpisodeSegment(episode.id)
+      await this.loadEpisodeSegments(episode)
+    },
+
+    async loadEpisode(episode: PodcastEpisode) {
       this.draftEpisode.id = episode.id
-      this.draftEpisode.interview = episode.interview
-      this.draftEpisode.introduction = episode.introduction
       this.draftEpisode.graphic = episode.graphic
       this.draftEpisode.title = episode.title
       this.draftEpisode.description = episode.description
@@ -47,6 +76,7 @@ export default {
       this.title = this.draftEpisode.title
       this.created = this.draftEpisode.created
       this.dirtyKey = this.computeDirtyKey()
+      this.draftEpisodeSegments = episode.segments
 
       const plugins = episode.availablePlugins
       if (plugins && plugins.length == 1) this.selectedPlugin = plugins[0]
@@ -54,29 +84,37 @@ export default {
       await this.loadPodcast()
 
       // todo remove all of this since we're going to have a generic notification substrait
-      if (this.completionEventListenersEventSource === null && !this.draftEpisode.complete) {
-        console.log(
-          'going to install a listener for completion events for podcast episode [' +
-            this.draftEpisode.id +
-            ']'
-        )
-
-        const uri: string =
-          '/api/podcasts/' +
-          this.currentPodcast.id +
-          '/episodes/' +
+      console.log(
+        'going to install a listener for completion events for podcast episode [' +
           this.draftEpisode.id +
-          '/completions'
-        console.log('the uri is ' + uri)
-        this.completionEventListenersEventSource = new EventSource(uri)
-        this.completionEventListenersEventSource.onmessage = (sseEvent: MessageEvent) => {
-          console.log('got the following SSE event: ' + sseEvent.data)
-          this.draftEpisode.complete = true
-          this.completionEventListenersEventSource.close()
+          ']'
+      )
+
+      const uri: string =
+        '/api/podcasts/' +
+        this.currentPodcast.id +
+        '/episodes/' +
+        this.draftEpisode.id +
+        '/completions'
+      console.debug('the SSE completion event uri is ' + uri)
+
+      const de = this.draftEpisode
+
+      const that = this
+      this.completionEventListenersEventSource = new EventSource(uri)
+
+      this.completionEventListenersEventSource.onmessage = async (sse: MessageEvent) => {
+        const state = JSON.parse(sse.data)['complete']
+        console.log('draftEpisode.complete=' + state)
+        de.complete = state
+        if (de.complete == true) {
+          console.log(`its complete, so we will force a reload`)
+          await that.loadEpisode(await podcasts.podcastEpisodeById(this.draftEpisode.id))
         }
-        this.completionEventListenersEventSource.onerror = function (sseME: Event) {
-          console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
-        }
+      }
+
+      this.completionEventListenersEventSource.onerror = function (sse: Event) {
+        console.error('something went wrong in the SSE: ', sse)
       }
     },
 
@@ -101,11 +139,27 @@ export default {
         await this.loadEpisode(episode)
       }
     },
+    downArrowClasses(episode: PodcastEpisode, segment: PodcastEpisodeSegment) {
+      return {
+        'down-arrow-icon': true,
+        disabled: this.draftEpisodeSegments[this.draftEpisodeSegments.length - 1].id == segment.id
+      }
+    },
+
+    upArrowClasses(episode: PodcastEpisode, segment: PodcastEpisodeSegment) {
+      return {
+        'up-arrow-icon': true,
+        // 'disabled': this.draftEpisodeSegments[this.draftEpisodeSegments.length - 1].id == segment.id
+        disabled: this.draftEpisodeSegments && this.draftEpisodeSegments[0].id == segment.id
+      }
+    },
 
     async publish(e: Event) {
       e.preventDefault()
+      console.log('publishing..')
       await podcasts.publishPodcastEpisode(this.draftEpisode.id, this.selectedPlugin)
     },
+
     pluginSelected(e: Event) {
       e.preventDefault()
       console.log('so you selected a plugin, didja ? it is ' + JSON.stringify(this.selectedPlugin))
@@ -140,10 +194,17 @@ export default {
 
     async cancel(e: Event) {
       e.preventDefault()
-      this.draftEpisode = reactive({} as Episode)
+      this.draftEpisode = reactive({} as PodcastEpisode)
       this.title = ''
       this.description = ''
+      this.draftEpisodeSegments = []
       await this.loadPodcast()
+    },
+
+    async loadEpisodeSegments(episode: PodcastEpisode) {
+      const ep = await podcasts.podcastEpisodeById(episode.id)
+      this.draftEpisodeSegments = ep.segments
+      console.log('reloaded the segments')
     }
   },
 
@@ -159,12 +220,13 @@ export default {
 
   data() {
     return {
+      draftEpisodeSegments: [] as Array<PodcastEpisodeSegment>,
       completionEventListenersEventSource: null as any as EventSource,
       completionEventListeners: [],
       selectedPlugin: '',
       created: -1,
-      draftEpisode: reactive({} as Episode),
-      episodes: [] as Array<Episode>,
+      draftEpisode: reactive({} as PodcastEpisode),
+      episodes: [] as Array<PodcastEpisode>,
       currentPodcast: null as any as Podcast,
       selectedPodcastId: this.id,
       title: '',
@@ -189,105 +251,151 @@ export default {
         <span v-else> {{ $t('episodes.new-episode') }} </span>
       </legend>
 
-      <label for="episodeTitle">
-        {{ $t('episodes.episode.title') }}
-        <AiWorkshopItIconComponent
-          :prompt="$t('episodes.episode.title.ai-prompt')"
-          :text="title"
-          @ai-workshop-completed="title = $event.text"
-        />
-      </label>
-      <input id="episodeTitle" required v-model="title" type="text" />
+      <div class="form-section">
+        <div class="form-section-title">Basics</div>
 
-      <label for="episodeDescription">
-        {{ $t('episodes.episode.description') }}
+        <label for="episodeTitle">
+          {{ $t('episodes.episode.title') }}
+          <AiWorkshopItIconComponent
+            :prompt="$t('episodes.episode.title.ai-prompt')"
+            :text="title"
+            @ai-workshop-completed="title = $event.text"
+          />
+        </label>
+        <input id="episodeTitle" required v-model="title" type="text" />
 
-        <AiWorkshopItIconComponent
-          :prompt="$t('episodes.episode.description.ai-prompt')"
-          :text="description"
-          @ai-workshop-completed="description = $event.text"
-        />
-      </label>
-      <textarea id="episodeDescription" rows="10" required v-model="description" />
+        <label for="episodeDescription">
+          {{ $t('episodes.episode.description') }}
 
-      <div v-if="draftEpisode">
-        <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
-          <div class="pure-u-3-24"><label>graphic</label></div>
-          <div class="pure-u-21-24">
-            <ManagedFileComponent
-              accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
-              v-model:managed-file-id="draftEpisode.graphic.id"
-            />
-          </div>
-        </div>
-        <div v-if="draftEpisode.introduction" class="pure-g episode-managed-file-row">
-          <div class="pure-u-3-24"><label>introduction</label></div>
-          <div class="pure-u-21-24">
-            <ManagedFileComponent
-              accept=".mp3,audio/mpeg"
-              v-model:managed-file-id="draftEpisode.introduction.id"
-            />
-          </div>
-        </div>
-        <div v-if="draftEpisode.interview" class="pure-g episode-managed-file-row">
-          <div class="pure-u-3-24"><label>interview</label></div>
-          <div class="pure-u-21-24">
-            <ManagedFileComponent
-              v-model:managed-file-id="draftEpisode.interview.id"
-              accept=".mp3,audio/mpeg"
-            />
-          </div>
+          <AiWorkshopItIconComponent
+            :prompt="$t('episodes.episode.description.ai-prompt')"
+            :text="description"
+            @ai-workshop-completed="description = $event.text"
+          />
+        </label>
+        <textarea id="episodeDescription" rows="10" required v-model="description" />
+
+        <div class="podcast-episode-controls-row">
+          <span class="save">
+            <button
+              @click="save"
+              :disabled="buttonsDisabled()"
+              type="submit"
+              class="pure-button pure-button-primary"
+            >
+              {{ $t('episodes.buttons.save') }}
+            </button>
+          </span>
+          <span class="cancel">
+            <button
+              @click="cancel"
+              type="submit"
+              :disabled="description == '' && title == ''"
+              class="pure-button pure-button-primary"
+            >
+              {{ $t('episodes.buttons.cancel') }}
+            </button>
+          </span>
         </div>
       </div>
-      <div class="podcast-episode-controls-row">
-        <span class="save">
-          <button
-            @click="save"
-            :disabled="buttonsDisabled()"
-            type="submit"
-            class="pure-button pure-button-primary"
-          >
-            {{ $t('episodes.buttons.save') }}
-          </button>
-        </span>
-        <span class="cancel">
-          <button
-            @click="cancel"
-            type="submit"
-            :disabled="description == '' && title == ''"
-            class="pure-button pure-button-primary"
-          >
-            {{ $t('episodes.buttons.cancel') }}
-          </button>
-        </span>
 
-        <div class="publish-menu">
-          <select
-            v-model="selectedPlugin"
-            @change="pluginSelected"
-            :disabled="!draftEpisode.complete"
-          >
-            <option disabled value="">
-              {{ $t('episodes.plugins.please-select-a-plugin') }}
-            </option>
+      <div class="form-section">
+        <div class="form-section-title">Segments</div>
 
-            <option
-              v-for="(option, index) in draftEpisode.availablePlugins"
-              :key="index"
-              :value="option"
-            >
-              {{ option }}
-            </option>
-          </select>
+        <div v-if="draftEpisode">
+          <div v-if="draftEpisode.graphic" class="pure-g episode-managed-file-row">
+            <div class="pure-u-3-24">
+              <label>{{ $t('episodes.episode.graphic') }}</label>
+            </div>
+            <div class="pure-u-21-24">
+              <ManagedFileComponent
+                accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
+                v-model:managed-file-id="draftEpisode.graphic.id"
+              >
+                <div class="segment-controls"></div>
+              </ManagedFileComponent>
+            </div>
+          </div>
 
-          <button
-            :disabled="!draftEpisode.complete"
-            @click="publish"
-            type="submit"
-            class="pure-button pure-button-primary publish-button"
-          >
-            {{ $t('episodes.buttons.publish') }}
-          </button>
+          <div v-bind:key="segment.id" v-for="segment in draftEpisodeSegments">
+            <div class="pure-g episode-managed-file-row">
+              <div class="pure-u-3-24">
+                <label>
+                  {{ $t('episodes.episode.segments.number', { order: segment.order }) }}
+                </label>
+              </div>
+              <div class="pure-u-21-24">
+                <ManagedFileComponent
+                  accept=".mp3,audio/mpeg"
+                  v-model:managed-file-id="segment.audio.id"
+                >
+                  <div class="segment-controls">
+                    <a
+                      @click.prevent="movePodcastEpisodeSegmentUp(draftEpisode, segment)"
+                      href="#"
+                      :class="upArrowClasses(draftEpisode, segment)"
+                    ></a>
+
+                    <a
+                      @click.prevent="movePodcastEpisodeSegmentDown(draftEpisode, segment)"
+                      href="#"
+                      :class="downArrowClasses(draftEpisode, segment)"
+                    ></a>
+                    <a
+                      @click.prevent="deletePodcastEpisodeSegment(draftEpisode, segment)"
+                      href="#"
+                      class="delete-icon"
+                    ></a>
+                  </div>
+                </ManagedFileComponent>
+              </div>
+            </div>
+          </div>
+
+          <div class="podcast-episode-controls-row">
+            <span class="save">
+              <button
+                @click.prevent="addNewPodcastEpisodeSegment(draftEpisode)"
+                type="submit"
+                class="pure-button pure-button-primary"
+              >
+                {{ $t('episodes.buttons.add-segment') }}
+              </button>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-title">Publications</div>
+          <div>
+            <div class="publish-menu">
+              <select
+                v-model="selectedPlugin"
+                @change="pluginSelected"
+                :disabled="!draftEpisode.complete"
+              >
+                <option disabled value="">
+                  {{ $t('episodes.plugins.please-select-a-plugin') }}
+                </option>
+
+                <option
+                  v-for="(option, index) in draftEpisode.availablePlugins"
+                  :key="index"
+                  :value="option"
+                >
+                  {{ option }}
+                </option>
+              </select>
+              <button
+                :disabled="!draftEpisode.complete"
+                @click="publish"
+                type="submit"
+                class="pure-button pure-button-primary publish-button"
+              >
+                {{ $t('episodes.buttons.publish') }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </fieldset>
@@ -306,7 +414,7 @@ export default {
         <div class="created">{{ dateTimeFormatter().format(new Date(episode.created)) }}</div>
         <div class="edit"><a href="#" @click="loadEpisode(episode)" class="edit-icon"> </a></div>
         <div class="delete">
-          <a href="#" @click="deleteEpisode(episode)" class="delete-icon"></a>
+          <a href="#" @click="deletePodcastEpisode(episode)" class="delete-icon"></a>
         </div>
         <div class="title">{{ episode.title }}</div>
       </div>
@@ -366,8 +474,14 @@ export default {
 }
 
 .episode-managed-file-row label {
-  padding: 0;
   text-align: right;
-  margin: 0 var(--gutter-space) 0 0;
+  padding-right: var(--gutter-space);
+}
+
+div.segment-controls {
+  font-size: smaller;
+  display: grid;
+  grid-template-areas: 'up down delete ';
+  grid-template-columns: var(--icon-column) var(--icon-column) var(--icon-column);
 }
 </style>

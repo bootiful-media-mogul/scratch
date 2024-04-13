@@ -2,7 +2,7 @@
   <div :class="visibilityCss">
     <div class="sidebar-panel-top">
       <div class="visibility-controls">
-        <a href="#" @click="hide" v-if="expanded">{{ $t('labels.close')}}</a>
+        <a href="#" @click="hide" v-if="expanded">{{ $t('labels.close') }}</a>
         <a href="#" @click="show" v-if="!expanded">{{ title }}</a>
       </div>
     </div>

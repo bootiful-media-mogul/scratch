@@ -67,14 +67,23 @@ export class Podcast {
 }
 
 class Podcasts {
-
-
   private readonly client: Client
 
   constructor(client: Client) {
     this.client = client
   }
 
+  async addPodcastEpisodeSegment(episodeId: number) {
+    const mutation = ` 
+          mutation AddPodcastEpisodeSegment($episodeId: ID  ){ 
+            addPodcastEpisodeSegment(episodeId:$episodeId  ) 
+          }
+        `
+    await this.client.mutation(mutation, {
+      episodeId: episodeId
+    })
+    return true
+  }
 
   async publishPodcastEpisode(episodeId: number, pluginName: string): Promise<boolean> {
     const mutation = ` 
@@ -93,35 +102,41 @@ class Podcasts {
     episodeId: number,
     title: string,
     description: string
-  ): Promise<Episode> {
+  ): Promise<PodcastEpisode> {
     const mutation = `
          mutation UpdatePodcastEpisode  ($episode: ID, $title: String, $description: String ){ 
           updatePodcastEpisode ( episodeId: $episode, title: $title, description: $description) { 
-           availablePlugins,   created, id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
+             id 
           }
          }
         `
-    console.log(episodeId + ':' + title + ':' + description)
+    console.debug(episodeId + ':' + title + ':' + description)
     const result = await this.client.mutation(mutation, {
       episode: episodeId,
       title: title,
       description: description
     })
 
-    return (await result.data['updatePodcastEpisode']) as Episode
+    const res = await result.data['updatePodcastEpisode']
+    console.log('updated results: ', res)
+    return await this.podcastEpisodeById(res['id'])
   }
 
-  async podcastEpisodeById(id: number): Promise<Episode> {
+  async podcastEpisodeById(id: number): Promise<PodcastEpisode> {
     const q = `
            query GetPodcastEpisode ( $id: ID){
                 podcastEpisodeById ( id : $id) {
-                availablePlugins,   created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
+                availablePlugins,   created,   id , title, description, complete,  graphic { id  },
+                  segments { 
+                    id, name, audio { id } , order , crossFadeDuration 
+                  }
+            
                 }
         }
         `
     const res = await this.client.query(q, { id: id })
 
-    return (await res.data['podcastEpisodeById']) as Episode
+    return (await res.data['podcastEpisodeById']) as PodcastEpisode
   }
 
   async create(title: string): Promise<Podcast> {
@@ -138,20 +153,44 @@ class Podcasts {
     return (await result.data['createPodcast']) as Podcast
   }
 
-  async podcastEpisodes(podcastId: number): Promise<Array<Episode>> {
+  async podcastEpisodes(podcastId: number): Promise<Array<PodcastEpisode>> {
     const q = `
-           query GetPodcastEpisodesByPodcast( $podcastId: ID){
-                podcastEpisodesByPodcast ( podcastId : $podcastId) {
-                 availablePlugins,  created, id , title, description, complete, graphic { id  }, interview { id }, introduction { id }
-                }
+        query GetPodcastEpisodesByPodcast( $podcastId: ID){
+            podcastEpisodesByPodcast ( podcastId : $podcastId) {
+                availablePlugins,  
+                created, 
+                id , 
+                title, 
+                description, 
+                complete, 
+                graphic { id  } ,
+                segments { 
+                  id, 
+                  name, 
+                  audio { id } , 
+                  order , 
+                  crossFadeDuration 
+                } 
+            }
         }
         `
     const res = await this.client.query(q, { podcastId: podcastId })
-
-    return (await res.data['podcastEpisodesByPodcast']) as Array<Episode>
+    return (await res.data['podcastEpisodesByPodcast']) as Array<PodcastEpisode>
   }
 
-  async deleteEpisode(id: number) {
+  async deletePodcastEpisodeSegment(id: number) {
+    const mutation = `
+         mutation DeletePodcastEpisodeSegment ($id: ID ){ 
+          deletePodcastEpisodeSegment(id: $id)  
+         }
+        `
+    const result = await this.client.mutation(mutation, {
+      id: id
+    })
+    return (await result.data['deletePodcastEpisodeSegment']) as Number
+  }
+
+  async deletePodcastEpisode(id: number) {
     const mutation = `
          mutation DeletePodcastEpisode ($id: ID ){ 
           deletePodcastEpisode(id: $id)  
@@ -163,7 +202,7 @@ class Podcasts {
     return (await result.data['deletePodcastEpisode']) as Number
   }
 
-  async delete(id: number) {
+  async deletePodcast(id: number) {
     const mutation = `
          mutation DeletePodcast ($id: ID ){ 
           deletePodcast(id: $id)  
@@ -191,11 +230,11 @@ class Podcasts {
     podcastId: number,
     title: string,
     description: string
-  ): Promise<Episode> {
+  ): Promise<PodcastEpisode> {
     const mutation = `
          mutation CreatePodcastEpisodeDraft ($podcast: ID, $title: String, $description: String ){ 
           createPodcastEpisodeDraft( podcastId: $podcast, title: $title, description: $description) { 
-            availablePlugins,    created,   id , title, description, complete,  graphic { id  }, interview { id }, introduction { id }
+               id  
           }
          }
         `
@@ -206,7 +245,10 @@ class Podcasts {
       description: description
     })
 
-    return (await result.data['createPodcastEpisodeDraft']) as Episode
+    const idBag = (await result.data['createPodcastEpisodeDraft'])['id']
+    const episode = await this.podcastEpisodeById(idBag)
+    console.log('the episode is ', episode)
+    return episode
   }
 
   async podcastById(podcastId: number): Promise<Podcast> {
@@ -221,6 +263,36 @@ class Podcasts {
         `
     const result = await this.client.query(q, { id: podcastId })
     return (await result.data['podcastById']) as Podcast
+  }
+
+  async movePodcastEpisodeSegmentDown(episodeId: number, episodeSegmentId: number) {
+    const mutation = `
+         mutation MovePodcastEpisodeSegmentDown ($episodeId: ID, $episodeSegmentId: Int  ){ 
+          movePodcastEpisodeSegmentDown(  episodeId: $episodeId,  episodeSegmentId: $episodeSegmentId  ) 
+         }
+        `
+    const result = await this.client.mutation(mutation, {
+      episodeId: episodeId,
+      episodeSegmentId: episodeSegmentId
+    })
+    const id = await result.data
+    console.log('id', id)
+  }
+
+  async movePodcastEpisodeSegmentUp(episodeId: number, episodeSegmentId: number) {
+    const mutation = `
+    
+    
+         mutation MovePodcastEpisodeSegmentUp ($episodeId: ID, $episodeSegmentId: Int  ){ 
+          movePodcastEpisodeSegmentUp(  episodeId: $episodeId,  episodeSegmentId: $episodeSegmentId )  
+         }
+        `
+    const result = await this.client.mutation(mutation, {
+      episodeId: episodeId,
+      episodeSegmentId: episodeSegmentId
+    })
+    const id = await result.data
+    console.log('id', id)
   }
 }
 
@@ -279,44 +351,55 @@ export class ManagedFile {
   }
 }
 
-export class Episode {
+export class PodcastEpisodeSegment {
+  id: number
+  name: string
+  audio: ManagedFile
+  order: number
+
+  constructor(id: number, name: string, audio: ManagedFile, order: number) {
+    console.log(id, name, audio, order)
+    this.id = id
+    this.name = name
+    this.audio = audio
+    this.order = order
+  }
+}
+
+export class PodcastEpisode {
   availablePlugins: Array<string>
   id: number
   title: string
   description: string
   graphic: ManagedFile
-  interview: ManagedFile
-  introduction: ManagedFile
   complete: boolean = false
   created: number = 0
+  segments: Array<PodcastEpisodeSegment>
 
   constructor(
     id: number,
     title: string,
     description: string,
     graphic: ManagedFile,
-    interview: ManagedFile,
-    introduction: ManagedFile,
     complete: boolean,
     created: number,
-    availablePlugins: Array<string>
+    availablePlugins: Array<string>,
+    segments: Array<PodcastEpisodeSegment>
   ) {
     this.availablePlugins = availablePlugins
     this.id = id
     this.title = title
     this.description = description
     this.graphic = graphic
-    this.interview = interview
-    this.introduction = introduction
     this.complete = complete
     this.created = created
+    this.segments = segments
   }
 }
 
 /**
  * handles consuming and displaying notifications to the user
  */
-
 
 export class Notification {
   readonly when: Date
@@ -326,7 +409,14 @@ export class Notification {
   readonly mogulId: number
   readonly modal: boolean
 
-  constructor(mogulId: number, key: string, context: string, category: string, when: Date,modal:boolean) {
+  constructor(
+    mogulId: number,
+    key: string,
+    context: string,
+    category: string,
+    when: Date,
+    modal: boolean
+  ) {
     this.context = context
     this.mogulId = mogulId
     this.modal = modal
@@ -334,12 +424,9 @@ export class Notification {
     this.when = when
     this.key = key
   }
-
 }
 
-
 export class Notifications {
-
   listen(callback: (notification: Notification) => void): EventSource {
     const uri = '/api/notifications'
     const eventSource = new EventSource(uri)
@@ -353,37 +440,31 @@ export class Notifications {
       }
 
       function readMogulId(id: any): number {
-        if (id == null || (typeof id == 'string' && id.trim() == ''))
-          return -1
-        if (typeof id == 'number')
-          return id
+        if (id == null || (typeof id == 'string' && id.trim() == '')) return -1
+        if (typeof id == 'number') return id
         return parseInt(id)
       }
 
       const mogulId = readMogulId(data['mogulId'])
-      const category = readString(data ['category'])
-      const key = readString(data ['key'])
-      const when = new Date (  data['when'])
+      const category = readString(data['category'])
+      const key = readString(data['key'])
+      const when = new Date(data['when'])
       const context = readString(data['context'])
       const modal = data['modal']
-      callback(new Notification(mogulId, key, context, category, when , modal ))
+      callback(new Notification(mogulId, key, context, category, when, modal))
     }
-    eventSource.onerror = function(sseME: Event) {
+    eventSource.onerror = function (sseME: Event) {
       console.error('something went wrong in the SSE: ' + JSON.stringify(sseME))
     }
 
     return eventSource
-
   }
-
-
 }
 
 /**
  * handles updating and inspecting all the configuration values.
  */
 export class Settings {
-
   private readonly client: Client
 
   constructor(client: Client) {
@@ -425,7 +506,6 @@ export class Settings {
 }
 
 export class ManagedFiles {
-
   private readonly client: Client
 
   constructor(client: Client) {

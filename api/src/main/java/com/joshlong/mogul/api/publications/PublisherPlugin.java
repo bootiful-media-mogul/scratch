@@ -21,9 +21,12 @@ public interface PublisherPlugin<T> {
 			required = new HashSet<>();
 
 		var good = true;
-		for (var k : required)
-			if (!context.containsKey(k))
+		for (var k : required) {
+			if (!context.containsKey(k)) {
 				good = false;
+				break;
+			}
+		}
 		return good;
 	}
 

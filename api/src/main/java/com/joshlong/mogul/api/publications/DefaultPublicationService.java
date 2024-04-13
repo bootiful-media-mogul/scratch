@@ -1,10 +1,10 @@
 package com.joshlong.mogul.api.publications;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.settings.Settings;
 import com.joshlong.mogul.api.utils.JdbcUtils;
+import com.joshlong.mogul.api.utils.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
@@ -32,8 +32,6 @@ class DefaultPublicationService implements PublicationService {
 
 	private final MogulService mogulService;
 
-	private final ObjectMapper objectMapper;
-
 	private final RowMapper<Publication> publicationRowMapper;
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
@@ -47,7 +45,6 @@ class DefaultPublicationService implements PublicationService {
 		this.mogulService = mogulService;
 		this.textEncryptor = textEncryptor;
 		this.plugins.putAll(plugins);
-		this.objectMapper = objectMapper;
 		Assert.notNull(this.db, "the JdbcClient must not be null");
 		Assert.notNull(this.mogulService, "the mogulService must not be null");
 		Assert.notNull(this.textEncryptor, "the textEncryptor must not be null");
@@ -56,19 +53,10 @@ class DefaultPublicationService implements PublicationService {
 		this.publicationRowMapper = new PublicationRowMapper(objectMapper, textEncryptor);
 	}
 
-	private String json(Object o) {
-		try {
-			return this.objectMapper.writeValueAsString(o);
-		} //
-		catch (JsonProcessingException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	@Override
 	public <T extends Publishable> Publication publish(Long mogulId, T payload, Map<String, String> contextAndSettings,
 			PublisherPlugin<T> plugin) {
-		var mogul = mogulService.getMogulById(mogulId);
+		var mogul = this.mogulService.getMogulById(mogulId);
 		Assert.notNull(plugin, "the plugin must not be null");
 		Assert.notNull(payload, "the payload must not be null");
 		Assert.notNull(mogul, "the mogul should not be null");
@@ -79,8 +67,8 @@ class DefaultPublicationService implements PublicationService {
 		context.putAll(contextAndSettings);
 		plugin.publish(context, payload);
 		log.debug("finished publishing with plugin " + plugin.name() + '.');
-		var contextJson = this.textEncryptor.encrypt(json(context));
-		var publicationData = this.textEncryptor.encrypt(json(payload.publicationKey()));
+		var contextJson = this.textEncryptor.encrypt(JsonUtils.write(context));
+		var publicationData = this.textEncryptor.encrypt(JsonUtils.write(payload.publicationKey()));
 		var entityClazz = payload.getClass().getName();
 		var kh = new GeneratedKeyHolder();
 		this.db.sql(

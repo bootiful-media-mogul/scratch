@@ -19,23 +19,19 @@ class EpisodeRowMapper implements RowMapper<Episode> {
 	}
 
 	@Override
-	public Episode mapRow(ResultSet rs, int rowNum) throws SQLException {
+	public Episode mapRow(ResultSet resultSet, int rowNum) throws SQLException {
 		return new Episode(//
-				rs.getLong("id"), //
-				this.podcastFunction.apply(rs.getLong("podcast_id")), //
-				rs.getString("title"), //
-				rs.getString("description"), //
-				rs.getDate("created"), //
-				this.managedFileFunction.apply(rs.getLong("graphic")), //
-				this.managedFileFunction.apply(rs.getLong("produced_graphic")), //
-				this.managedFileFunction.apply(rs.getLong("introduction")), //
-				this.managedFileFunction.apply(rs.getLong("produced_introduction")), //
-				this.managedFileFunction.apply(rs.getLong("interview")), //
-				this.managedFileFunction.apply(rs.getLong("produced_interview")), //
-				this.managedFileFunction.apply(rs.getLong("produced_audio")), //
-				rs.getBoolean("complete"), //
-				rs.getDate("produced_audio_updated"), //
-				rs.getDate("produced_audio_assets_updated")//
+				resultSet.getLong("id"), //
+				this.podcastFunction.apply(resultSet.getLong("podcast_id")), //
+				resultSet.getString("title"), //
+				resultSet.getString("description"), //
+				resultSet.getDate("created"), //
+				this.managedFileFunction.apply(resultSet.getLong("graphic")), //
+				this.managedFileFunction.apply(resultSet.getLong("produced_graphic")), //
+				this.managedFileFunction.apply(resultSet.getLong("produced_audio")), //
+				resultSet.getBoolean("complete"), //
+				resultSet.getDate("produced_audio_updated"), //
+				resultSet.getDate("produced_audio_assets_updated")//
 		);
 	}
 

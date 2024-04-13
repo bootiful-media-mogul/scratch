@@ -2,17 +2,16 @@
 
 pardon our dust. 
 
-im going to do all the work here in a monorepo and then factor out as necessary 
+i'm going to do all the work here in a monorepo and then factor out as necessary 
 
 ## running the system 
 
-there should be a `dev.sh` script in each module that will run the module for ease of development. 
-
-* launch the `authorization` module 
-* then launch the `gateway`
-* then launch the `api`
-* then run 
-* then launch the podcasts-processor
+* make sure you've run the Docker Compose file: `docker compose up`
+* launch the `studio` (`cd studio && ./dev.sh`)
+* launch the `authorization` (`cd authorization && ./mvnw spring-boot:run`)
+* launch the `api` (`cd api && ./mvnw spring-boot:run`)
+* launch the `gateway` (`cd gateway && ./mvnw spring-boot:run`)
+* launch the `podcasts-processor` (`pipenv run python3 main.py`)
 
 ## publications 
 

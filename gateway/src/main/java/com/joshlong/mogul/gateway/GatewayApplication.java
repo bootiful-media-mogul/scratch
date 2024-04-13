@@ -1,5 +1,6 @@
 package com.joshlong.mogul.gateway;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -19,24 +20,28 @@ public class GatewayApplication {
 	}
 
 	@Bean
-	RouteLocator gateway(RouteLocatorBuilder rlb) {
+	RouteLocator gateway(RouteLocatorBuilder rlb,
+						 @Value("${mogul.gateway.ui}") String ui,
+						 @Value("${mogul.gateway.api}") String api) {
 		var apiPrefix = "/api/";
-		return rlb.routes()
-			.route(rs -> rs.path(apiPrefix + "**")
-				.filters(f -> f.tokenRelay().rewritePath(apiPrefix + "(?<segment>.*)", "/$\\{segment}"))
-				.uri("http://localhost:8080"))
-			.route(rs -> rs.path("/**").uri("http://localhost:5173"))
+		return rlb//
+				.routes()
+				.route(rs -> rs.path(apiPrefix + "**")
+						.filters(f -> f.tokenRelay().rewritePath(apiPrefix + "(?<segment>.*)", "/$\\{segment}"))
+						.uri(api))
+				.route(rs -> rs.path("/**").uri(ui))
 			.build();
 	}
 
 	@Bean
+	@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 	SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
 		return http//
-			.authorizeExchange((authorize) -> authorize.anyExchange().authenticated())//
-			.csrf(ServerHttpSecurity.CsrfSpec::disable)//
-			.oauth2Login(Customizer.withDefaults())//
-			.oauth2Client(Customizer.withDefaults())//
-			.build();
+				.authorizeExchange((authorize) -> authorize.anyExchange().authenticated())//
+				.csrf(ServerHttpSecurity.CsrfSpec::disable)//
+				.oauth2Login(Customizer.withDefaults())//
+				.oauth2Client(Customizer.withDefaults())//
+				.build();
 	}
 
 }

@@ -11,21 +11,25 @@ import java.util.UUID;
 
 public abstract class FileUtils {
 
-	public static File tempFile(String extension) {
+	public static File tempFile(String base, String extension) {
 		try {
 			var ext = "";
 			if (StringUtils.hasText(extension))
 				ext = (!extension.startsWith(".") ? "." + extension : extension).toLowerCase();
 
-			return Files.createTempFile("mogul-temp", "temp-file" + ext).toFile();
+			return Files.createTempFile("mogul-temp", base + ext).toFile();
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public static File tempFile() {
-		return tempFile(null);
+	public static File tempFileWithExtension(String extension) {
+		return tempFile("", extension);
+	}
+
+	public static File tempFileWithExtension() {
+		return tempFileWithExtension(null);
 	}
 
 	public static boolean delete(File file) {

@@ -1,0 +1,5 @@
+{"segments":
+["s3://podcast-assets-bucket-dev/062019/intro.mp3", "s3://podcast-assets-bucket-dev/062019/1.aiff",
+"s3://podcast-assets-bucket-dev/062019/2.aiff", "s3://podcast-assets-bucket-dev/062019/music-segue.mp3",
+"s3://podcast-assets-bucket-dev/062019/3.aiff", "s3://podcast-assets-bucket-dev/062019/4.aiff",
+"s3://podcast-assets-bucket-dev/062019/closing.mp3"], "output_s3_uri": "s3://podcast-output-bucket-dev/f31142fc-53b7-4354-ab8d-4fc379fa15e1/output.mp3"}

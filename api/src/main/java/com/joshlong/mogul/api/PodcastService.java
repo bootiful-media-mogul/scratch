@@ -3,12 +3,26 @@ package com.joshlong.mogul.api;
 import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import com.joshlong.mogul.api.podcasts.Episode;
 import com.joshlong.mogul.api.podcasts.Podcast;
+import com.joshlong.mogul.api.podcasts.Segment;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface PodcastService {
 
 	String PODCAST_EPISODES_BUCKET = "mogul-podcast-episodes";
+
+	Segment createEpisodeSegment(Long mogulId, Long episodeId, String name, long crossfade);
+
+	void movePodcastEpisodeSegmentUp(Long episode, Long segment);
+
+	void movePodcastEpisodeSegmentDown(Long episode, Long segment);
+
+	void deletePodcastEpisodeSegment(Long episodeSegmentId);
+
+	Segment getEpisodeSegmentById(Long episodeSegmentId);
+
+	List<Segment> getEpisodeSegmentsByEpisode(Long id);
 
 	Collection<Podcast> getAllPodcastsByMogul(Long mogulId);
 
@@ -17,8 +31,7 @@ public interface PodcastService {
 	Podcast createPodcast(Long mogulId, String title);
 
 	Episode createPodcastEpisode(Long podcastId, String title, String description, ManagedFile graphic,
-			ManagedFile introduction, ManagedFile interview, ManagedFile producedGraphic, ManagedFile producedIntro,
-			ManagedFile producedInterview, ManagedFile producedAudio);
+			ManagedFile producedGraphic, ManagedFile producedAudio);
 
 	Podcast getPodcastById(Long podcastId);
 

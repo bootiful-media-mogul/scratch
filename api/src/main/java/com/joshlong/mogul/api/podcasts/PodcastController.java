@@ -3,9 +3,9 @@ package com.joshlong.mogul.api.podcasts;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.mogul.api.MogulService;
 import com.joshlong.mogul.api.PodcastService;
-import com.joshlong.mogul.api.settings.Settings;
 import com.joshlong.mogul.api.podcasts.publication.PodcastEpisodePublisherPlugin;
 import com.joshlong.mogul.api.publications.PublicationService;
+import com.joshlong.mogul.api.settings.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.graphql.data.method.annotation.Argument;
@@ -20,10 +20,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Controller
@@ -62,6 +59,18 @@ class PodcastController {
 	}
 
 	@MutationMapping
+	boolean movePodcastEpisodeSegmentDown(@Argument Long episodeId, @Argument Long episodeSegmentId) {
+		this.podcastService.movePodcastEpisodeSegmentDown(episodeId, episodeSegmentId);
+		return true;
+	}
+
+	@MutationMapping
+	boolean movePodcastEpisodeSegmentUp(@Argument Long episodeId, @Argument Long episodeSegmentId) {
+		this.podcastService.movePodcastEpisodeSegmentUp(episodeId, episodeSegmentId);
+		return true;
+	}
+
+	@MutationMapping
 	Episode updatePodcastEpisode(@Argument Long episodeId, @Argument String title, @Argument String description) {
 		return this.podcastService.updatePodcastEpisodeDraft(episodeId, title, description);
 	}
@@ -69,6 +78,15 @@ class PodcastController {
 	@QueryMapping
 	Episode podcastEpisodeById(@Argument Long id) {
 		return this.podcastService.getEpisodeById(id);
+	}
+
+	@MutationMapping
+	boolean addPodcastEpisodeSegment(@Argument Long episodeId) {
+		var mogul = this.mogulService.getCurrentMogul().id();
+
+		this.podcastService.createEpisodeSegment(mogul, episodeId, "", 0);
+
+		return true;
 	}
 
 	@SchemaMapping
@@ -87,6 +105,11 @@ class PodcastController {
 	}
 
 	@SchemaMapping
+	List<Segment> segments(Episode episode) {
+		return this.podcastService.getEpisodeSegmentsByEpisode(episode.id());
+	}
+
+	@SchemaMapping
 	long created(Episode episode) {
 		return episode.created().getTime();
 	}
@@ -101,7 +124,7 @@ class PodcastController {
 		return this.podcastService.getAllPodcastsByMogul(mogulService.getCurrentMogul().id());
 	}
 
-	@SchemaMapping(typeName = "Podcast")
+	@SchemaMapping
 	Collection<Episode> episodes(Podcast podcast) {
 		this.mogulService.assertAuthorizedMogul(podcast.mogulId());
 		return this.podcastService.getEpisodesByPodcast(podcast.id());
@@ -112,6 +135,12 @@ class PodcastController {
 		var ep = podcastService.getEpisodeById(id);
 		this.mogulService.assertAuthorizedMogul(ep.podcast().mogulId());
 		podcastService.deletePodcastEpisode(id);
+		return id;
+	}
+
+	@MutationMapping
+	Long deletePodcastEpisodeSegment(@Argument Long id) {
+		this.podcastService.deletePodcastEpisodeSegment(id);
 		return id;
 	}
 
@@ -165,12 +194,11 @@ class PodcastController {
 	// mechanism!
 	@GetMapping("/podcasts/{podcastId}/episodes/{episodeId}/completions")
 	SseEmitter streamPodcastEpisodeCompletionEvents(@PathVariable Long podcastId, @PathVariable Long episodeId) {
-
 		log.debug("creating SSE watchdog for episode [" + episodeId + "]");
 		var peEmitter = new PodcastEpisodeSseEmitter(podcastId, episodeId, new SseEmitter());
-		var episode = podcastService.getEpisodeById(episodeId);
+		var episode = this.podcastService.getEpisodeById(episodeId);
 		Assert.notNull(episode, "the episode is null");
-		mogulService.assertAuthorizedMogul(episode.podcast().mogulId());
+		this.mogulService.assertAuthorizedMogul(episode.podcast().mogulId());
 		Assert.state(episode.podcast().id().equals(podcastId),
 				"the podcast specified and the actual podcast are not the same");
 		Assert.state(episode.podcast().mogulId().equals(mogulService.getCurrentMogul().id()),
@@ -181,7 +209,7 @@ class PodcastController {
 		log.debug("installing an SseEmitter for episode [" + episode + "]");
 		var cleanup = (Runnable) () -> {
 			this.episodeCompleteEventSseEmitters.remove(episodeId);
-			log.debug("removing sse listener for episode [" + episodeId + "]");
+			log.info("removing sse listener for episode [" + episodeId + "]");
 		};
 		peEmitter.sseEmitter().onCompletion(cleanup);
 		peEmitter.sseEmitter().onTimeout(cleanup);
@@ -189,8 +217,9 @@ class PodcastController {
 	}
 
 	@ApplicationModuleListener
-	void broadcastPodcastEpisodeCompletedEventToClients(PodcastEpisodeCompletedEvent podcastEpisodeCompletedEvent) {
-		var id = podcastEpisodeCompletedEvent.episode().id();
+	void broadcastPodcastEpisodeCompletionEventToClients(PodcastEpisodeCompletionEvent podcastEpisodeCompletionEvent) {
+		var episode = podcastEpisodeCompletionEvent.episode();
+		var id = episode.id();
 		log.debug("going to send an event to the" + " clients listening for episode [" + id + "]");
 
 		var emitter = this.episodeCompleteEventSseEmitters.get(id);
@@ -201,18 +230,16 @@ class PodcastController {
 		}
 
 		try {
-			var json = om.writeValueAsString(Map.of("id", id));
+			var map = Map.of("id", id, "complete", episode.complete());
+			var json = om.writeValueAsString(map);
 			emitter.sseEmitter().send(json, MediaType.APPLICATION_JSON);
-			log.debug("sent an event to clients listening for " + podcastEpisodeCompletedEvent.episode());
+			log.debug("sent an event to clients listening for " + episode);
 		} //
 		catch (Exception e) {
 			log.warn("experienced an exception when trying to emit a podcast completed event via SSE for id # " + id);
 			emitter.sseEmitter().completeWithError(e);
 		} //
-		finally {
-			log.debug("no need for this listener anymore, removing it.");
-			emitter.sseEmitter().complete();
-		}
+
 	}
 
 }

@@ -26,8 +26,7 @@ export default {
 </script>
 
 <template>
-
-<!--
+  <!--
   where this renders depends on the kind of notification we get. so,
   im keeping it out of the main layout. it'll be display none until it isnt
   and when it isn't it'll display as a modal, dead center on the screen,
@@ -40,7 +39,6 @@ export default {
       <div class="welcome">
         {{ $t('hello') }} <span style="font-weight: bold"> {{ mogul }} </span>!
       </div>
-
 
       <div class="toolbar">
         <router-link to="/">{{ $t('app.menu.home') }}</router-link>
@@ -70,7 +68,12 @@ export default {
     </div>
     <div class="footer">
       <span
-        v-html="$t('app.made-with-love', {'josh':'<a href=\'https://youtube.com/@coffeesoftware\'>Josh Long</a>'})"></span>
+        v-html="
+          $t('app.made-with-love', {
+            josh: '<a href=\'https://youtube.com/@coffeesoftware\'>Josh Long</a>'
+          })
+        "
+      ></span>
     </div>
   </div>
 </template>

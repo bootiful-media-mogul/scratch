@@ -2,7 +2,6 @@ package com.joshlong.mogul.api.podcasts.production;
 
 import com.joshlong.mogul.api.ManagedFileService;
 import com.joshlong.mogul.api.managedfiles.CommonMediaTypes;
-import com.joshlong.mogul.api.managedfiles.ManagedFile;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,59 +25,40 @@ import java.util.function.Function;
 @Configuration
 class MediaNormalizationIntegration {
 
-	static final String MEDIA_NORMALIZATION_FLOW = "mediaNormalizationFlow";
+	public static final String MEDIA_NORMALIZATION_FLOW = "mediaNormalizationFlow";
 
-	static final String REQUESTS = MEDIA_NORMALIZATION_FLOW + "Requests";
+	static final String MEDIA_NORMALIZATION_FLOW_CHANNEL = MEDIA_NORMALIZATION_FLOW + "Requests";
 
-	@Bean(REQUESTS)
+	@Bean(MEDIA_NORMALIZATION_FLOW_CHANNEL)
 	DirectChannelSpec mediaNormalizationFlowRequests() {
 		return MessageChannels.direct();
 	}
 
-	private ManagedFile readAndTransformManagedFile(ManagedFileService managedFileService, ManagedFile payload,
-			Function<File, File> normalizer, MediaType mediaType) {
-		var tmp = tempLocalFileForManagedFile(payload);
-		dump(managedFileService.read(payload.id()), tmp);
-		var newFile = normalizer.apply(tmp);
-		var managedFile = managedFileService.createManagedFile(payload.mogulId(), payload.bucket(), payload.folder(),
-				"normalized-" + payload.filename(), newFile.length(), mediaType);
-		managedFileService.write(managedFile.id(), managedFile.filename(), mediaType, new FileSystemResource(newFile));
-		return managedFile;
-	}
-
-	private static File tempLocalFileForManagedFile(ManagedFile managedFile) {
-		try {
-			return File.createTempFile("managedFileNormalization", managedFile.filename());
-		}
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	private static void dump(Resource resource, File file) {
-		try (var i = new BufferedInputStream(resource.getInputStream());
-				var o = new BufferedOutputStream(new FileOutputStream(file))) {
-			FileCopyUtils.copy(i, o);
-		} ///
-		catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	@Bean(MEDIA_NORMALIZATION_FLOW)
-	IntegrationFlow mediaNormalizationFlow(@Qualifier(REQUESTS) MessageChannel requests, ImageEncoder imageEncoder,
-			AudioEncoder audioEncoder, ManagedFileService managedFileService) {
+	IntegrationFlow mediaNormalizationFlow(@Qualifier(MEDIA_NORMALIZATION_FLOW_CHANNEL) MessageChannel requests,
+			ImageEncoder imageEncoder, AudioEncoder audioEncoder, ManagedFileService managedFileService) {
 		var imgMediaType = MediaType.parseMediaType("image/*");
 		return IntegrationFlow//
 			.from(requests)//
-			.handle((GenericHandler<ManagedFile>) (payload, headers) -> {
-				var isImage = imgMediaType.isCompatibleWith(MediaType.parseMediaType(payload.contentType()));
-				return (isImage)
-						? readAndTransformManagedFile(managedFileService, payload, imageEncoder::encode,
-								CommonMediaTypes.JPG)
-						: readAndTransformManagedFile(managedFileService, payload, audioEncoder::encode,
-								CommonMediaTypes.MP3);
-
+			.handle((GenericHandler<MediaNormalizationIntegrationRequest>) (io, headers) -> {
+				var input = io.input();
+				var output = io.output();
+				var isImage = imgMediaType.isCompatibleWith(MediaType.parseMediaType(input.contentType()));
+				var ext = isImage ? CommonMediaTypes.JPG : CommonMediaTypes.MP3;
+				var encodingFunction = isImage ? (Function<File, File>) imageEncoder::encode
+						: (Function<File, File>) audioEncoder::encode;
+				var localFile = input.uniqueLocalFile();
+				var resource = managedFileService.read(input.id());
+				try (var i = new BufferedInputStream(resource.getInputStream());
+						var o = new BufferedOutputStream(new FileOutputStream(localFile))) {
+					FileCopyUtils.copy(i, o);
+				} ///
+				catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+				var newFile = encodingFunction.apply(localFile);
+				managedFileService.write(output.id(), output.filename(), ext, new FileSystemResource(newFile));
+				return new MediaNormalizationIntegrationResponse(input, output);
 			})
 			.get();
 	}

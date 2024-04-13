@@ -13,10 +13,12 @@ def start_rabbitmq_processor(
         rabbit_username: str,
         rabbit_password: str,
         rabbit_vhost: str,
-        process_job_requests_fn,
-):
+        process_job_requests_fn):
     utils.log(
-        f"Establishing a connection to RabbitMQ host '{rabbit_host}', having virtual host '{rabbit_vhost}', with username '{rabbit_username}'.".strip())
+        f"Establishing a connection to RabbitMQ host '{rabbit_host}', "
+        "having virtual host '{rabbit_vhost}', with username "
+        "'{rabbit_username}'.".strip()
+    )
 
     if rabbit_vhost is not None:
         rabbit_vhost = rabbit_vhost.strip()
@@ -42,10 +44,12 @@ def start_rabbitmq_processor(
         with connection.channel() as channel:
             for method_frame, properties, json_request in channel.consume(requests_q):
                 try:
-                    replies_q = properties.reply_to
-                    result = process_job_requests_fn(properties, json_request)
+                    replies_q = str(properties.reply_to)
+                    assert replies_q is not None and replies_q.strip() != '', 'the replies queue must be non empty'
+                    loads = json.loads(json_request)  #
+                    result = process_job_requests_fn(properties, loads)
                     json_response: str = json.dumps(result)
-                    utils.log(f"sending json_response {json_response} to replies queue {replies_q}")
+                    utils.log(f'sending json_response {json_response} to reply queue {replies_q}')
                     basic_properties = pika.BasicProperties(
                         correlation_id=properties.correlation_id,
                         content_type="text/plain",

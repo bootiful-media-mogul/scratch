@@ -8,6 +8,10 @@
   />
 
   <div class="managed-file-row">
+    <span class="controls">
+      <slot></slot>
+    </span>
+
     <a class="choose" href="#" @click="launchFileUpload">
       <span class="folder-icon"></span>
     </a>
@@ -34,15 +38,16 @@
     </span>
 
     <span class="filename">
-      <span v-if="filename">{{ filename }} </span>
+      <span class="form-prompt" v-if="filename">{{ filename }} </span>
       <span class="form-prompt" v-else>{{ $t('managedfiles.please-upload-a-file') }}</span>
     </span>
   </div>
 </template>
 <style>
 .managed-file-row {
-  grid-template-areas: 'choose   written  preview   contentType   filename';
+  grid-template-areas: 'controls choose written  preview   contentType   filename';
   grid-template-columns:
+    min-content
     var(--icon-column)
     var(--icon-column)
     var(--icon-column)
@@ -50,7 +55,9 @@
     auto;
   display: grid;
 }
-
+.managed-file-row .controls {
+  grid-area: controls;
+}
 .managed-file-row .filename {
   grid-area: filename;
 }
